@@ -55,16 +55,13 @@
     <b>CHP</b>
   </a>
   <nav class="nav" id="nav" aria-label="Mục lục">
-      <a href="#dang-dien-ra"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-live"/></svg><i>Trực tiếp</i></a>
       <a href="#van-hoa"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flag"/></svg><i>Văn hóa</i></a>
-      <a href="#chuong-trinh"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"/></svg><i>Chương trình</i></a>
-      <a href="#dien-gia"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-mic"/></svg><i>Diễn giả</i></a>
       <a href="#hoi-dap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-talk"/></svg><i>Hỏi đáp</i></a>
       <a href="#minigame"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-game"/></svg><i>Mini game</i></a>
       <a href="#the-thao"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ball"/></svg><i>Thể thao</i></a>
-      <a href="#lich"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg><i>Lịch</i></a>
       <a href="#nhanh-dau"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trophy"/></svg><i>Nhánh đấu</i></a>
       <a href="#cac-doi"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-users"/></svg><i>Các đội</i></a>
+      <a href="#lich"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg><i>Lịch</i></a>
       <a href="#luat"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg><i>Luật</i></a>
   </nav>
 </header>
@@ -73,6 +70,9 @@
 <div class="nowbar" id="nowbar" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <main id="top">
+
+  <!-- ============ SLIDE TRỰC TIẾP ============ -->
+  <section class="lstrip" id="livestrip" aria-label="Trực tiếp"></section>
 
   <!-- ============ KHỐI MỞ ĐẦU ============ -->
   <section class="hero">
@@ -139,8 +139,8 @@
       <div class="cd reveal" id="countdown" style="--d:300ms; display:none"></div>
 
       <div class="hero-cta reveal" style="--d:340ms">
-        <a class="btn btn-pri" href="#dang-dien-ra"><svg class="ic" width="18" height="18"><use href="#i-live"/></svg> Đang diễn ra</a>
-        <a class="btn" href="#chuong-trinh"><svg class="ic" width="18" height="18"><use href="#i-cal"/></svg> Xem chương trình</a>
+        <a class="btn btn-pri" href="#the-thao"><svg class="ic" width="18" height="18"><use href="#i-ball"/></svg> Vào phần thể thao</a>
+        <a class="btn" href="#lich"><svg class="ic" width="18" height="18"><use href="#i-cal"/></svg> Xem lịch</a>
       </div>
 
       <a class="scrollcue" href="#dang-dien-ra" aria-label="Cuộn xuống"><span></span></a>
@@ -153,17 +153,6 @@
   <section class="statstrip">
     <div class="wrap">
       <div class="stats reveal" id="hero-stats"></div>
-    </div>
-  </section>
-
-  <!-- ============ ĐANG DIỄN RA ============ -->
-  <section class="section tight" id="dang-dien-ra">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Theo thời gian thực</span>
-        <h2>Đang diễn ra</h2>
-      </div>
-      <div id="live-panel" class="reveal"></div>
     </div>
   </section>
 
@@ -180,27 +169,6 @@
   </section>
 
   <!-- ============ CHƯƠNG TRÌNH ============ -->
-  <section class="section" id="chuong-trinh">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">08:00 – 18:00</span>
-        <h2>Chương trình cả ngày</h2>
-      </div>
-      <div class="tl" id="timeline"></div>
-    </div>
-  </section>
-
-  <!-- ============ DIỄN GIẢ ============ -->
-  <section class="section" id="dien-gia">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Ba bài chia sẻ</span>
-        <h2>Diễn giả</h2>
-      </div>
-      <div class="talks" id="talk-cards"></div>
-    </div>
-  </section>
-
   <!-- ============ HỎI ĐÁP ============ -->
   <section class="section" id="hoi-dap">
     <div class="wrap">
@@ -272,11 +240,24 @@
   <section class="section" id="lich">
     <div class="wrap">
       <div class="sec-head reveal">
-        <span class="eyebrow" id="eb-tran">Lịch thi đấu</span>
-        <h2>Lịch thi đấu</h2>
+        <span class="eyebrow" id="eb-tran">Thứ Bảy 17/10/2026</span>
+        <h2>Lịch</h2>
       </div>
-      <div class="tabs reveal" id="sched-tabs" role="tablist"></div>
-      <div id="sched-pane" role="tabpanel" tabindex="0"></div>
+
+      <div class="tabs big reveal" id="cal-tabs" role="tablist" aria-label="Chọn loại lịch"></div>
+
+      <div id="cal-pane">
+        <!-- lịch chương trình cả ngày -->
+        <div id="cal-prog" role="tabpanel" tabindex="0" aria-label="Lịch chương trình">
+          <div class="agenda" id="agenda"></div>
+        </div>
+
+        <!-- lịch thi đấu -->
+        <div id="cal-sport" role="tabpanel" tabindex="0" aria-label="Lịch thi đấu" hidden>
+          <div class="tabs reveal" id="sched-tabs" role="tablist"></div>
+          <div id="sched-pane"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -343,16 +324,6 @@
   </section>
 
   <!-- ============ ẢNH ============ -->
-  <section class="section" id="anh">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Tư liệu</span>
-        <h2>Ảnh ngày hội</h2>
-      </div>
-      <div class="gallery" id="gallery"></div>
-    </div>
-  </section>
-
 </main>
 
 <!-- ============ FOOTER ============ -->

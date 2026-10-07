@@ -4,7 +4,7 @@ Trang web một chiều cuộn cho **Ngày hội Văn hóa – Thể thao CHP 20
 Thứ Bảy **17/10/2026**, Hội trường Viện Hàn lâm Khoa học xã hội Việt Nam (số 1 Liễu Giai, Hà Nội).
 Chủ đề: *Xây dựng Văn hóa CHP — Truyền thống · Tự lực · Thích ứng*.
 
-Nội dung trên trang: ba trục văn hóa, chương trình cả ngày, ba diễn giả, mini game,
+Nội dung trên trang: ba trục văn hóa, lịch cả ngày, mini game,
 lịch thi đấu và nhánh đấu buổi chiều, danh sách đội, luật thi đấu, giải thưởng, ảnh ngày hội.
 Có form đặt câu hỏi cho diễn giả, mã QR để mọi người quét vào trang, bảng nhập kết quả cho BTC,
 và **phần "Đang diễn ra"** tự cập nhật theo giờ.
@@ -89,11 +89,9 @@ Mở `assets/js/config.js` — mọi thứ quan trọng nằm ở đó, có chú
 | Link phòng mini game | `quizJoinUrl` trong `config.js` |
 | Địa chỉ web để tạo QR | `siteUrl` trong `config.js` |
 | Cập nhật kết quả trực tiếp | `resultsCsvUrl` trong `config.js` |
-| Chương trình buổi sáng | mảng `timeline` trong `assets/js/data.js` |
+| Lịch chương trình cả ngày | mảng `timeline` trong `assets/js/data.js` |
 | Ba trục văn hóa | mảng `pillars` trong `assets/js/data.js` |
-| Diễn giả & bài chia sẻ | mảng `talks` trong `assets/js/data.js` |
 | Mini game | object `miniGame` trong `assets/js/data.js` |
-| Ảnh ngày hội | mảng `gallery` trong `assets/js/data.js` |
 | Danh sách đội, vận động viên | mảng `events` và `jumpRope` trong `assets/js/data.js` |
 | Kết quả trận đấu | object `results` trong `assets/js/data.js` |
 
@@ -108,17 +106,6 @@ trong mảng `talks` ở `data.js`:
 
 Chưa có ảnh thì trang dùng chân dung vẽ sẵn (mỗi bài một dáng khác nhau).
 Ảnh nên cắt vuông, tối thiểu 200×200.
-
-**Ảnh ngày hội.** Khai báo trong `gallery` ở `data.js`:
-
-```js
-gallery: [
-  { src: 'assets/img/check-in.jpg', caption: 'Đón khách từ 08h00' },
-  { src: 'assets/img/bai-2.jpg',    caption: 'Chuyện kể từ công trường Đại Ngãi' }
-],
-```
-
-Để trống thì mục Ảnh hiện bốn khung chờ.
 
 **Tường người tham dự** ở mục *Các đội* tự dựng từ danh sách đăng ký trong `data.js` —
 63 người, chữ cái đầu, màu theo bộ phận, số nội dung mỗi người đăng ký. Không cần làm gì thêm.
@@ -273,6 +260,26 @@ Các tham số xếp lịch nằm trong `schedule` ở đầu `data.js`:
 
 ---
 
+## 6b. Mục Lịch
+
+Mục *Lịch* có một nút chuyển ở trên cùng:
+
+- **Chương trình** — lịch cả ngày bày theo kiểu lịch: cột giờ bên trái, nội dung bên
+  phải, chia theo buổi sáng / trưa / chiều / tối. Mốc đang diễn ra tự viền xanh.
+  Dựng từ mảng `timeline` trong `data.js`.
+- **Thể thao** — lịch thi đấu, mặc định mở ở **Lịch sân**: mỗi sân một cột, giờ chạy
+  dọc, mỗi trận là một khối cao đúng bằng thời lượng của nó, nhìn phát biết sân nào
+  đang trống. Còn bốn kiểu xem khác: Theo sân, Theo giờ, Theo nội dung, Nhảy dây.
+
+Độ cao mỗi phút trên lịch sân đặt ở biến `--px` trong `.cc` (`style.css`), mặc định
+2.6px một phút. Muốn lịch cao hơn cho dễ đọc thì tăng số này.
+
+Ba mục **Chương trình**, **Diễn giả** và **Ảnh ngày hội** đã bỏ khỏi trang:
+chương trình gộp vào Lịch, hai mục kia bỏ hẳn. Dữ liệu `talks` và `gallery` vẫn còn
+trong `data.js` nhưng không còn chỗ nào hiển thị — xóa được nếu muốn gọn file.
+
+---
+
 ## 7. Những chỗ dữ liệu còn thiếu / cần BTC chốt
 
 Trang đang hiển thị rõ các điểm này để không ai hiểu nhầm:
@@ -319,7 +326,7 @@ về chính ba bài phát biểu buổi sáng).
 index.html                  khung trang + sprite icon
 assets/css/style.css        toàn bộ giao diện
 assets/js/config.js         CẤU HÌNH — chỗ BTC sửa nhiều nhất
-assets/js/data.js           DỮ LIỆU — chương trình, trục văn hóa, diễn giả, đội, luật
+assets/js/data.js           DỮ LIỆU — lịch chương trình, trục văn hóa, đội, luật
 assets/js/tournament.js     sinh trận, xếp sân xếp giờ, tính đội đi tiếp
 assets/js/live.js           tính "đang diễn ra" theo giờ Việt Nam
 assets/img/                 nơi bỏ ảnh thật (diễn giả, ngày hội)

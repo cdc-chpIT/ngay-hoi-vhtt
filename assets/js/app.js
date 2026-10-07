@@ -214,39 +214,66 @@
     return { start: t.start, end: t.end };
   }
 
-  function renderTimeline() {
-    var html = '<div class="tl-fill" id="tl-fill"></div>';
+  /* ---------------------------------------------------------------
+     Lịch chương trình: bày theo kiểu lịch một ngày — cột giờ bên trái,
+     nội dung bên phải, chia theo buổi.
+     --------------------------------------------------------------- */
+  var PART_NAME = {
+    morning:   'Buổi sáng · Phần Văn hóa',
+    noon:      'Buổi trưa',
+    afternoon: 'Buổi chiều · Đại hội thể thao',
+    evening:   'Buổi tối'
+  };
+
+  function renderAgenda() {
+    var host = $('#agenda');
+    if (!host) return;
+
+    var html = '', part = null;
     D.timeline.forEach(function (t, k) {
       var tm = slotTime(t);
       if (!tm || !tm.start) return;
-      html +=
-        '<div class="tl-item reveal" data-part="' + t.part + '" data-idx="' + k + '" ' +
-             (t.talk ? 'data-pillar="' + esc(D.pillars[t.talk - 1].key) + '" ' : '') +
-             'style="--d:' + (Math.min(k, 8) * 40) + 'ms">' +
-          '<div class="tl-dot">' + icon(t.icon, 22) + '</div>' +
-          '<div class="tl-body">' +
-            '<div class="tl-time"><b>' + esc(tm.start) + (tm.end ? ' – ' + esc(tm.end) : '') + '</b>' +
-              (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
-              (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
-              '<span class="chip ok tl-live" hidden>Đang diễn ra</span>' +
-            '</div>' +
+
+      if (t.part !== part) {
+        part = t.part;
+        html += '<div class="ag-part"><b>' + esc(PART_NAME[part] || '') + '</b></div>';
+      }
+
+      var pillar = t.talk ? D.pillars[t.talk - 1] : null;
+      html += '<div class="ag-item reveal" data-idx="' + k + '" data-part="' + esc(t.part) + '"' +
+          (pillar ? ' data-pillar="' + esc(pillar.key) + '"' : '') +
+          (t.sport ? ' data-sport="1"' : '') +
+          ' style="--d:' + (Math.min(k, 8) * 35) + 'ms">' +
+        '<div class="ag-t"><b>' + esc(tm.start) + '</b>' +
+          (tm.end ? '<span>' + esc(tm.end) + '</span>' : '') + '</div>' +
+        '<div class="ag-c">' +
+          '<div class="ag-ic">' + icon(t.icon, 20) + '</div>' +
+          '<div class="ag-b">' +
             '<h3>' + esc(t.title) + '</h3>' +
             '<p>' + esc(t.desc) + '</p>' +
-            (t.owner ? '<div class="tl-own">' + icon('users', 14) + esc(t.owner) + '</div>' : '') +
+            '<div class="ag-tags">' +
+              (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
+              (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
+              (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
+              (t.sport ? '<a class="chip ok" href="#lich" data-go-sport="1">Xem lịch từng trận</a>' : '') +
+              '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
+            '</div>' +
           '</div>' +
-        '</div>';
+        '</div>' +
+      '</div>';
     });
-    $('#timeline').innerHTML = html;
+
+    host.innerHTML = html;
   }
 
   /* đánh dấu mốc đang diễn ra trên dòng thời gian */
   function markTimelineNow(st) {
     var on = (st && st.phase === 'live' && st.current && !st.current.synthetic)
       ? st.current.idx : -1;
-    $$('#timeline .tl-item').forEach(function (el) {
+    $$('#agenda .ag-item').forEach(function (el) {
       var is = Number(el.dataset.idx) === on;
       el.classList.toggle('now', is);
-      var chip = $('.tl-live', el);
+      var chip = $('.ag-live', el);
       if (chip) chip.hidden = !is;
     });
   }
@@ -423,7 +450,7 @@
           '<div class="live-body">' +
             '<h3>Ngày hội đã khép lại</h3>' +
             '<p>Cảm ơn cả nhà. Ảnh, video và bộ slide ba bài phát biểu sẽ được cập nhật ' +
-            'ở mục <a href="#anh" style="color:var(--brand)">Ảnh ngày hội</a>.</p>' +
+            '.</p>' +
           '</div>' +
         '</div>' + previewBox(np, true) +
       '</div>';
@@ -650,37 +677,6 @@
     return (w[w.length - 2][0] + w[w.length - 1][0]).toUpperCase();
   }
 
-  function renderTalks() {
-    var byKey = {};
-    D.pillars.forEach(function (p) { byKey[p.key] = p; });
-
-    $('#talk-cards').innerHTML = D.talks.map(function (t, k) {
-      var p = byKey[t.pillar] || {};
-      var multi = /\sv(à|a)\s/i.test(t.speaker);
-      var face = t.photo
-        ? '<img src="' + esc(t.photo) + '" alt="' + esc(t.speaker) + '">'
-        : (PORTRAIT[t.pillar] || esc(initials(t.speaker)));
-      return '<article class="talk reveal" data-k="' + esc(t.pillar) + '" style="--d:' + (k * 110) + 'ms">' +
-        '<div class="th">' +
-          '<span class="av' + (t.photo ? ' has-photo' : '') + (multi ? ' duo' : '') + '">' + face +
-            (multi ? '<i class="duo-badge">+1</i>' : '') + '</span>' +
-          '<span class="tm">' +
-            '<span class="pil">' + esc(p.name || '') + '</span>' +
-            '<span class="nm">' + esc(t.speaker) + '</span>' +
-            (t.speakerRole ? '<span class="rl">' + esc(t.speakerRole) + '</span>' : '') +
-          '</span>' +
-        '</div>' +
-        '<h3>Bài ' + t.no + ' — ' + esc(t.name) + '</h3>' +
-        (t.altTitle ? '<div class="alt">“' + esc(t.altTitle) + '”</div>' : '') +
-        '<p class="tz">' + esc(t.teaser) + '</p>' +
-        '<div class="tf">' +
-          '<span class="chip">' + t.minutes + ' phút trình bày</span>' +
-          '<span class="chip">' + t.qa + ' phút hỏi đáp</span>' +
-          (t.speakerNote ? '<span class="chip warn">' + esc(t.speakerNote) + '</span>' : '') +
-        '</div>' +
-      '</article>';
-    }).join('');
-  }
 
   function renderMiniGame() {
     var g = D.miniGame;
@@ -721,23 +717,6 @@
       '</div>';
   }
 
-  function renderGallery() {
-    var g = D.gallery || [];
-    if (g.length) {
-      $('#gallery').innerHTML = g.map(function (ph, i) {
-        return '<figure class="gph reveal" style="--d:' + (i % 4 * 70) + 'ms">' +
-          '<img src="' + esc(ph.src) + '" alt="' + esc(ph.caption || 'Ảnh ngày hội') + '" loading="lazy">' +
-          (ph.caption ? '<figcaption>' + esc(ph.caption) + '</figcaption>' : '') +
-        '</figure>';
-      }).join('');
-      return;
-    }
-    var slots = ['Đón khách & check-in', 'Ba bài chia sẻ', 'Mini game', 'Thể thao buổi chiều'];
-    $('#gallery').innerHTML = slots.map(function (t, i) {
-      return '<div class="gph empty reveal" style="--d:' + (i * 70) + 'ms">' +
-        '<div>' + icon('camera', 30) + '<span>' + esc(t) + '</span></div></div>';
-    }).join('');
-  }
 
   /* =====================================================================
      TỔNG QUAN THỂ THAO
@@ -950,6 +929,7 @@
      LỊCH THI ĐẤU
      ===================================================================== */
   var schedViews = [
+    { id: 'cal',   label: 'Lịch sân' },
     { id: 'court', label: 'Theo sân' },
     { id: 'time',  label: 'Theo giờ' },
     { id: 'event', label: 'Theo nội dung' },
@@ -990,10 +970,67 @@
     return html;
   }
 
+  /* ---------------------------------------------------------------
+     Lịch sân: mỗi sân một cột, giờ chạy dọc, mỗi trận là một khối cao
+     đúng bằng thời lượng của nó. Nhìn phát biết sân nào đang trống.
+     --------------------------------------------------------------- */
+  function courtCalendar() {
+    var ms = T.matches.filter(function (m) { return m.court && m.startMin != null; });
+    if (!ms.length) return '';
+
+    var from = Math.min.apply(null, ms.map(function (m) { return m.startMin; }));
+    var to   = Math.max.apply(null, ms.map(function (m) { return m.endMin; }));
+    from = Math.floor(from / 30) * 30;
+    to   = Math.ceil(to / 30) * 30;
+
+    /* nhảy dây chạy song song, cho vào một cột riêng cho đủ bức tranh */
+    var cols = [];
+    D.venues.forEach(function (vn) {
+      vn.courts.forEach(function (c) {
+        cols.push({ id: c.id, name: c.short || c.name, venue: vn, list: T.matchesOfCourt(c.id) });
+      });
+    });
+
+    var marks = '';
+    for (var t = from; t <= to; t += 30) {
+      marks += '<div class="cc-mark" style="--t:' + (t - from) + '"><span>' +
+               Tournament.toHHMM(t) + '</span></div>';
+    }
+
+    var body = cols.map(function (c) {
+      var blocks = c.list.map(function (m) {
+        var v = T.view(m);
+        var dur = m.endMin - m.startMin;
+        var k = sportKey(v.event.sport);
+        return '<div class="cc-b ' + k + (v.done ? ' done' : '') + '"' +
+          ' style="--s:' + (m.startMin - from) + ';--d:' + dur + '"' +
+          ' title="' + esc(m.time + '–' + m.endTime + ' · ' + v.event.short + ' · ' + m.label +
+                           ': ' + v.teamA.label + ' vs ' + v.teamB.label) + '">' +
+          '<b>' + esc(m.label) + '</b>' +
+          '<span class="cc-ev">' + esc(v.event.short) + '</span>' +
+          '<span class="cc-tm">' + esc(m.time) + '</span>' +
+        '</div>';
+      }).join('');
+      return '<div class="cc-col"><header>' + esc(c.name) + '</header>' +
+             '<div class="cc-body">' + blocks + '</div></div>';
+    }).join('');
+
+    return '<div class="cc-wrap"><div class="cc" style="--from:' + from + ';--to:' + to + '">' +
+      '<div class="cc-rail"><header></header><div class="cc-body">' + marks + '</div></div>' +
+      body +
+    '</div></div>' +
+    '<p class="cc-hint">Chiều cao mỗi khối đúng bằng thời lượng trận. ' +
+      'Khoảng trống là lúc sân đó nghỉ. Kéo ngang để xem hết các sân.</p>';
+  }
+
   function renderSchedule(view) {
     var host = $('#sched-pane'), html = scheduleNotes();
 
-    if (view === 'court') {
+    if (view === 'cal') {
+      host.innerHTML = html + courtCalendar();
+      return;
+
+    } else if (view === 'court') {
       D.venues.forEach(function (vn) {
         vn.courts.forEach(function (c) {
           var list = T.matchesOfCourt(c.id);
@@ -1623,7 +1660,7 @@
 
     lsSet(LS_SEEDS, localSeeds);
     T.replan();            /* bốc thăm xong mới biết ai đánh trận nào -> xếp lại giờ */
-    renderTimeline();      /* dựng lại trước, để markTimelineNow còn chỗ mà tô */
+    renderAgenda();        /* dựng lại trước, để markTimelineNow còn chỗ mà tô */
     refreshResults();
     renderSport();
     renderAdmin();
@@ -1768,7 +1805,6 @@
     var art = $('.hero-art .bridge'), rays = $('.hero-art .rays');
     var links = $$('#nav a');
     var secs = links.map(function (a) { return document.getElementById(a.hash.slice(1)); });
-    var tl = $('#timeline');
     var raf = false;
 
     function run() {
@@ -1793,12 +1829,6 @@
         if (rays) rays.style.setProperty('--py2', Math.min(140, y * 0.26) + 'px');
       }
 
-      var fill = $('#tl-fill');
-      if (tl && fill) {
-        var r = tl.getBoundingClientRect();
-        var p = (window.innerHeight * .6 - r.top) / r.height;
-        fill.style.height = Math.max(0, Math.min(1, p)) * (tl.offsetHeight - 36) + 'px';
-      }
     }
     function onScroll() { if (!raf) { raf = true; requestAnimationFrame(run); } }
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -1921,7 +1951,7 @@
       lsDel(LS_RESULTS); lsDel(LS_SEEDS);
       D.events.forEach(function (ev) { ev.seeds = (baseSeeds[ev.id] || []).slice(); });
       T.replan();
-      renderTimeline();
+      renderAgenda();
       mergeResults(); refreshResults(); renderAdmin(); renderSport(); revealScan();
       admSay('Đã xóa điểm và kết quả bốc thăm lưu trên máy này.');
     });
@@ -1966,11 +1996,9 @@
 
     renderHero();
     renderPillars();
-    renderTimeline();
-    renderTalks();
+    renderAgenda();
     renderAsk();
     renderMiniGame();
-    renderGallery();
     renderPeopleWall();
     renderQr();
     renderSport();
@@ -1979,6 +2007,28 @@
     renderFaq();
     renderFoot();
     renderEyebrows();
+
+    buildTabs('#cal-tabs', [
+      { id: 'prog',  label: 'Chương trình' },
+      { id: 'sport', label: 'Thể thao' }
+    ], function (k) {
+      var prog = $('#cal-prog'), sport = $('#cal-sport');
+      if (prog)  prog.hidden  = k !== 'prog';
+      if (sport) sport.hidden = k !== 'sport';
+      revealScan();
+    });
+
+    /* chip "Xem lịch từng trận" trong lịch chương trình nhảy sang lịch thi đấu */
+    var calPane = $('#cal-pane');
+    if (calPane) {
+      calPane.addEventListener('click', function (e) {
+        var a = e.target.closest('[data-go-sport]');
+        if (!a) return;
+        e.preventDefault();
+        var b = $('#cal-tabs button[data-k="sport"]');
+        if (b) b.click();
+      });
+    }
 
     buildTabs('#sched-tabs', schedViews, function (k) {
       cur.sched = k; renderSchedule(k); revealScan();
