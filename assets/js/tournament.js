@@ -11,12 +11,14 @@ var Tournament = (function () {
   /* ---------- tên vòng ---------- */
   var ROUND_NAME = {
     VL: 'Vòng loại',
+    VV: 'Vòng vớt',
     R1: 'Vòng đầu',
     TK: 'Tứ kết',
     BK: 'Bán kết',
-    CK: 'Chung kết'
+    CK: 'Chung kết',
+    TB: 'Tranh hạng Ba'
   };
-  var ROUND_SHORT = { VL: 'VL', R1: 'Trận', TK: 'TK', BK: 'BK', CK: 'CK' };
+  var ROUND_SHORT = { VL: 'VL', VV: 'VV', R1: 'Trận', TK: 'TK', BK: 'BK', CK: 'CK', TB: 'HB' };
 
   /* ---------- tiện ích thời gian ---------- */
   function toMin(hhmm) {
@@ -32,6 +34,8 @@ var Tournament = (function () {
   function seedRef(n)        { return { k: 'seed', n: n }; }
   function winnerRef(id)     { return { k: 'winner', m: id }; }
   function diffRankRef(n)    { return { k: 'diffRank', n: n }; }
+  function loserRef(id)      { return { k: 'loser', m: id }; }
+  function pickRef(n)        { return { k: 'pick', n: n }; }
 
   /* =====================================================================
      1. SINH TRẬN THEO THỂ THỨC
@@ -45,7 +49,8 @@ var Tournament = (function () {
         round: round,
         roundName: ROUND_NAME[round] || round,
         index: idx,
-        label: (ROUND_NAME[round] || round) + (round === 'CK' ? '' : ' ' + idx),
+        label: (ROUND_NAME[round] || round) +
+             (round === 'CK' || round === 'TB' ? '' : ' ' + idx),
         a: a,
         b: b,
         isFinal: round === 'CK',
@@ -76,6 +81,35 @@ var Tournament = (function () {
       add('BK', 1, winnerRef(ev.id + '-TK-1'), winnerRef(ev.id + '-TK-2'));
       add('BK', 2, winnerRef(ev.id + '-TK-3'), winnerRef(ev.id + '-TK-4'));
       add('CK', 1, winnerRef(ev.id + '-BK-1'), winnerRef(ev.id + '-BK-2'));
+      if (ev.thirdPlace) {
+        add('TB', 1, loserRef(ev.id + '-BK-1'), loserRef(ev.id + '-BK-2'));
+      }
+
+    } else if (ev.format === 'q12r') {
+      /* 12 đội, không ai được miễn vòng loại:
+           - Vòng loại 6 trận, ghép lần lượt Đội 1–2, 3–4 … 11–12.
+             Sáu đội thắng vào thẳng Tứ kết.
+           - Vòng vớt 3 trận, sáu đội thua đấu tiếp theo cặp.
+             Trong ba đội thắng vớt, lấy 2 đội theo hiệu số, rồi tổng điểm.
+           - Hai đội vớt nằm ở hai nhánh khác nhau; nếu rơi vào đúng đội
+             đã loại mình thì đổi chỗ cho nhau (xử lý trong repechage()). */
+      for (var q = 1; q <= 6; q++) {
+        add('VL', q, seedRef(q * 2 - 1), seedRef(q * 2));
+      }
+      for (var vv = 1; vv <= 3; vv++) {
+        add('VV', vv, loserRef(ev.id + '-VL-' + (vv * 2 - 1)),
+                      loserRef(ev.id + '-VL-' + (vv * 2)));
+      }
+      add('TK', 1, winnerRef(ev.id + '-VL-1'), pickRef(1));
+      add('TK', 2, winnerRef(ev.id + '-VL-2'), winnerRef(ev.id + '-VL-3'));
+      add('TK', 3, winnerRef(ev.id + '-VL-4'), winnerRef(ev.id + '-VL-5'));
+      add('TK', 4, winnerRef(ev.id + '-VL-6'), pickRef(2));
+      add('BK', 1, winnerRef(ev.id + '-TK-1'), winnerRef(ev.id + '-TK-2'));
+      add('BK', 2, winnerRef(ev.id + '-TK-3'), winnerRef(ev.id + '-TK-4'));
+      add('CK', 1, winnerRef(ev.id + '-BK-1'), winnerRef(ev.id + '-BK-2'));
+      if (ev.thirdPlace) {
+        add('TB', 1, loserRef(ev.id + '-BK-1'), loserRef(ev.id + '-BK-2'));
+      }
 
     } else if (ev.format === 'r6diff') {
       /* 6 đội: 3 trận vòng đầu, 2 đội thắng hiệu số cao nhất vào chung kết */
@@ -83,6 +117,11 @@ var Tournament = (function () {
         add('R1', r, seedRef(r * 2 - 1), seedRef(r * 2));
       }
       add('CK', 1, diffRankRef(1), diffRankRef(2));
+
+    } else if (typeof console !== 'undefined' && console.warn) {
+      /* gõ sai tên thể thức thì nội dung đó sẽ trống trơn mà không ai biết */
+      console.warn('Thể thức không nhận ra: "' + ev.format + '" ở nội dung ' + ev.id +
+                   '. Nội dung này sẽ không có trận nào.');
     }
     return ms;
   }
@@ -177,31 +216,52 @@ var Tournament = (function () {
       var ok = true;
       [m.a, m.b].forEach(function (ref) {
         if (!ref) return;
-        if (ref.k === 'winner') {
+        if (ref.k === 'winner' || ref.k === 'loser') {
           var dep = byId[ref.m];
           if (!dep || dep.startMin == null) ok = false;
         } else if (ref.k === 'diffRank') {
           state.matches.forEach(function (x) {
             if (x.eventId === m.eventId && x.round === 'R1' && x.startMin == null) ok = false;
           });
+        } else if (ref.k === 'pick') {
+          state.matches.forEach(function (x) {
+            if (x.eventId === m.eventId && x.round === 'VV' && x.startMin == null) ok = false;
+          });
         }
       });
       return ok;
     }
 
+    /* Thời lượng một trận. Pickleball vòng ngoài đánh luật ăn điểm trực tiếp
+       nên nhanh hơn bán kết và chung kết, vì vậy thời lượng tính theo vòng
+       chứ không theo khu sân. Không khai báo gì thì lấy mặc định của khu sân. */
+    function slotFor(m) {
+      var ev = state.eventById[m.eventId] || {};
+      var d = ev.durations || {};
+      if (d[m.round] != null) return d[m.round];
+      if (d.mac_dinh != null) return d.mac_dinh;
+      return m.venue.slotMinutes;
+    }
+
     /* Giờ sớm nhất có thể bắt đầu, và sân nào nhận trận này */
     function plan(m) {
-      var v = m.venue, slot = v.slotMinutes, base = toMin(v.start);
+      var v = m.venue, slot = slotFor(m), base = toMin(v.start);
       var earliest = base;
 
       [m.a, m.b].forEach(function (ref) {
         if (!ref) return;
-        if (ref.k === 'winner') {
+        if (ref.k === 'winner' || ref.k === 'loser') {
           var dep = byId[ref.m];
           if (dep && dep.endMin != null) earliest = Math.max(earliest, dep.endMin + roundRest);
         } else if (ref.k === 'diffRank') {
           state.matches.forEach(function (x) {
             if (x.eventId === m.eventId && x.round === 'R1' && x.endMin != null) {
+              earliest = Math.max(earliest, x.endMin + roundRest);
+            }
+          });
+        } else if (ref.k === 'pick') {
+          state.matches.forEach(function (x) {
+            if (x.eventId === m.eventId && x.round === 'VV' && x.endMin != null) {
               earliest = Math.max(earliest, x.endMin + roundRest);
             }
           });
@@ -214,13 +274,20 @@ var Tournament = (function () {
           if (shares(mine, bk.names)) earliest = Math.max(earliest, bk.endMin + playerRest);
         });
       }
-      if (m.isFinal) earliest = Math.max(earliest, finalLockByVenue[v.id] || 0);
+      /* Mặc định hai chung kết cùng một khu sân xếp lần lượt để mọi người xem
+         được cả hai. Khu sân nào đặt finalsTogether thì cho đá đồng thời trên
+         hai sân — khán giả tập trung một chỗ, trao giải và chụp ảnh luôn. */
+      if (m.isFinal && !v.finalsTogether) {
+        earliest = Math.max(earliest, finalLockByVenue[v.id] || 0);
+      }
 
       var best = null;
       v.courts.forEach(function (c) {
         if (best === null || courtFree[c.id] < courtFree[best.id]) best = c;
       });
-      var grid = v.gridMinutes || slot;
+      /* Lưới giờ phải cố định theo khu sân. Nếu lấy theo slot thì từ khi
+         thời lượng đổi theo vòng, giờ bắt đầu các sân sẽ lệch nhau. */
+      var grid = v.gridMinutes || v.slotMinutes || slot;
       var start = Math.max(earliest, courtFree[best.id]);
       start = base + Math.ceil((start - base) / grid) * grid;   /* về đúng lưới giờ */
       return { start: start, court: best, slot: slot, players: mine };
@@ -330,6 +397,29 @@ var Tournament = (function () {
       };
     }
 
+    if (ref.k === 'loser') {
+      var dl = state.matchById[ref.m];
+      if (!dl) return { pending: true, label: '—' };
+      var lo = loserOf(state, dl);
+      if (lo && lo.teamId != null) {
+        return { teamId: lo.teamId, label: teamLabel(ev, lo.teamId), pending: false, via: dl.id };
+      }
+      return {
+        pending: true,
+        label: 'Thua ' + ROUND_SHORT[dl.round] + ' ' + dl.index,
+        via: dl.id
+      };
+    }
+
+    if (ref.k === 'pick') {
+      var rp = repechage(state, ev);
+      var tid2 = rp.picks[ref.n - 1];
+      if (rp.ready && tid2 != null) {
+        return { teamId: tid2, label: teamLabel(ev, tid2), pending: false };
+      }
+      return { pending: true, label: 'Đội vớt ' + ref.n };
+    }
+
     if (ref.k === 'diffRank') {
       var rank = diffRanking(state, ev);
       if (rank.ready && rank.rows[ref.n - 1]) {
@@ -339,6 +429,76 @@ var Tournament = (function () {
       return { pending: true, label: 'Hiệu số hạng ' + ref.n };
     }
     return { pending: true, label: '—' };
+  }
+
+  /* Chọn 2 trong 3 đội thắng vòng vớt.
+     Thứ tự xét: hiệu số trận vớt → tổng điểm ghi được → còn bằng nhau thì
+     BTC bốc thăm (trang báo "cần bốc thăm" chứ không tự chọn hộ).
+     Chọn xong còn phải tránh cho đội vớt gặp lại đúng đội đã loại mình ở
+     vòng loại: TK 1 gặp đội thắng VL 1, TK 4 gặp đội thắng VL 6, nên nếu
+     trùng thì đổi chỗ hai đội vớt cho nhau. */
+  function repechage(state, ev) {
+    var rows = [], ready = true;
+    state.matches.forEach(function (m) {
+      if (m.eventId !== ev.id || m.round !== 'VV') return;
+      var w = winnerOf(state, m);
+      var sc = state.results[m.id];
+      if (!w || !sc || w.teamId == null) { ready = false; return; }
+      rows.push({
+        matchId: m.id,
+        matchLabel: m.label,
+        teamId: w.teamId,
+        label: teamLabel(ev, w.teamId),
+        diff: Math.abs(sc[0] - sc[1]),
+        pts: Math.max(sc[0], sc[1]),
+        score: Math.max(sc[0], sc[1]) + ' – ' + Math.min(sc[0], sc[1])
+      });
+    });
+    rows.sort(function (x, y) { return (y.diff - x.diff) || (y.pts - x.pts); });
+
+    var out = { rows: rows, ready: false, tie: false, swapped: false, picks: [null, null] };
+    if (!ready || rows.length !== 3) return out;
+
+    /* hai đội đứng đầu phải hơn đội thứ ba, không thì phải bốc thăm */
+    if (rows[1].diff === rows[2].diff && rows[1].pts === rows[2].pts) {
+      out.tie = true;
+      return out;
+    }
+
+    var picks = [rows[0].teamId, rows[1].teamId];
+
+    /* đội nào đã loại đội vớt này ở vòng loại */
+    function eliminator(teamId) {
+      var who = null;
+      state.matches.forEach(function (m) {
+        if (m.eventId !== ev.id || m.round !== 'VL') return;
+        var lo = loserOf(state, m);
+        if (lo && lo.teamId === teamId) {
+          var w = winnerOf(state, m);
+          if (w) who = w.teamId;
+        }
+      });
+      return who;
+    }
+    function sideOpponent(n) {           /* đối thủ của đội vớt thứ n ở tứ kết */
+      var vl = state.matchById[ev.id + '-VL-' + (n === 1 ? 1 : 6)];
+      var w = vl ? winnerOf(state, vl) : null;
+      return w ? w.teamId : null;
+    }
+
+    var clash = (eliminator(picks[0]) === sideOpponent(1)) ||
+                (eliminator(picks[1]) === sideOpponent(2));
+    if (clash) {
+      var swapped = [picks[1], picks[0]];
+      var stillClash = (eliminator(swapped[0]) === sideOpponent(1)) ||
+                       (eliminator(swapped[1]) === sideOpponent(2));
+      if (!stillClash) { picks = swapped; out.swapped = true; }
+      else out.clash = true;   /* cả hai cách đều trùng — BTC tự xếp */
+    }
+
+    out.picks = picks;
+    out.ready = true;
+    return out;
   }
 
   /* bảng xếp hạng hiệu số cho thể thức 6 đội */
@@ -403,6 +563,7 @@ var Tournament = (function () {
     return this.matches.filter(function (m) { return m.court && m.court.id === courtId; });
   };
   proto.diffRanking = function (ev) { return diffRanking(this, ev); };
+  proto.repechage = function (ev) { return repechage(this, ev); };
   proto.teamLabel = function (ev, id) { return teamLabel(ev, id); };
 
   /* bục trao giải */
@@ -413,6 +574,14 @@ var Tournament = (function () {
       var w = winnerOf(this, ck), l = loserOf(this, ck);
       if (w) out.champion = w.label;
       if (l) out.runnerUp = l.label;
+    }
+    var tb = this.matchById[ev.id + '-TB-1'];
+    if (tb) {
+      /* có trận tranh hạng Ba thì hạng Ba là đội thắng trận đó, không phải
+         cả hai đội thua bán kết */
+      var tw = winnerOf(this, tb);
+      if (tw) out.third = [tw.label];
+      return out;
     }
     if (ev.format === 'r6diff') {
       var rank = diffRanking(this, ev);

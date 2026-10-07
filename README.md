@@ -152,7 +152,12 @@ Màn hình sẽ hiện mã QR cỡ lớn — chiếu lên trong lúc diễn gi�
 
 ### Cách 1 — Bảng BTC trên trang (đơn giản nhất)
 
-Mở `địa-chỉ-trang/?btc=1` (hoặc bấm `Shift + B`, hoặc nút *Bảng BTC* ở cuối trang).
+Có ba lối vào, chọn lối nào cũng được:
+
+- Nút **Nhập kết quả** ngay trên từng thẻ nội dung ở mục *Thể thao* — mở bảng và
+  **cuộn thẳng tới nội dung đó**, nhanh nhất khi đang đứng ở sân.
+- Bấm `Shift + B`.
+- Nút *Bảng BTC* ở cuối trang, hoặc mở `địa-chỉ-trang/?btc=1`.
 
 - Nhập điểm từng trận. Đội thắng **tự động đi tiếp** sang vòng sau, bục trao giải tự cập nhật.
 - Nút **Bốc thăm vị trí**: xếp ngẫu nhiên các đội lên nhánh đấu, **xếp lại giờ thi đấu
@@ -209,35 +214,62 @@ Thứ tự ưu tiên khi lấy kết quả: `data.js` → Google Sheet → đi�
 
 Không có trận nào được viết tay. Tất cả sinh ra từ `data.js`:
 
-- **Thể thức** (`format`) quyết định bộ trận:
-  - `ko12b4` — 12 đội, 4 đội bốc được miễn vòng loại vào thẳng tứ kết (11 trận).
-  - `ko8` — 8 đội loại trực tiếp từ tứ kết (7 trận).
-  - `r6diff` — 6 đội, 3 trận vòng đầu, 2 đội thắng có hiệu số cao nhất đánh chung kết,
-    đội thắng còn lại hạng ba (4 trận).
-- **Xếp sân và giờ**: mỗi khu sân có `slotMinutes` (pickleball 15 phút, cầu lông 20 phút)
-  và `roundOrder` — thứ tự các vòng được đưa lên sân. Trang xếp lần lượt, bảo đảm
-  **một trận không bao giờ bắt đầu trước khi các trận nó phụ thuộc đã đấu xong**,
-  và **hai trận chung kết không trùng giờ nhau** để mọi người xem được hết.
-  Đổi thứ tự trong `roundOrder` là đổi được cả lịch.
-- **Vị trí trên nhánh** (`seeds`): để `[]` thì nhánh hiện "Đội 1 … Đội N" (chờ bốc thăm).
-  Điền id đội theo đúng thứ tự vị trí để hiện tên thật.
+**Thể thức** (`format`) quyết định bộ trận:
 
-- **Tránh trùng người**: 39 trong 63 người đăng ký từ 2 nội dung trở lên
-  (8 người có mặt ở cả hai nội dung đôi nam nữ). Trang tự giãn lịch để
-  **không ai phải đánh hai trận cùng lúc**, và mỗi người được nghỉ ít nhất
-  `playerRestMinutes` phút giữa hai trận của mình.
-  Ràng buộc này **chỉ có tác dụng sau khi đã bốc thăm vị trí** — trước đó trang chưa biết
-  ai đánh trận nào. Vì vậy: **bốc thăm xong hãy in lịch**.
-  Danh sách người đăng ký nhiều nội dung hiện ngay trong mục *Lịch thi đấu*.
+| format | Dùng cho | Bộ trận |
+|---|---|---|
+| `q12r` | PB đôi nam, CL đôi nam (12 đội) | 6 vòng loại + 3 vòng vớt + 4 tứ kết + 2 bán kết + 1 chung kết = **16 trận**, thêm 1 trận tranh hạng Ba nếu `thirdPlace: true` |
+| `ko8` | PB nam nữ, CL nam nữ (8 đội) | 4 tứ kết + 2 bán kết + 1 chung kết = **7 trận**, thêm tranh hạng Ba nếu bật |
+| `ko12b4` | không dùng năm nay | 12 đội, 4 đội miễn vòng loại (11 trận) |
+| `r6diff` | không dùng năm nay | 6 đội, 3 trận rồi lấy 2 hiệu số cao nhất (4 trận) |
 
-Lịch hiện tại (chưa bốc thăm): 33 trận, 13:00 – 15:30.
-Sau khi bốc thăm lịch sẽ giãn ra đôi chút; nếu vượt mốc `endBy` (mặc định 16:00)
-trang sẽ hiện cảnh báo ngay trong mục Lịch thi đấu. Khi đó rút `slotMinutes`
-hoặc đổi thứ tự `roundOrder` trong `data.js`.
+Năm nay: 16 + 7 + 17 + 8 = **48 trận**, đúng bằng con số trong sơ đồ BTC gửi.
+
+**Thể thức `q12r` chạy thế nào.** Không đội nào được miễn. Vòng loại ghép lần lượt
+Đội 1–2, 3–4 … 11–12. Sáu đội thắng vào thẳng tứ kết. Sáu đội thua đấu tiếp 3 trận
+vòng vớt; trong ba đội thắng vớt lấy **2 đội** theo thứ tự xét: hiệu số trận vớt →
+tổng điểm ghi được → bằng cả hai thì trang **báo "cần bốc thăm"** chứ không tự chọn hộ.
+Hai đội vớt được xếp vào hai nhánh khác nhau (tứ kết 1 và tứ kết 4) và trang tự đổi chỗ
+hai đội đó nếu một đội rơi vào đúng đối thủ đã loại mình ở vòng loại.
+
+**Thời lượng mỗi trận tính theo vòng**, khai trong `durations` của từng nội dung:
+
+```js
+durations: { VL: 10, VV: 10, TK: 10, BK: 16, CK: 16 }   // pickleball
+durations: { mac_dinh: 15 }                             // cầu lông, mọi vòng
+```
+
+Pickleball vòng ngoài ăn điểm trực tiếp nên nhanh hơn; bán kết và chung kết đánh luật
+ăn điểm theo lượt giao nên cần 16 phút. Không khai `durations` thì lấy `slotMinutes`
+của khu sân.
+
+**Sân dùng chung.** Hai sân Pickleball phục vụ **cả hai** nội dung pickleball, ba sân
+Cầu lông phục vụ cả hai nội dung cầu lông — không cố định mỗi nội dung một sân. Đây là
+điều kiện để chạy hết 48 trận trong 150 phút.
+
+**Hai chung kết đá đồng thời.** Khu sân nào đặt `finalsTogether: true` thì hai trận
+chung kết của khu đó xếp cùng giờ trên hai sân, để khán giả tập trung một chỗ và trao
+giải luôn. Bỏ dòng đó đi thì trang quay lại xếp hai chung kết lần lượt.
+
+**Vị trí trên nhánh** (`seeds`): đang điền theo đúng thứ tự Đội 1 … Đội N trong bảng chia
+của BTC. Để `[]` thì nhánh hiện "Đội 1 … Đội N" (chờ bốc thăm). Bấm *Bốc thăm vị trí*
+trong Bảng BTC để xáo lại.
+
+**Tránh trùng người.** Nhiều người đăng ký từ 2 nội dung trở lên. Trang tự giãn lịch để
+**không ai phải đánh hai trận cùng lúc**, và mỗi người được nghỉ ít nhất
+`playerRestMinutes` phút giữa hai trận của mình — đang để **5 phút** theo đúng ghi chú
+trong sơ đồ BTC. Ràng buộc này chỉ có tác dụng khi `seeds` đã có; trước đó trang chưa biết
+ai đánh trận nào. Vì vậy: **bốc thăm xong hãy in lịch**.
+
+**Lịch hiện tại**: Pickleball 13:40 – 16:06, Cầu lông 13:40 – 16:00. Không trùng sân,
+không trùng người, không trận nào bị bỏ ngoài lịch. Nếu vượt mốc `endBy` (16:10) trang
+sẽ hiện cảnh báo đỏ trong mục Lịch thi đấu; khi đó rút `durations`, giảm
+`playerRestMinutes`, hoặc đổi thứ tự `roundOrder`.
 
 Các tham số xếp lịch nằm trong `schedule` ở đầu `data.js`:
-`roundRestMinutes`, `playerRestMinutes`, `endBy`; mỗi khu sân có thêm
-`slotMinutes` (thời lượng một trận) và `gridMinutes` (lưới giờ hiển thị).
+`roundRestMinutes`, `playerRestMinutes`, `endBy`; mỗi khu sân có thêm `slotMinutes`
+(mặc định khi nội dung không khai `durations`), `gridMinutes` (lưới giờ) và
+`roundOrder` (thứ tự ưu tiên khi hai trận cùng xếp được vào một giờ).
 
 ---
 
@@ -330,9 +362,12 @@ chữ trên đó là trắng, tương phản 18:1.
 Trước khi đổi sang phông khác, hãy thử với chuỗi **“Văn hóa & Thể thao”** ở cỡ
 lớn: nhiều phông xếp sai dấu chồng (ể, ẵ, ỗ). Playfair Display đã bị loại vì lỗi này.
 
-**Thanh điều hướng.** Trên 1000px là cột dọc bên trái rộng 110px
-(`--rail-w`). Dưới 1000px cột đó thành thanh ngang ở đáy màn hình, cuộn
-ngang được, cao 70px (`--tabbar-h`). Hai biến này nằm ở đầu `style.css`.
+**Thanh điều hướng.** Trên 1000px là cột dọc bên trái rộng 110px — sửa ở
+`--rail-w` đầu `style.css`. Dưới 1000px cột đó thành thanh ngang ở đáy màn
+hình, cuộn ngang được. Chiều cao thanh dưới (`--tabbar-h`) **do JS đo** từ
+chiều cao thật của thanh mỗi khi mở trang và khi xoay máy, vì nó đổi theo cỡ
+chữ và vùng an toàn của máy khuyết đỉnh — chân trang và nút "Về đầu trang"
+chừa chỗ theo biến này, nên đừng đặt cứng một con số.
 
 **Quay lại giao diện cũ.** Bản sáng trước đó vẫn còn nguyên ở
 `assets/css/style.light.css`. Đổi một dòng trong `index.html`:
@@ -359,3 +394,20 @@ Chế độ máy chiếu (`Shift + Q`) vẫn giữ nền tối để mã QR nổ
 | `Chia_doi_Ngay_hoi_VHTT_2026.xlsx` | Danh sách đăng ký và chia cặp |
 | `Chia_doi_Ngay_hoi_VH-TT_2026.xlsx` | Danh sách nhảy dây |
 | `Bien_ban_hop_Ngay_hoi_VHTT.docx` | Khung giờ buổi chiều, tiệc tối |
+| `261017_Ngày hội VH - TT 2026.xlsx` | **Nguồn chính hiện tại**: lịch trình cả ngày (sheet *Times line*), bảng chia đội 4 nội dung (sheet *DS Đội Thi Đấu (2026)*), danh sách đăng ký kèm bộ phận (sheet *DS ĐK Thi Đấu*), tổ trọng tài |
+| Sơ đồ thi đấu BTC gửi (bản web) | Thể thức `q12r`, số trận từng nội dung, thời lượng theo vòng, sân dùng chung, giờ 13:40–16:10, hai chung kết pickleball đá đồng thời |
+
+### Ba chỗ các nguồn lệch nhau
+
+Ghi lại để BTC biết trang đang lấy theo cái nào:
+
+1. **Môn thi đấu.** File có cả một bộ sheet **bóng bàn** (*IN Bóng bàn*, *Lịch thi đấu
+   Bóng Bàn (IN)*) lẫn bộ **pickleball**. Trang lấy bộ pickleball + cầu lông, vì
+   khớp cả bản đăng ký (cột đăng ký không có mục bóng bàn) lẫn sơ đồ BTC gửi; sheet
+   *IN Bóng bàn (Đơn Nam)* còn đang lỗi `#REF!` nên là bản của kỳ trước.
+2. **Cách tính điểm.** Sheet ghi pickleball chạm 7 (trần 11) và cầu lông trần 26.
+   Sơ đồ BTC gửi ghi pickleball chạm 11 và cầu lông trần 30 theo luật BWF.
+   Trang lấy theo sơ đồ. **Nếu sheet mới là đúng thì nói, sửa `targetScore` và mục Luật.**
+3. **Nhảy dây.** Bản đăng ký có 33 người tick, sheet *DS Nhảy dây* liệt kê 24 người,
+   danh sách đang chạy trên trang có 30. Trang giữ nguyên 30 và ghi chú cảnh báo
+   ngay trong mục Thể thao — chưa tự sửa vì thiếu thông tin nam/nữ để chia lượt.

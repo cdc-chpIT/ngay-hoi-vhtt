@@ -18,7 +18,10 @@ var SITE_CONFIG = {
   /* --- 2. Địa điểm ------------------------------------------------- */
   venueName: 'Hội trường Viện Hàn lâm Khoa học xã hội Việt Nam',
   venueAddress: 'Số 1 Liễu Giai, Ba Đình, Hà Nội',
-  venueNote: '',
+  venueNote: 'Buổi sáng tại hội trường; buổi chiều chuyển sang nhà thi đấu.',
+  /* Buổi chiều thi đấu ở chỗ khác, không cùng chỗ với buổi sáng */
+  sportVenueName: 'Nhà thi đấu Bệnh viện 354',
+  sportVenueAddress: '',
   dinnerPlace: 'Tiệc giao lưu buổi tối',
 
   /* --- 3. Google Form đặt câu hỏi ----------------------------------

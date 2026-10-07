@@ -114,7 +114,7 @@
     $('#hero-theme').textContent = i.theme;
 
     $('#hero-pillars').innerHTML = D.pillars.map(function (pl, k) {
-      return (k ? '<i>/</i>' : '') + '<span style="--i:' + k + '">' + esc(pl.name) + '</span>';
+      return (k ? '<i aria-hidden="true">/</i>' : '') + '<span style="--i:' + k + '">' + esc(pl.name) + '</span>';
     }).join('');
 
     var when = eventDateOrNull();
@@ -124,9 +124,10 @@
 
     $('#hero-meta').innerHTML = [
       ['clock', (CFG.doorsOpen || '08:00') + ' – 18:00'],
-      ['pin',   CFG.venueName || ''],
-      ['users', '60 – 80 người · ' + (D.intro.members || []).join(' · ')],
-      ['ball',  COUNTS.courts + ' sân thi đấu buổi chiều']
+      ['pin',   'Sáng: ' + (CFG.venueName || '')],
+      ['ball',  'Chiều: ' + (CFG.sportVenueName || CFG.venueName || '') +
+                ' · ' + COUNTS.courts + ' sân'],
+      ['users', '60 – 80 người · ' + (D.intro.members || []).join(' · ')]
     ].filter(function (r) { return r[1]; })
      .map(function (r) {
        return '<div>' + icon(r[0], 17) + '<b>' + esc(r[1]) + '</b></div>';
@@ -405,7 +406,10 @@
           '<div class="live-body">' +
             '<h3>Còn ' + esc(fmtLeft(st.msToStart)) + ' nữa là bắt đầu</h3>' +
             '<p>Mở đầu bằng <b>' + esc(st.next.item.title) + '</b> lúc ' +
-              esc(Live.toHHMM(st.next.startMin)) + ' tại ' + esc(CFG.venueName || '') + '.</p>' +
+              esc(Live.toHHMM(st.next.startMin)) + ' tại ' +
+              esc((st.next.item && st.next.item.part === 'afternoon'
+                   ? (CFG.sportVenueName || CFG.venueName)
+                   : CFG.venueName) || '') + '.</p>' +
           '</div>' +
         '</div>' +
         previewBox(np, true) +
@@ -738,46 +742,149 @@
   /* =====================================================================
      TỔNG QUAN THỂ THAO
      ===================================================================== */
+  /* ---------------------------------------------------------------
+     Trang thể thao: một hàng nút lọc theo trạng thái, bên dưới là lưới
+     thẻ nội dung. Mỗi thẻ cho biết đang tới đâu và dẫn thẳng tới lịch,
+     nhánh đấu, hoặc ô nhập kết quả.
+     --------------------------------------------------------------- */
+  var EV_FILTERS = [
+    { k: 'all',  label: 'Tất cả' },
+    { k: 'live', label: 'Đang đấu' },
+    { k: 'soon', label: 'Sắp đấu' },
+    { k: 'done', label: 'Đã xong' }
+  ];
+  var evFilter = 'all';
+
+  /* Trạng thái một nội dung: đã xong / đang đấu / sắp đấu.
+     Ưu tiên kết quả thật; chưa có kết quả nào thì xét theo giờ. */
+  function eventState(ev) {
+    var ms = T.matchesOf(ev.id);
+    if (!ms.length) return { k: 'soon', done: 0, total: 0, pct: 0 };
+    var done = 0;
+    ms.forEach(function (m) { if (T.view(m).done) done++; });
+    var pct = Math.round(done / ms.length * 100);
+    if (done >= ms.length) return { k: 'done', done: done, total: ms.length, pct: 100 };
+
+    var mins = nowMinutes();
+    var first = Math.min.apply(null, ms.map(function (m) { return m.startMin; }));
+    var last = Math.max.apply(null, ms.map(function (m) { return m.endMin; }));
+    var k = done > 0 ? 'live'
+          : (mins != null && mins >= first && mins <= last) ? 'live'
+          : 'soon';
+    return { k: k, done: done, total: ms.length, pct: pct, first: first, last: last };
+  }
+
+  var STATE_LABEL = { live: 'Đang đấu', soon: 'Sắp đấu', done: 'Đã xong' };
+
+  /* Số phút đã trôi trong ngày hội, tính theo giờ Việt Nam. Trả null nếu
+     hôm nay không phải ngày hội — khi đó trạng thái chỉ dựa vào kết quả. */
+  function nowMinutes() {
+    var day = Live.eventDay(CFG);
+    if (!day) return null;
+    var base = new Date(day + 'T00:00:00+07:00');
+    if (isNaN(base)) return null;
+    var mins = Math.floor((Live.nowOrPreview(CFG).now - base) / 60000);
+    return (mins < 0 || mins > 1440) ? null : mins;
+  }
+
+  function evCard(ev) {
+    var k = sportKey(ev.sport);
+    var st = eventState(ev);
+    var ms = T.matchesOf(ev.id);
+    var from = Tournament.toHHMM(Math.min.apply(null, ms.map(function (m) { return m.startMin; })));
+    var to = Tournament.toHHMM(Math.max.apply(null, ms.map(function (m) { return m.endMin; })));
+    var venue = T.venues.filter(function (v) { return v.id === ev.venueId; })[0];
+    var courts = venue ? venue.courts.length + ' sân' : '';
+    var pod = T.podium(ev);
+
+    return '<article class="ev ' + k + '" data-state="' + st.k + '" data-ev="' + esc(ev.id) + '">' +
+      '<div class="ev-top">' +
+        '<span class="ev-st ' + st.k + '"><i></i>' + STATE_LABEL[st.k] + '</span>' +
+        '<span class="ev-sport">' + esc(ev.sport) + '</span>' +
+      '</div>' +
+      '<h3>' + esc(ev.name) + '</h3>' +
+      '<p class="ev-fmt">' + esc(formatLabel(ev)) + '</p>' +
+      '<dl class="ev-meta">' +
+        '<div><dt>Đội</dt><dd>' + ev.teamCount + '</dd></div>' +
+        '<div><dt>Trận</dt><dd>' + ms.length + '</dd></div>' +
+        '<div><dt>Giờ</dt><dd>' + esc(from + '–' + to) + '</dd></div>' +
+        '<div><dt>Sân</dt><dd>' + esc(courts) + '</dd></div>' +
+      '</dl>' +
+      '<div class="ev-bar" role="img" aria-label="Đã đấu ' + st.done + ' trên ' + st.total + ' trận">' +
+        '<i style="width:' + st.pct + '%"></i>' +
+      '</div>' +
+      '<div class="ev-prog">' + st.done + '/' + st.total + ' trận · chạm ' + ev.targetScore + ' điểm</div>' +
+      (pod.champion
+        ? '<div class="ev-win"><b>Vô địch</b> ' + esc(pod.champion) + '</div>'
+        : '') +
+      '<div class="ev-chips">' + statusChip(ev) + '</div>' +
+      '<div class="ev-go">' +
+        '<a class="btn btn-sm" href="#lich">Lịch</a>' +
+        '<a class="btn btn-sm" href="#nhanh-dau">Nhánh đấu</a>' +
+        '<button class="btn btn-sm ev-enter" data-ev="' + esc(ev.id) + '">Nhập kết quả</button>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function jrCard() {
+    var jr = D.jumpRope;
+    var total = jr.groups.reduce(function (n, g) { return n + g.athletes.length; }, 0);
+    return '<article class="ev jr" data-state="soon" data-ev="jump-rope">' +
+      '<div class="ev-top"><span class="ev-st soon"><i></i>Sắp đấu</span>' +
+        '<span class="ev-sport">nhảy dây</span></div>' +
+      '<h3>' + esc(jr.name) + '</h3>' +
+      '<p class="ev-fmt">Thi cá nhân theo lượt, xếp hạng riêng nam và nữ</p>' +
+      '<dl class="ev-meta">' +
+        '<div><dt>Người</dt><dd>' + total + '</dd></div>' +
+        '<div><dt>Lượt</dt><dd>' + jr.groups.reduce(function (n, g) { return n + g.heats; }, 0) + '</dd></div>' +
+        '<div><dt>Bắt đầu</dt><dd>' + esc(jr.start) + '</dd></div>' +
+        '<div><dt>Chỗ</dt><dd>' + esc(jr.station) + '</dd></div>' +
+      '</dl>' +
+      '<div class="ev-chips"><span class="chip">Không tính vào nhánh đấu</span></div>' +
+      '<div class="ev-go"><a class="btn btn-sm" href="#lich">Lịch nhảy dây</a></div>' +
+    '</article>';
+  }
+
+  function renderEvFilter() {
+    var host = $('#ev-filter');
+    if (!host) return;
+    var counts = { all: D.events.length + 1, live: 0, soon: 1, done: 0 };
+    D.events.forEach(function (ev) { counts[eventState(ev).k]++; });
+    host.innerHTML = EV_FILTERS.map(function (f) {
+      return '<button class="fchip' + (evFilter === f.k ? ' on' : '') + '" data-f="' + f.k + '"' +
+        ' aria-pressed="' + (evFilter === f.k ? 'true' : 'false') + '">' +
+        esc(f.label) + '<span>' + (counts[f.k] || 0) + '</span></button>';
+    }).join('');
+  }
+
+  function applyEvFilter() {
+    var shown = 0;
+    $$('#event-cards .ev').forEach(function (el) {
+      var ok = evFilter === 'all' || el.dataset.state === evFilter;
+      el.hidden = !ok;
+      if (ok) shown++;
+    });
+    var empty = $('#ev-empty');
+    if (empty) empty.hidden = shown > 0;
+  }
+
   function renderSport() {
+    var from = Tournament.toHHMM(Math.min.apply(null, T.matches.map(function (m) { return m.startMin; })));
     $('#sport-lead').textContent =
-      COUNTS.courts + ' sân chạy song song, ' + T.matches.length + ' trận đấu, dự kiến ' +
-      Tournament.toHHMM(Math.min.apply(null, T.matches.map(function (m) { return m.startMin; }))) +
-      ' – ' + Tournament.toHHMM(lastEndMin()) + '. ' +
+      (CFG.sportVenueName ? CFG.sportVenueName + ' · ' : '') +
+      COUNTS.courts + ' sân chạy song song, ' + T.matches.length + ' trận, ' +
+      from + ' – ' + Tournament.toHHMM(lastEndMin()) + '. ' +
       'Mọi trận đánh 1 hiệp nên thắng là đi tiếp, thua là dừng.';
 
-    var cards = D.events.map(function (ev) {
-      var k = sportKey(ev.sport);
-      var ms = T.matchesOf(ev.id);
-      return '<div class="card lift ev-card ' + k + ' reveal">' +
-        '<div class="top"><div><h3>' + esc(ev.name) + '</h3>' +
-          '<div class="sub">' + esc(ev.sport) + '</div></div>' +
-          '<div style="text-align:right"><div class="num">' + ev.teamCount + '</div>' +
-          '<div class="sub">đội</div></div></div>' +
-        '<ul>' +
-          '<li>' + esc(formatLabel(ev)) + '</li>' +
-          '<li>' + ms.length + ' trận · chạm ' + ev.targetScore + ' điểm</li>' +
-          '<li>' + esc(ev.scoring) + '</li>' +
-        '</ul>' +
-        '<div style="display:flex;gap:6px;flex-wrap:wrap">' + statusChip(ev) + '</div>' +
-      '</div>';
-    });
-
-    var jr = D.jumpRope;
-    var jrTotal = jr.groups.reduce(function (n, g) { return n + g.athletes.length; }, 0);
-    cards.push('<div class="card lift ev-card jr reveal">' +
-      '<div class="top"><div><h3>' + esc(jr.name) + '</h3><div class="sub">cá nhân</div></div>' +
-      '<div style="text-align:right"><div class="num">' + jrTotal + '</div><div class="sub">người</div></div></div>' +
-      '<ul><li>Thi theo lượt tại ' + esc(jr.station) + '</li>' +
-      '<li>' + jr.groups.map(function (g) { return g.heats + ' lượt ' + (g.key === 'nam' ? 'nam' : 'nữ'); }).join(' · ') + '</li>' +
-      '<li>Xếp hạng riêng nam và nữ</li></ul>' +
-      '<div><span class="chip">Bắt đầu ' + esc(jr.start) + '</span></div>' +
-    '</div>');
-
-    $('#event-cards').innerHTML = cards.join('');
+    $('#event-cards').innerHTML =
+      D.events.map(evCard).join('') + jrCard();
+    renderEvFilter();
+    applyEvFilter();
     renderCourtBoard();
   }
 
   function formatLabel(ev) {
+    if (ev.format === 'q12r')   return 'Vòng loại + vòng vớt, rồi loại trực tiếp';
     if (ev.format === 'ko12b4') return 'Loại trực tiếp, 4 đội miễn vòng loại';
     if (ev.format === 'ko8')    return 'Loại trực tiếp từ tứ kết';
     if (ev.format === 'r6diff') return '3 trận vòng đầu, xếp hạng theo hiệu số';
@@ -785,7 +892,7 @@
   }
   function statusChip(ev) {
     if (ev.status === 'pending-draw')   return '<span class="chip warn">Chờ bốc thăm chia đội</span>';
-    if (ev.status === 'needs-decision') return '<span class="chip warn">BTC cần chốt số đội</span>';
+    if (ev.status === 'needs-decision') return '<span class="chip warn">BTC cần chốt</span>';
     if ((ev.seeds || []).length)        return '<span class="chip ok">Đã bốc thăm vị trí</span>';
     return '<span class="chip ok">Đã đủ đội</span><span class="chip">Chờ bốc vị trí</span>';
   }
@@ -967,6 +1074,8 @@
 
     if (ev.format === 'r6diff') return renderR6(ev, k);
 
+    /* Vòng vớt không chạy 1-1 vào tứ kết nên không vẽ thành một cột của
+       nhánh; nó là một nhánh phụ, vẽ riêng ở dưới cùng bảng chọn 2 đội. */
     var rounds = [];
     ['VL', 'TK', 'BK', 'CK'].forEach(function (r) {
       var list = T.matchesOf(ev.id).filter(function (m) { return m.round === r; })
@@ -985,7 +1094,54 @@
     });
     html += '</div></div>';
 
-    return html + podiumHtml(ev);
+    return html + repechageHtml(ev) + thirdPlaceHtml(ev) + podiumHtml(ev);
+  }
+
+  /* Vòng vớt: 3 trận, lấy 2 đội theo hiệu số rồi tổng điểm. */
+  function repechageHtml(ev) {
+    var vv = T.matchesOf(ev.id).filter(function (m) { return m.round === 'VV'; })
+              .sort(function (a, b) { return a.index - b.index; });
+    if (!vv.length) return '';
+
+    var rp = T.repechage(ev);
+    var note;
+    if (rp.tie) {
+      note = '<span class="chip warn">Bằng cả hiệu số lẫn tổng điểm — BTC bốc thăm</span>';
+    } else if (rp.clash) {
+      note = '<span class="chip warn">Hai đội vớt đều gặp lại đội đã loại mình — BTC xếp tay</span>';
+    } else if (rp.swapped) {
+      note = '<span class="chip">Đã đổi chỗ hai đội vớt để không gặp lại đội đã loại mình</span>';
+    } else if (rp.ready) {
+      note = '<span class="chip ok">Đã chọn xong 2 đội vào tứ kết</span>';
+    } else {
+      note = '<span class="chip">Chờ đủ kết quả 3 trận vớt</span>';
+    }
+
+    var rows = rp.rows.map(function (r, i) {
+      return '<li class="' + (i < 2 && rp.ready ? 'in' : '') + '">' +
+        '<b>' + esc(r.label) + '</b>' +
+        '<span class="sc">' + esc(r.score) + '</span>' +
+        '<span class="df">hiệu số ' + r.diff + '</span>' +
+        '<span class="st">' + (i < 2 && rp.ready ? 'Vào tứ kết' : 'Dừng') + '</span>' +
+      '</li>';
+    }).join('');
+
+    return '<div class="vv">' +
+      '<div class="vv-h"><b>Vòng vớt</b>' +
+        '<span>Sáu đội thua vòng loại đấu tiếp. Hai đội thắng có hiệu số cao nhất ' +
+        'đi tiếp vào tứ kết; bằng hiệu số thì xét tổng điểm.</span>' + note + '</div>' +
+      '<div class="vv-m">' + vv.map(function (m) { return matchRow(m); }).join('') + '</div>' +
+      (rows ? '<ol class="vv-r">' + rows + '</ol>' : '') +
+    '</div>';
+  }
+
+  /* Trận tranh hạng Ba, nếu nội dung đó có. */
+  function thirdPlaceHtml(ev) {
+    var tb = T.matchById[ev.id + '-TB-1'];
+    if (!tb) return '';
+    return '<div class="vv tb"><div class="vv-h"><b>Tranh hạng Ba</b>' +
+      '<span>Hai đội thua bán kết gặp nhau.</span></div>' +
+      '<div class="vv-m">' + matchRow(tb) + '</div></div>';
   }
 
   function renderR6(ev, k) {
@@ -1377,7 +1533,7 @@
               'aria-label="Điểm của ' + esc(team.label) + ' trong ' + esc(m.label) + '" value="' +
               (score == null ? '' : score) + '"></div>';
           }
-          html += '<div class="arow" data-m="' + esc(m.id) + '">' +
+          html += '<div class="arow" data-m="' + esc(m.id) + '" data-ev="' + esc(m.eventId) + '">' +
             '<div class="meta">' + esc(m.time + ' · ' + v.event.short + ' · ' + m.label) +
             ' · chạm ' + m.targetScore + '</div>' +
             line(v.teamA, v.scoreA, 'a') + line(v.teamB, v.scoreB, 'b') +
@@ -1560,14 +1716,20 @@
      HIỆU ỨNG
      ===================================================================== */
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var io = null;
+  var io = null, counted = false;
 
   function revealScan() {
     if (reduce) { $$('.reveal').forEach(function (e) { e.classList.add('in'); }); return; }
     if (!io) {
       io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
-          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            /* bảng số nằm dưới màn hình lúc mở trang; chạy số ngay từ đầu
+               thì đếm xong trước khi người xem cuộn tới, coi như không có */
+            if (!counted && e.target.id === 'hero-stats') { counted = true; countUp(); }
+            io.unobserve(e.target);
+          }
         });
       }, { rootMargin: '0px 0px -8% 0px', threshold: .08 });
     }
@@ -1590,6 +1752,17 @@
     });
   }
 
+  /* Chiều cao thanh điều hướng dưới đáy thay đổi theo cỡ chữ và vùng an toàn
+     của máy khuyết đỉnh, nên phải đo chứ không đoán — chân trang và nút
+     "Về đầu trang" đều chừa chỗ theo biến này. */
+  function sizeTabbar() {
+    var rail = $('.rail');
+    if (!rail) return;
+    var bottom = window.matchMedia('(max-width: 999px)').matches;
+    document.documentElement.style.setProperty(
+      '--tabbar-h', bottom ? rail.offsetHeight + 'px' : '0px');
+  }
+
   function scrollFx() {
     var bar = $('#progbar'), tt = $('#totop');
     var art = $('.hero-art .bridge'), rays = $('.hero-art .rays');
@@ -1602,7 +1775,7 @@
       raf = false;
       var y = window.scrollY || window.pageYOffset;
       var h = document.documentElement.scrollHeight - window.innerHeight;
-      bar.style.width = (h > 0 ? (y / h) * 100 : 0) + '%';
+      bar.style.transform = 'scaleX(' + (h > 0 ? y / h : 0) + ')';
       tt.classList.toggle('on', y > 700);
 
       var mid = y + window.innerHeight * 0.32, act = -1;
@@ -1637,6 +1810,30 @@
      SỰ KIỆN
      ===================================================================== */
   function wire() {
+    /* --- hàng nút lọc nội dung thể thao --- */
+    var filt = $('#ev-filter');
+    if (filt) {
+      filt.addEventListener('click', function (e) {
+        var b = e.target.closest('.fchip');
+        if (!b) return;
+        evFilter = b.dataset.f;
+        renderEvFilter();
+        applyEvFilter();
+      });
+    }
+    /* --- "Nhập kết quả" trên thẻ nội dung mở thẳng Bảng BTC --- */
+    var evs = $('#event-cards');
+    if (evs) {
+      evs.addEventListener('click', function (e) {
+        var b = e.target.closest('.ev-enter');
+        if (!b) return;
+        openAdm(true);
+        /* cuộn bảng tới đúng nội dung vừa bấm, không bắt người dùng tự tìm */
+        var row = $('#adm-body .arow[data-ev="' + b.dataset.ev + '"]');
+        if (row) row.scrollIntoView({ block: 'start' });
+      });
+    }
+
     /* trả con trỏ bàn phím về chỗ cũ khi đóng lớp phủ */
     var lastFocus = null;
     function restoreFocus() {
@@ -1805,10 +2002,12 @@
 
     wire();
     revealScan();
-    countUp();
+    if (reduce) countUp();   /* tắt hiệu ứng thì hiện luôn số cuối */
     scrollFx();
     pollResults();
     startLive();
+    sizeTabbar();
+    window.addEventListener('resize', sizeTabbar);
 
     /* nội dung dựng bằng JS nên mốc #... phải cuộn lại sau khi dựng xong */
     if (location.hash.length > 1) {

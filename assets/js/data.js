@@ -113,89 +113,84 @@ var VHTT_DATA = {
      fixed     : true = đã chốt trong kế hoạch; false = dự kiến
      derive    : để trang tự tính giờ từ lịch thi đấu                  */
   timeline: [
-    { start: '08:00', end: '08:30', fixed: true, part: 'morning', icon: 'door',
-      title: 'Đón khách & check-in',
-      desc: 'Nhận số báo danh và quà lưu niệm, chụp ảnh ở backdrop sự kiện, quét mã QR để mở trang này.',
+    /* ---- BUỔI SÁNG — PHẦN VĂN HÓA (hội trường) ---- */
+    { start: '08:30', end: '08:50', fixed: true, part: 'morning', icon: 'door',
+      title: 'Tập trung, ổn định chỗ ngồi',
+      desc: 'Quét mã QR để mở trang này, nhận chỗ và chuẩn bị vào chương trình.',
       owner: 'Tiểu ban Hậu cần' },
 
-    { start: '08:30', end: '08:35', fixed: true, part: 'morning', icon: 'mic',
-      title: 'Ổn định tổ chức',
-      desc: 'MC tuyên bố lý do, giới thiệu đại biểu và chủ đề văn hóa của năm.',
-      owner: 'MC' },
-
-    { start: '08:35', end: '08:50', fixed: true, part: 'morning', icon: 'flag',
-      title: 'Khai mạc: Định hướng Văn hóa CHP 2026',
+    { start: '08:50', end: '09:00', fixed: true, part: 'morning', icon: 'flag',
+      title: 'Phát biểu khai mạc',
       desc: 'Ban lãnh đạo mở đầu ngày hội và xác lập ba trục văn hóa của năm.',
-      owner: 'Tổng Giám đốc' },
-
-    { start: '08:50', end: '09:15', fixed: true, part: 'morning', icon: 'talk',
-      title: 'Bài 1 — Văn hóa truyền thống CHP',
-      desc: '20 phút trình bày và 5 phút hỏi đáp.',
-      owner: 'Đại diện Bộ phận Hành chính Tổng hợp',
-      talk: 1, tag: 'Hỏi đáp 5 phút cuối' },
-
-    { start: '09:15', end: '09:40', fixed: true, part: 'morning', icon: 'talk',
-      title: 'Bài 2 — Văn hóa tự lực',
-      desc: '20 phút trình bày và 5 phút hỏi đáp. Chuyện kể từ công trường cầu Đại Ngãi.',
-      owner: 'Ô. Nguyễn Hậu Cần và Ô. Nguyễn Khắc Cường (PMD)',
-      talk: 2, tag: 'Hỏi đáp 5 phút cuối' },
-
-    { start: '09:40', end: '10:00', fixed: true, part: 'break', icon: 'rest',
-      title: 'Giải lao – teabreak',
-      desc: 'Nghỉ giữa giờ và chụp ảnh theo bộ phận.',
-      owner: 'Tiểu ban Hậu cần' },
-
-    { start: '10:00', end: '10:25', fixed: true, part: 'morning', icon: 'talk',
-      title: 'Bài 3 — Văn hóa thích ứng: Thời đại AI',
-      desc: '20 phút trình bày và 5 phút hỏi đáp.',
-      owner: 'Ô. Nguyễn Trường Lâm — Giám đốc CDC',
-      talk: 3, tag: 'Hỏi đáp 5 phút cuối' },
-
-    { start: '10:25', end: '10:55', fixed: true, part: 'morning', icon: 'game',
-      title: 'Mini game trắc nghiệm nhanh',
-      desc: 'Cả hội trường cùng chơi trên điện thoại, bảng xếp hạng hiện trực tiếp trên màn hình.',
-      owner: 'MC và Tiểu ban Nội dung', tag: '30 phút' },
-
-    { start: '10:55', end: '11:05', fixed: true, part: 'morning', icon: 'medal',
-      title: 'Công bố kết quả & trao giải mini game',
-      desc: 'Trao giải cá nhân ngay tại chỗ cho những người dẫn đầu bảng xếp hạng.',
-      owner: 'Ban Giám đốc và MC' },
-
-    { start: '11:05', end: '11:20', fixed: true, part: 'morning', icon: 'flag',
-      title: 'Tổng kết & bế mạc buổi sáng',
-      desc: 'Ban lãnh đạo chốt lại mạch Truyền thống → Tự lực → Thích ứng của ngày hội.',
       owner: 'Ban Giám đốc' },
 
-    { start: '11:20', end: '11:30', fixed: true, part: 'morning', icon: 'camera',
-      title: 'Chụp ảnh tập thể',
-      desc: 'Cả nhà tập trung chụp ảnh lưu niệm, khép lại chương trình buổi sáng đúng 11h30.',
-      owner: 'Tiểu ban Truyền thông' },
+    { start: '09:00', end: '09:05', fixed: true, part: 'morning', icon: 'mic',
+      title: 'MC dẫn dắt chương trình',
+      desc: 'Giới thiệu đại biểu, chủ đề văn hóa và cách đặt câu hỏi cho diễn giả.',
+      owner: 'MC' },
 
-    { start: '11:30', end: '13:00', fixed: false, part: 'break', icon: 'rest',
-      title: 'Nghỉ trưa',
-      desc: 'Ăn trưa, nghỉ ngơi và khởi động trước khi vào phần thể thao buổi chiều.' },
+    { start: '09:10', end: '09:25', fixed: true, part: 'morning', icon: 'talk',
+      title: 'Bài 1 — Văn hóa Truyền thống CHP',
+      desc: 'Truyền thống là nền tảng: chuyện của những người đi trước.',
+      talk: 1 },
 
-    { start: '13:00', end: '13:15', fixed: false, part: 'sport', icon: 'ball',
-      title: 'Khai mạc Đại hội thể thao',
-      desc: 'Phổ biến thể thức, giải thưởng, điểm danh các đội rồi bắt đầu thi đấu trên 5 sân.',
-      owner: 'Ô. Tuấn Patu phụ trách' },
+    { start: '09:30', end: '09:50', fixed: true, part: 'morning', icon: 'talk',
+      title: 'Bài 2 — Văn hóa Tự chủ',
+      desc: 'Tự lực là mục tiêu: làm chủ công việc và làm chủ chất lượng.',
+      talk: 2 },
 
-    { start: '13:30', end: '14:30', fixed: false, part: 'sport', icon: 'rope',
-      title: 'Nhảy dây 1 phút',
-      desc: 'Thi theo lượt tại khu nhảy dây, xếp hạng riêng nam và nữ.' },
+    { start: '09:50', end: '10:00', fixed: true, part: 'morning', icon: 'rest',
+      title: 'Nghỉ giải lao',
+      desc: 'Uống nước, chụp ảnh, gửi câu hỏi cho diễn giả qua form.' },
 
-    { derive: 'firstFinal', fixed: false, part: 'sport', icon: 'trophy',
-      title: 'Các trận chung kết',
-      desc: 'Hai chung kết pickleball ở khu pickleball, hai chung kết cầu lông ở khu cầu lông. ' +
-            'Trong mỗi khu, hai trận xếp lần lượt để mọi người xem được cả hai.' },
+    { start: '10:00', end: '10:15', fixed: true, part: 'morning', icon: 'talk',
+      title: 'Bài 3 — Văn hóa Thích ứng',
+      desc: 'Thích ứng là phương thức: đổi cách làm khi điều kiện đổi.',
+      talk: 3 },
 
-    { derive: 'awards', fixed: false, part: 'sport', icon: 'medal',
+    { start: '10:15', end: '10:45', fixed: true, part: 'morning', icon: 'talk',
+      title: 'Hỏi – đáp',
+      desc: 'Hỏi trực tiếp tại hội trường hoặc gửi qua form trên trang này.',
+      tag: 'Gửi câu hỏi được cả trước và trong giờ' },
+
+    { start: '10:45', end: '11:15', fixed: true, part: 'morning', icon: 'game',
+      title: 'Vui chơi có thưởng',
+      desc: 'Mini game trắc nghiệm, có câu lấy ngay từ ba bài vừa nghe.',
+      tag: 'Có thưởng' },
+
+    { start: '11:15', end: '11:25', fixed: true, part: 'morning', icon: 'camera',
+      title: 'Tổng kết, bế mạc, chụp ảnh',
+      desc: 'Chốt lại phần Văn hóa và chụp ảnh chung.' },
+
+    { start: '11:25', end: '13:00', fixed: true, part: 'noon', icon: 'rest',
+      title: 'Nghỉ trưa, ăn trưa tự túc',
+      desc: 'Dọn dẹp hội trường rồi di chuyển sang Nhà thi đấu BV 354.' },
+
+    /* ---- BUỔI CHIỀU — ĐẠI HỘI THỂ THAO (Nhà thi đấu BV 354) ---- */
+    { start: '13:00', end: '13:25', fixed: true, part: 'afternoon', icon: 'pin',
+      title: 'Có mặt tại Nhà thi đấu BV 354',
+      desc: 'Nhận áo, khởi động, kiểm tra danh sách đội và sân.',
+      owner: 'Tiểu ban Hậu cần' },
+
+    { start: '13:25', end: '13:40', fixed: true, part: 'afternoon', icon: 'flag',
+      title: 'Khai mạc phần thể thao',
+      desc: 'Thông báo thể thức thi đấu và cơ cấu giải thưởng.',
+      owner: 'Trưởng ban trọng tài' },
+
+    { start: '13:40', end: '16:10', part: 'afternoon', icon: 'ball',
+      title: 'Thi đấu trên 5 sân',
+      desc: 'Hai sân Pickleball và ba sân Cầu lông chạy song song. ' +
+            'Lịch từng trận xem ở mục Lịch thi đấu.',
+      sport: true },
+
+    { start: '16:15', end: '16:30', fixed: true, part: 'afternoon', icon: 'trophy',
       title: 'Tổng hợp kết quả & trao giải',
-      desc: 'Trao huy chương, cúp cho các nội dung thể thao và chụp ảnh lưu niệm.' },
+      desc: 'Trao giải chung cho cả bốn nội dung và nội dung nhảy dây.' },
 
-    { start: '17:30', end: '18:00', fixed: true, part: 'night', icon: 'dinner',
-      title: 'Tiệc giao lưu buổi tối',
-      desc: 'Cả nhà cùng ăn và tổng kết ngày hội theo thông lệ hằng năm.' }
+    { start: '17:30', end: null, fixed: true, part: 'evening', icon: 'dinner',
+      title: 'Liên hoan',
+      desc: 'Phần mở rộng, không bắt buộc.',
+      tag: 'Tự nguyện' }
   ],
 
   /* ================== MINI GAME ================== */
@@ -245,27 +240,34 @@ var VHTT_DATA = {
                         Chỉ có tác dụng sau khi đã bốc thăm vị trí (seeds).   */
   schedule: {
     roundRestMinutes: 1,
-    playerRestMinutes: 10,
-    endBy: '16:00'          /* mốc phải xong phần thi đấu; quá thì trang báo đỏ */
+    /* Sơ đồ thi đấu của BTC: ai phải đá hai lượt liền nhau thì trọng tài
+       cho nghỉ 5 phút rồi lùi giờ trận đó tương ứng. */
+    playerRestMinutes: 5,
+    endBy: '16:10'          /* mốc phải xong phần thi đấu; quá thì trang báo đỏ */
   },
 
-  /* ================== SÂN & KHU THI ĐẤU ================== */
+  /* ================== SÂN & KHU THI ĐẤU ==================
+     Hai sân Pickleball dùng chung cho CẢ HAI nội dung pickleball, ba sân
+     Cầu lông dùng chung cho cả hai nội dung cầu lông — không cố định mỗi
+     nội dung một sân. Đây là điều kiện để chạy hết 48 trận trong 150 phút. */
   venues: [
     {
       id: 'pb',
       name: 'Khu Pickleball',
       sport: 'pickleball',
-      slotMinutes: 15,
+      slotMinutes: 10,       /* mặc định; từng vòng có thời lượng riêng ở durations */
       gridMinutes: 5,
-      start: '13:15',
+      start: '13:40',
+      finalsTogether: true,  /* hai chung kết pickleball đá đồng thời trên 2 sân */
       courts: [
         { id: 'PB1', name: 'Sân Pickleball 1', short: 'PB 1' },
         { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' }
       ],
-      /* Thứ tự các vòng được xếp lên sân. Đổi thứ tự ở đây là đổi lịch. */
+      /* Thứ tự ưu tiên khi hai trận cùng xếp được vào một giờ. */
       roundOrder: [
         ['pb-nam', 'VL'],
         ['pb-mix', 'TK'],
+        ['pb-nam', 'VV'],
         ['pb-nam', 'TK'],
         ['pb-mix', 'BK'],
         ['pb-nam', 'BK'],
@@ -277,9 +279,9 @@ var VHTT_DATA = {
       id: 'cl',
       name: 'Khu Cầu lông',
       sport: 'cầu lông',
-      slotMinutes: 20,
+      slotMinutes: 15,
       gridMinutes: 5,
-      start: '13:15',
+      start: '13:40',
       courts: [
         { id: 'CL1', name: 'Sân Cầu lông 1', short: 'CL 1' },
         { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' },
@@ -287,10 +289,14 @@ var VHTT_DATA = {
       ],
       roundOrder: [
         ['cl-nam', 'VL'],
-        ['cl-mix', 'R1'],
+        ['cl-mix', 'TK'],
+        ['cl-nam', 'VV'],
         ['cl-nam', 'TK'],
-        ['cl-mix', 'CK'],
+        ['cl-mix', 'BK'],
         ['cl-nam', 'BK'],
+        ['cl-mix', 'TB'],
+        ['cl-nam', 'TB'],
+        ['cl-mix', 'CK'],
         ['cl-nam', 'CK']
       ]
     }
@@ -298,16 +304,16 @@ var VHTT_DATA = {
 
   /* ================== CÁC NỘI DUNG THI ĐẤU ==================
      format:
-       'ko12b4' = 12 đội, 4 đội được miễn vòng loại (vào thẳng tứ kết)
-       'ko8'    = 8 đội, loại trực tiếp từ tứ kết
-       'r6diff' = 6 đội, 3 trận vòng đầu, 2 đội thắng có hiệu số cao nhất
-                  vào chung kết, đội thắng còn lại hạng ba
-     seeds:
-       Vị trí trên nhánh đấu được xác định bằng bốc thăm.
-       Để [] -> nhánh hiện "Chờ bốc thăm".
-       Khi bốc xong: điền id đội theo đúng thứ tự vị trí 1, 2, 3...
-       ví dụ seeds: [3, 7, 1, 5, 2, 8, 4, 6]
-     targetScore: điểm chạm để thắng 1 hiệp (BO1)                     */
+       'q12r'   = 12 đội, không ai được miễn. 6 trận vòng loại, 6 đội thắng
+                  vào thẳng tứ kết; 6 đội thua đấu 3 trận vòng vớt, lấy thêm
+                  2 đội theo hiệu số rồi tổng điểm.
+       'ko8'    = 8 đội, loại trực tiếp từ tứ kết.
+       'ko12b4' = 12 đội, 4 đội được miễn vòng loại (không dùng năm nay).
+       'r6diff' = 6 đội, 3 trận rồi lấy 2 hiệu số cao nhất (không dùng năm nay).
+     durations: thời lượng mỗi trận theo từng vòng, tính bằng phút.
+     thirdPlace: có trận tranh hạng Ba hay không.
+     seeds: thứ tự bốc thăm. Đây là thứ tự đội trong bảng chia của BTC;
+            bấm "Bốc thăm vị trí" trong Bảng BTC để xáo lại.                */
   events: [
 
     /* ---------- PICKLEBALL ĐÔI NAM ---------- */
@@ -317,45 +323,33 @@ var VHTT_DATA = {
       short: 'PB đôi nam',
       sport: 'pickleball',
       venueId: 'pb',
-      format: 'ko12b4',
+      format: 'q12r',
       teamCount: 12,
+      thirdPlace: false,
       targetScore: 11,
-      scoring: 'Vòng loại ăn điểm trực tiếp. Từ tứ kết tính điểm theo lượt giao.',
-      drawRule: '24 vận động viên chia 2 nhóm (12 Mạnh / 12 Yếu), bốc ngẫu nhiên ' +
-                'mỗi nhóm 1 người ghép thành 1 đội cân sức.',
-      status: 'pending-draw',
-      statusNote: 'Chưa chia nhóm Mạnh/Yếu nên chưa ghép được đội. ' +
-                  'Danh sách đăng ký đang có 27 người cho 24 suất.',
-      teams: [],
-      seeds: [],
-      players: [
-        { no: 1,  name: 'Hồ Thái Hùng',          dept: 'BGĐ'  },
-        { no: 2,  name: 'Nguyễn Đức Thắng',      dept: 'A&I'  },
-        { no: 3,  name: 'Nguyễn Khắc Cường',     dept: 'A&I'  },
-        { no: 4,  name: 'Phan Thành Trung',      dept: 'A&I'  },
-        { no: 5,  name: 'Vũ Đức Mạnh',           dept: 'A&I'  },
-        { no: 6,  name: 'Phạm Tiến Dũng',        dept: 'ADM'  },
-        { no: 7,  name: 'Nguyễn Quốc Tuấn',      dept: 'CHPS' },
-        { no: 8,  name: 'Vũ Minh Đức',           dept: 'GMD'  },
-        { no: 9,  name: 'Nguyễn Huy Bình',       dept: 'IBIM' },
-        { no: 10, name: 'Đoàn Bảo Quốc',         dept: 'IBIM' },
-        { no: 11, name: 'Trần Quảng Toản',       dept: 'IBIM' },
-        { no: 12, name: 'Nguyễn Hậu Cần',        dept: 'IBIM' },
-        { no: 13, name: 'Phạm Trung Đức',        dept: 'IBIM' },
-        { no: 14, name: 'Nguyễn Tất Quý Bình',   dept: 'PMD'  },
-        { no: 15, name: 'Nguyễn Sách Hưng',      dept: 'PMD'  },
-        { no: 16, name: 'Hoàng Nghĩa Quang',     dept: 'SRI'  },
-        { no: 17, name: 'Cấn Huy Hoàng',         dept: 'SRI'  },
-        { no: 18, name: 'Kiều Bá Quyên',         dept: 'SRI'  },
-        { no: 19, name: 'Trần Thế Anh',          dept: 'SRI'  },
-        { no: 20, name: 'Nguyễn Văn Duy',        dept: 'SRI'  },
-        { no: 21, name: 'Nguyễn Ngọc Tuấn',      dept: 'TED'  },
-        { no: 22, name: 'Ngô Tấn Sơn',           dept: 'TED'  },
-        { no: 23, name: 'Ngô Trung Phương',      dept: 'UHRI' },
-        { no: 24, name: 'Nguyễn Tuyển Việt',     dept: 'UHRI' },
-        { no: 25, name: 'Trần Việt Hùng',        dept: 'UHRI', note: 'Chưa xác nhận' },
-        { no: 26, name: 'Nguyễn Huy Hoàng',      dept: 'VPĐD' },
-        { no: 27, name: 'Tuyển thủ nam 3',       dept: 'VPĐD', note: 'Chờ xác định' }
+      durations: { VL: 10, VV: 10, TK: 10, BK: 16, CK: 16 },
+      scoring: 'Vòng loại, vòng vớt và tứ kết ăn điểm trực tiếp. ' +
+               'Bán kết và chung kết tính điểm theo lượt giao.',
+      drawRule: 'Đội đã ghép sẵn theo bảng chia của BTC. ' +
+                'Vòng loại ghép lần lượt Đội 1–2, 3–4 … 11–12.',
+      status: 'ok',
+      statusNote: 'Đội 12 còn một suất chưa chốt người.',
+      teams: [
+        { id: 1, p1: 'Hồ Thái Hùng', p2: 'Nguyễn Đức Thắng', dept: 'BGĐ · A&I' },
+        { id: 2, p1: 'Nguyễn Khắc Cường', p2: 'Vũ Đức Mạnh', dept: 'A&I' },
+        { id: 3, p1: 'Phạm Tiến Dũng', p2: 'Nguyễn Quốc Tuấn', dept: 'ADM · CHPS' },
+        { id: 4, p1: 'Vũ Minh Đức', p2: 'Nguyễn Huy Bình', dept: 'GMD · IBIM' },
+        { id: 5, p1: 'Đoàn Bảo Quốc', p2: 'Trần Quảng Toản', dept: 'IBIM' },
+        { id: 6, p1: 'Nguyễn Hậu Cần', p2: 'Phạm Trung Đức', dept: 'IBIM' },
+        { id: 7, p1: 'Nguyễn Tất Quý Bình', p2: 'Hoàng Nghĩa Quang', dept: 'PMD · SRI' },
+        { id: 8, p1: 'Cấn Huy Hoàng', p2: 'Kiều Bá Quyên', dept: 'SRI' },
+        { id: 9, p1: 'Trần Thế Anh', p2: 'Nguyễn Văn Duy', dept: 'SRI' },
+        { id: 10, p1: 'Nguyễn Ngọc Tuấn', p2: 'Ngô Tấn Sơn', dept: 'TED' },
+        { id: 11, p1: 'Nguyễn Tuyển Việt', p2: 'Trần Việt Hùng', dept: 'UHRI' },
+        { id: 12, p1: 'Nguyễn Huy Hoàng', p2: 'Tuyển thủ nam 3', dept: 'VPĐD', pending: true }
+      ],
+      seeds: [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
       ]
     },
 
@@ -368,30 +362,30 @@ var VHTT_DATA = {
       venueId: 'pb',
       format: 'ko8',
       teamCount: 8,
+      thirdPlace: false,
       targetScore: 11,
-      scoring: 'Tính điểm theo lượt giao, đánh 1 hiệp chạm 11 điểm.',
-      drawRule: 'Các cặp nam nữ được bốc thăm ngẫu nhiên, không đổi đồng đội sau khi bốc.',
-      status: 'needs-decision',
-      statusNote: 'Bảng chia đội đã ghép được 9 cặp, nhưng nhánh đấu chỉ có 8 suất. ' +
-                  'BTC cần chốt bỏ 1 cặp, hoặc cho 1 cặp miễn vòng đầu.',
-      teams: [
-        { id: 1, p1: 'Tuyển thủ nam 1',      p2: 'Tuyển thủ nữ 2',         dept: 'VPĐD' },
-        { id: 2, p1: 'Tuyển thủ nam 2',      p2: 'Tuyển thủ nữ 1',         dept: 'VPĐD' },
-        { id: 3, p1: 'Nguyễn Đức Thắng',     p2: 'Nguyễn Thị Thanh Hoa',   dept: 'A&I · ADM' },
-        { id: 4, p1: 'Phạm Trung Đức',       p2: 'Nguyễn Quỳnh Trang',     dept: 'IBIM · BGĐ' },
-        { id: 5, p1: 'Nguyễn Tất Quý Bình',  p2: 'Mai Lệ Hằng',            dept: 'PMD · HPTC' },
-        { id: 6, p1: 'Trần Mạnh Cường',      p2: 'Hà Thị Nga',             dept: 'GMD' },
-        { id: 7, p1: 'Ngô Tấn Sơn',          p2: 'Trương Xuân Phương',     dept: 'TED · CDC' },
-        { id: 8, p1: 'Hồ Thái Hùng',         p2: 'Bùi Thị Trâm',           dept: 'BGĐ · FIN' },
-        { id: 9, p1: 'Hà Quang Đạt',         p2: 'Nguyễn Thị Quý Thương',  dept: 'SRI · GMD',
-          note: 'Nguyễn Thị Quý Thương chưa xác nhận tham gia' }
-      ],
-      seeds: [],
+      durations: { TK: 10, BK: 16, CK: 16 },
+      scoring: 'Tứ kết ăn điểm trực tiếp. Bán kết và chung kết tính điểm theo lượt giao.',
+      drawRule: 'Tám đội vào thẳng tứ kết theo thứ tự trong bảng chia.',
+      status: 'ok',
+      statusNote: 'Bốn suất dự bị trong bảng chia chưa gán tên, chưa xếp vào đội nào.',
       waiting: {
-        label: 'Nam đã đăng ký nhưng chưa có bạn đánh',
-        names: ['Nguyễn Ngọc Tuấn', 'Nguyễn Khắc Cường', 'Nguyễn Huy Bình',
-                'Ngô Trung Phương', 'Nguyễn Quốc Tuấn']
-      }
+        label: 'Suất dự bị chưa chốt người',
+        names: ['Tuyển thử nữ 1', 'Tuyển thử nữ 2', 'Tuyển thủ nam 1', 'Tuyển thủ nam 2']
+      },
+      teams: [
+        { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Nguyễn Đức Thắng', dept: 'BGĐ · A&I' },
+        { id: 2, p1: 'Nguyễn Khắc Cường', p2: 'Nguyễn Thị Thanh Hoa', dept: 'A&I · ADM' },
+        { id: 3, p1: 'Trương Xuân Phương', p2: 'Nguyễn Quốc Tuấn', dept: 'CDC · CHPS' },
+        { id: 4, p1: 'Bùi Thị Trâm', p2: 'Trần Thị Xuyến', dept: 'FIN' },
+        { id: 5, p1: 'Trần Mạnh Cường', p2: 'Nguyễn Thị Quý Thương', dept: 'GMD' },
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Tất Quý Bình', dept: 'HPTC · PMD' },
+        { id: 7, p1: 'Hà Quang Đạt', p2: 'Nguyễn Ngọc Tuấn', dept: 'SRI · TED' },
+        { id: 8, p1: 'Ngô Tấn Sơn', p2: 'Ngô Trung Phương', dept: 'TED · UHRI' }
+      ],
+      seeds: [
+        1, 2, 3, 4, 5, 6, 7, 8
+      ]
     },
 
     /* ---------- CẦU LÔNG ĐÔI NAM ---------- */
@@ -401,42 +395,31 @@ var VHTT_DATA = {
       short: 'CL đôi nam',
       sport: 'cầu lông',
       venueId: 'cl',
-      format: 'ko12b4',
+      format: 'q12r',
       teamCount: 12,
+      thirdPlace: true,
       targetScore: 21,
-      scoring: 'Đánh 1 hiệp đến 21 điểm, thắng pha cầu nào được điểm pha đó.',
-      drawRule: '24 vận động viên chia 2 nhóm (12 Mạnh / 12 Yếu), bốc ngẫu nhiên ' +
-                'mỗi nhóm 1 người ghép thành 1 đội cân sức.',
-      status: 'pending-draw',
-      statusNote: 'Chưa chia nhóm Mạnh/Yếu nên chưa ghép được đội. ' +
-                  'Danh sách đăng ký đang có đúng 24 người.',
-      teams: [],
-      seeds: [],
-      players: [
-        { no: 1,  name: 'Nguyễn Đức Thắng',    dept: 'A&I'  },
-        { no: 2,  name: 'Nguyễn Khắc Cường',   dept: 'A&I'  },
-        { no: 3,  name: 'Hoàng Quốc Đại',      dept: 'A&I'  },
-        { no: 4,  name: 'Phạm Tiến Dũng',      dept: 'ADM'  },
-        { no: 5,  name: 'Nguyễn Trường Lâm',   dept: 'CDC'  },
-        { no: 6,  name: 'Đặng Minh Hưng',      dept: 'CHPS' },
-        { no: 7,  name: 'Nguyễn Quốc Tuấn',    dept: 'CHPS' },
-        { no: 8,  name: 'Trần Mạnh Cường',     dept: 'GMD'  },
-        { no: 9,  name: 'Nguyễn Văn Tình',     dept: 'HPTC' },
-        { no: 10, name: 'Nguyễn Sơn Tùng',     dept: 'PMD'  },
-        { no: 11, name: 'Nguyễn Tất Quý Bình', dept: 'PMD'  },
-        { no: 12, name: 'Nguyễn Sách Hưng',    dept: 'PMD'  },
-        { no: 13, name: 'Hoàng Nghĩa Quang',   dept: 'SRI'  },
-        { no: 14, name: 'Cấn Huy Hoàng',       dept: 'SRI'  },
-        { no: 15, name: 'Kiều Bá Quyên',       dept: 'SRI'  },
-        { no: 16, name: 'Hà Quang Đạt',        dept: 'SRI'  },
-        { no: 17, name: 'Trần Thế Anh',        dept: 'SRI'  },
-        { no: 18, name: 'Mai Xuân Hòa',        dept: 'SRI'  },
-        { no: 19, name: 'Nguyễn Văn Duy',      dept: 'SRI'  },
-        { no: 20, name: 'Đỗ Thanh Sơn',        dept: 'TED'  },
-        { no: 21, name: 'Đỗ Quang Tùng',       dept: 'TED'  },
-        { no: 22, name: 'Trần Đức Thái',       dept: 'TED'  },
-        { no: 23, name: 'Nguyễn Thanh Bình',   dept: 'TED'  },
-        { no: 24, name: 'Ngô Trung Phương',    dept: 'UHRI' }
+      durations: { mac_dinh: 15 },
+      scoring: 'Mọi vòng đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
+      drawRule: 'Đội đã ghép sẵn theo bảng chia của BTC. ' +
+                'Vòng loại ghép lần lượt Đội 1–2, 3–4 … 11–12.',
+      status: 'ok',
+      teams: [
+        { id: 1, p1: 'Nguyễn Đức Thắng', p2: 'Nguyễn Khắc Cường', dept: 'A&I' },
+        { id: 2, p1: 'Hoàng Quốc Đại', p2: 'Phạm Tiến Dũng', dept: 'A&I · ADM' },
+        { id: 3, p1: 'Nguyễn Trường Lâm', p2: 'Đặng Minh Hưng', dept: 'CDC · CHPS' },
+        { id: 4, p1: 'Nguyễn Quốc Tuấn', p2: 'Trần Mạnh Cường', dept: 'CHPS · GMD' },
+        { id: 5, p1: 'Nguyễn Sơn Tùng', p2: 'Nguyễn Tất Quý Bình', dept: 'PMD' },
+        { id: 6, p1: 'Nguyễn Sách Hưng', p2: 'Hoàng Nghĩa Quang', dept: 'PMD · SRI' },
+        { id: 7, p1: 'Cấn Huy Hoàng', p2: 'Kiều Bá Quyên', dept: 'SRI' },
+        { id: 8, p1: 'Hà Quang Đạt', p2: 'Trần Thế Anh', dept: 'SRI' },
+        { id: 9, p1: 'Mai Xuân Hòa', p2: 'Nguyễn Văn Duy', dept: 'SRI' },
+        { id: 10, p1: 'Đỗ Thanh Sơn', p2: 'Đỗ Quang Tùng', dept: 'TED' },
+        { id: 11, p1: 'Nguyễn Mạnh Hùng', p2: 'Trần Đức Thái', dept: 'TED' },
+        { id: 12, p1: 'Nguyễn Thanh Bình', p2: 'Ngô Trung Phương', dept: 'TED · UHRI' }
+      ],
+      seeds: [
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
       ]
     },
 
@@ -447,31 +430,33 @@ var VHTT_DATA = {
       short: 'CL nam nữ',
       sport: 'cầu lông',
       venueId: 'cl',
-      format: 'r6diff',
-      teamCount: 6,
+      format: 'ko8',
+      teamCount: 8,
+      thirdPlace: true,
       targetScore: 21,
-      scoring: '3 trận vòng đầu. Hai đội thắng có hiệu số điểm cao nhất vào chung kết, ' +
-               'đội thắng còn lại nhận hạng ba.',
-      drawRule: 'Các cặp nam nữ được bốc thăm ngẫu nhiên, không đổi đồng đội sau khi bốc.',
+      durations: { mac_dinh: 15 },
+      scoring: 'Đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
+      drawRule: 'Tám đội vào thẳng tứ kết theo thứ tự trong bảng chia.',
       status: 'needs-decision',
-      statusNote: 'Bộ luật ghi thể thức 6 đội, nhưng danh sách đã ghép được 8 cặp. ' +
-                  'BTC cần chốt lấy 6 đội nào, hoặc chuyển sang thể thức 8 đội.',
-      teams: [
-        { id: 1, p1: 'Phạm Trung Đức',     p2: 'Trần Thị Xuyến',         dept: 'IBIM · FIN' },
-        { id: 2, p1: 'Đặng Minh Hưng',     p2: 'Nguyễn Thị Thanh Hoa',   dept: 'CHPS · ADM' },
-        { id: 3, p1: 'Ngô Trung Phương',   p2: 'Trương Xuân Phương',     dept: 'UHRI · CDC' },
-        { id: 4, p1: 'Trần Đức Thái',      p2: 'Lê Thị Ngọc',            dept: 'TED · ADM' },
-        { id: 5, p1: 'Nguyễn Khắc Cường',  p2: 'Bùi Thị Trâm',           dept: 'A&I · FIN' },
-        { id: 6, p1: 'Nguyễn Thanh Bình',  p2: 'Hà Thị Nga',             dept: 'TED · GMD' },
-        { id: 7, p1: 'Mai Xuân Hòa',       p2: 'Nguyễn Thị Quý Thương',  dept: 'SRI · GMD',
-          note: 'Nguyễn Thị Quý Thương chưa xác nhận tham gia' },
-        { id: 8, p1: 'Hà Quang Đạt',       p2: 'Mai Lệ Hằng',            dept: 'SRI · HPTC' }
-      ],
-      seeds: [],
+      statusNote: 'Nội dung này có 19 người đăng ký — số lẻ. ' +
+                  'Bảng chia mới ghép được 8 đội, còn 3 người chưa có đồng đội.',
       waiting: {
-        label: 'Nam đã đăng ký nhưng chưa có bạn đánh',
-        names: ['Nguyễn Quốc Tuấn', 'Nguyễn Sách Hưng', 'Nguyễn Sơn Tùng']
-      }
+        label: 'Đã đăng ký nhưng chưa ghép được đội',
+        names: ['Trần Đức Thái', 'Nguyễn Thanh Bình', 'Ngô Trung Phương']
+      },
+      teams: [
+        { id: 1, p1: 'Nguyễn Khắc Cường', p2: 'Lê Thị Ngọc', dept: 'A&I · ADM' },
+        { id: 2, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Trương Xuân Phương', dept: 'ADM · CDC' },
+        { id: 3, p1: 'Đặng Minh Hưng', p2: 'Nguyễn Quốc Tuấn', dept: 'CHPS' },
+        { id: 4, p1: 'Bùi Thị Trâm', p2: 'Trần Thị Xuyến', dept: 'FIN' },
+        { id: 5, p1: 'Nguyễn Thị Quý Thương', p2: 'Hà Thị Nga', dept: 'GMD' },
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Phạm Trung Đức', dept: 'HPTC · IBIM' },
+        { id: 7, p1: 'Nguyễn Sơn Tùng', p2: 'Nguyễn Sách Hưng', dept: 'PMD' },
+        { id: 8, p1: 'Hà Quang Đạt', p2: 'Mai Xuân Hòa', dept: 'SRI' }
+      ],
+      seeds: [
+        1, 2, 3, 4, 5, 6, 7, 8
+      ]
     }
   ],
 
@@ -482,7 +467,10 @@ var VHTT_DATA = {
     id: 'jump',
     name: 'Nhảy dây 1 phút',
     station: 'Khu nhảy dây',
-    start: '13:30',
+    start: '13:40',
+    statusNote: 'Ba nguồn đang lệch nhau: bản đăng ký có 33 người tick nhảy dây, ' +
+                'sheet "DS Nhảy dây" liệt kê 24 người, danh sách dưới đây có 30. ' +
+                'BTC cần chốt lại một danh sách trước ngày hội.',
     heatMinutes: 10,
     rule: 'Mỗi người nhảy 1 lượt 60 giây. Mỗi lần dây qua trọn vẹn dưới hai chân ' +
           'tính 1 lần. Vấp dây là dừng. Ai nhiều lần nhất thì thắng.',
@@ -595,17 +583,19 @@ var VHTT_DATA = {
               'Bóng không qua lưới.',
               'Bóng nảy 2 lần bên sân mình.',
               'Phạm luật hai lần nảy hoặc luật vùng bếp.' ] },
-          { title: 'Tính điểm — vòng loại (ăn điểm trực tiếp)', items: [
+          { title: 'Tính điểm — vòng loại, vòng vớt, tứ kết (ăn điểm trực tiếp)', items: [
               'Thắng pha bóng nào được 1 điểm pha đó, dù đang giao hay nhận.',
               'Đội giao thua pha bóng thì đổi quyền giao.',
               'Điểm đội giao chẵn: giao từ ô phải. Lẻ: giao từ ô trái.',
-              'Mỗi trận 1 hiệp, đội nào chạm 11 điểm trước là thắng.' ] },
-          { title: 'Tính điểm — các vòng sau (theo lượt giao)', items: [
+              'Mỗi trận 1 hiệp, chạm 11 điểm và hơn đối thủ 2 điểm là thắng.',
+              'Mỗi trận gói trong 10 phút.' ] },
+          { title: 'Tính điểm — bán kết và chung kết (theo lượt giao)', items: [
               'Chỉ đội đang giao bóng mới được ghi điểm.',
               'Đội nhận thắng pha bóng: không có điểm, chỉ giành lượt giao.',
               'Mỗi đội có 2 lượt giao (mỗi người 1 lượt); đội giao đầu trận chỉ có 1 lượt.',
               'Ghi điểm thì người giao đổi ô và giao tiếp.',
-              'Mỗi trận 1 hiệp, đội nào chạm 11 điểm trước là thắng.' ] }
+              'Mỗi trận 1 hiệp, chạm 11 điểm và hơn đối thủ 2 điểm là thắng.',
+              'Mỗi trận gói trong 16 phút.' ] }
         ],
         examples: [
           { title: 'Ví dụ: ăn điểm trực tiếp (vòng loại)',
@@ -645,7 +635,9 @@ var VHTT_DATA = {
               'Chỉ người đứng ô chéo được đỡ quả giao.',
               'Sau quả giao, hai người đánh tự do, không cần luân phiên.' ] },
           { title: 'Tính điểm', items: [
-              'Mỗi trận 1 hiệp, đánh đến 21 điểm; đội chạm 21 trước là thắng.',
+              'Mỗi trận 1 hiệp 21 điểm, hơn đối thủ 2 điểm mới thắng.',
+              'Hòa 29–29 thì ai chạm 30 trước là thắng.',
+              'Mỗi trận gói trong 15 phút.',
               'Thắng pha cầu nào được 1 điểm pha đó.',
               'Đội thắng pha cầu được giao quả tiếp theo.',
               'Đội đang giao ghi điểm: người giao đổi ô và giao tiếp.',
