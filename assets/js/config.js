@@ -29,8 +29,8 @@ var SITE_CONFIG = {
        Mở Google Form -> Gửi (Send) -> chọn tab <>  -> copy giá trị src
      Dán đúng link dạng  https://docs.google.com/forms/d/e/.../viewform?embedded=true
      Để '' nếu chưa có -> trang hiện hướng dẫn thay cho form.         */
-  formEmbedUrl: '',
-  formOpenUrl: '',             // link rút gọn để mở form ở tab mới / in QR
+  formEmbedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdJS3QGCS6hvi5JxPLerN2XFWkie4sTTPi-S4JuwnqwPcBCqQ/viewform?embedded=true',
+  formOpenUrl: 'https://forms.gle/RWESNtXvSpQERPqs8',   // link rút gọn để mở form ở tab mới / in QR
 
   /* --- 3b. Link vào phòng mini game (Kahoot / Quizizz / Google Forms)
      Để '' thì trang chỉ hiện hướng dẫn, không hiện nút và mã QR.      */

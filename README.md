@@ -288,6 +288,8 @@ Trang đang hiển thị rõ các điểm này để không ai hiểu nhầm:
    chưa có tên cụ thể. Điền vào `talks[0].speaker` trong `data.js` khi đã chốt.
 2. **Mini game**: chưa chốt nền tảng (Kahoot / Quizizz / Google Forms) và chưa có link phòng chơi.
    Điền `quizJoinUrl` trong `config.js`.
+   *(Form đặt câu hỏi thì đã gắn xong — `formEmbedUrl` và `formOpenUrl` trong `config.js`.
+   Mã QR ở mục Hỏi diễn giả và chế độ máy chiếu đều trỏ thẳng vào form này.)*
 3. **Google Form đặt câu hỏi** chưa có — điền `formEmbedUrl` trong `config.js`.
 4. **Địa chỉ web công khai** chưa có — điền `siteUrl` để mã QR trỏ đúng.
 5. **Buổi chiều**: kế hoạch chính thức chỉ ghi “Đại hội thể thao, kế hoạch riêng,
