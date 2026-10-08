@@ -95,6 +95,27 @@ Mở `assets/js/config.js` — mọi thứ quan trọng nằm ở đó, có chú
 | Danh sách đội, vận động viên | mảng `events` và `jumpRope` trong `assets/js/data.js` |
 | Kết quả trận đấu | object `results` trong `assets/js/data.js` |
 
+### Ảnh nền khối mở đầu
+
+Hai ảnh đang dùng nằm ở `assets/img/`:
+
+| File | Nội dung |
+|---|---|
+| `ngay-hoi-2025.jpg` | Ảnh chụp chung Ngày hội Văn hóa Thể thao CHP 2025 |
+| `hop-mat.jpg` | Ảnh họp mặt tại hội trường |
+
+Trang chạy mờ chuyển qua lại giữa các ảnh, mặc định 9 giây một lần.
+Đổi ảnh thì bỏ file mới vào `assets/img/` rồi sửa `heroPhotos` trong `config.js`:
+
+```js
+heroPhotos: ['assets/img/anh-1.jpg', 'assets/img/anh-2.jpg'],
+heroPhotoSeconds: 9,
+```
+
+Để mảng rỗng (`heroPhotos: []`) thì quay về tranh vẽ cầu dây văng.
+Ảnh nên **nằm ngang**, tối thiểu 1600px bề ngang; trang tự cắt theo khung
+và phủ một lớp tối lên để chữ trắng đọc được.
+
 ### Thêm ảnh thật
 
 **Ảnh diễn giả.** Bỏ ảnh vào `assets/img/`, rồi thêm trường `photo` cho bài tương ứng

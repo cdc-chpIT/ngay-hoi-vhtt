@@ -601,6 +601,30 @@
   /* Ảnh nào ứng với bài đang trình bày thì phóng to, hai ảnh kia thu nhỏ. */
   var shotActive = null;
 
+  /* Ảnh nền khối mở đầu. Có ảnh thì tranh vẽ cầu dây văng lùi đi,
+     nhiều ảnh thì chạy mờ chuyển qua lại. */
+  function renderHeroPhotos() {
+    var list = (CFG.heroPhotos || []).filter(Boolean);
+    var art = $('.hero-art'), card = $('.hero-card');
+    if (!art || !card || !list.length) return;
+
+    card.classList.add('has-photo');
+    art.insertAdjacentHTML('afterbegin',
+      '<div class="hero-ph">' + list.map(function (src, i) {
+        return '<img src="' + esc(src) + '" alt="" aria-hidden="true"' +
+               (i === 0 ? ' class="on"' : '') +
+               (i ? ' loading="lazy"' : '') + '>';
+      }).join('') + '</div>');
+
+    if (list.length < 2 || reduce) return;
+    var imgs = $$('.hero-ph img'), k = 0;
+    setInterval(function () {
+      imgs[k].classList.remove('on');
+      k = (k + 1) % imgs.length;
+      imgs[k].classList.add('on');
+    }, Math.max(4, CFG.heroPhotoSeconds || 9) * 1000);
+  }
+
   function renderPillarShots() {
     var t = $('#van-hoa-title');
     if (t) t.textContent = D.intro.theme;
@@ -2417,6 +2441,7 @@
     document.body.appendChild(gr);
 
     renderHero();
+    renderHeroPhotos();
     renderPillarShots();
     renderAgenda();
     renderAsk();

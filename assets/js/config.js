@@ -19,6 +19,16 @@ var SITE_CONFIG = {
   venueName: 'Hội trường Viện Hàn lâm Khoa học xã hội Việt Nam',
   venueAddress: 'Số 1 Liễu Giai, Ba Đình, Hà Nội',
   venueNote: 'Buổi sáng tại hội trường; buổi chiều chuyển sang nhà thi đấu.',
+
+  /* --- Ảnh nền khối mở đầu -------------------------------------------
+     Bỏ ảnh vào assets/img/ rồi khai ở đây. Nhiều ảnh thì trang tự chạy
+     mờ chuyển qua lại. Để mảng rỗng thì quay về tranh vẽ cầu dây văng. */
+  heroPhotos: [
+    'assets/img/ngay-hoi-2025.jpg',
+    'assets/img/hop-mat.jpg'
+  ],
+  heroPhotoSeconds: 9,         // bao lâu thì đổi sang ảnh kế tiếp
+
   /* Buổi chiều thi đấu ở chỗ khác, không cùng chỗ với buổi sáng */
   sportVenueName: 'Nhà thi đấu Bệnh viện 354',
   sportVenueAddress: '',
