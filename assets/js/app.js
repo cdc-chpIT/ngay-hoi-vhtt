@@ -1201,34 +1201,179 @@
      ===================================================================== */
   var RND_FULL = { VL: 'Vòng loại', VV: 'Nhánh thua', TK: 'Tứ kết', BK: 'Bán kết', CK: 'Chung kết', TB: 'Tranh hạng Ba' };
 
+  function parseTeamPlayers(team, ev) {
+    if (team.teamId != null && ev && ev.teamById && ev.teamById[team.teamId]) {
+      var t = ev.teamById[team.teamId];
+      if (t.p1 && t.p2) return { p1: t.p1, p2: t.p2, single: false };
+      if (t.name) return { p1: t.name, p2: '', single: true };
+    }
+    if (team.label) {
+      var parts = team.label.split(' / ');
+      if (parts.length === 2) return { p1: parts[0], p2: parts[1], single: false };
+      return { p1: team.label, p2: '', single: true };
+    }
+    return { p1: '—', p2: '', single: true };
+  }
+
   function bkCard(m, extraCls) {
     var v = T.view(m);
-    var st = v.done ? 'done' : (v.ready ? 'ready' : 'wait');
-    var stTxt = v.done ? 'Đã đấu' : (v.ready ? 'Sẵn sàng' : 'Chờ vòng trước');
+    var tpA = parseTeamPlayers(v.teamA, v.event);
+    var tpB = parseTeamPlayers(v.teamB, v.event);
 
-    function side(team, score, which) {
-      var cls = team.pending ? 'pend' : (v.done ? (v.winnerSide === which ? 'win' : 'lose') : '');
-      return '<div class="sd ' + cls + '">' +
-        '<span class="nm" title="' + esc(team.label) + '">' + esc(team.label) + '</span>' +
-        '<span class="pt">' + (score == null ? '–' : score) + '</span></div>';
-    }
+    var clsA = v.teamA.pending ? 'pend' : (v.done ? (v.winnerSide === 'a' ? 'win' : 'lose') : '');
+    var clsB = v.teamB.pending ? 'pend' : (v.done ? (v.winnerSide === 'b' ? 'win' : 'lose') : '');
 
-    var label = (RND_FULL[m.round] || m.round) + (m.round === 'CK' || m.round === 'TB' ? '' : ' ' + m.index);
-    return '<div class="bkm ' + (extraCls || '') + '" data-state="' + st + '">' +
-      '<div class="hd">' +
-        '<span class="tm">' + esc(m.time + ' · ' + m.court.short) + '</span>' +
-        '<span class="st">' + esc(stTxt) + '</span>' +
+    var byeA = (m.byeTop) ? '<span class="bye">miễn VL</span>' : '';
+
+    var scA = v.scoreA == null ? '–' : v.scoreA;
+    var scB = v.scoreB == null ? '–' : v.scoreB;
+    var winA = v.done && v.winnerSide === 'a';
+    var winB = v.done && v.winnerSide === 'b';
+
+    var tag = Tournament.ROUND_SHORT[m.round] + (m.round === 'CK' ? '' : ' ' + m.index);
+    return '<div class="bkm ' + (extraCls || '') + '" data-mid="' + esc(m.id) + '" title="' + esc(m.label) + '">' +
+      '<div class="hd"><span class="tag">' + esc(tag) + '</span><span class="meta">' + esc(m.time + ' · ' + m.court.short) + '</span></div>' +
+      '<div class="bkm-body">' +
+        '<div class="sd sd-a ' + clsA + '">' +
+          '<span class="nm" title="' + esc(tpA.p1) + '">' + esc(tpA.p1) + '</span>' +
+          (tpA.single ? (byeA ? ' ' + byeA : '') : '<span class="nm" title="' + esc(tpA.p2) + '">' + esc(tpA.p2) + '</span>' + byeA) +
+        '</div>' +
+        '<div class="bkm-score">' +
+          '<span class="pt ' + (winA ? 'win' : '') + '">' + scA + '</span>' +
+          '<span class="sep">:</span>' +
+          '<span class="pt ' + (winB ? 'win' : '') + '">' + scB + '</span>' +
+        '</div>' +
+        '<div class="sd sd-b ' + clsB + '">' +
+          '<span class="nm" title="' + esc(tpB.p1) + '">' + esc(tpB.p1) + '</span>' +
+          (tpB.single ? '' : '<span class="nm" title="' + esc(tpB.p2) + '">' + esc(tpB.p2) + '</span>') +
+        '</div>' +
       '</div>' +
-      side(v.teamA, v.scoreA, 'a') + side(v.teamB, v.scoreB, 'b') +
-      '<div class="ft">' + esc(label) + '</div>' +
     '</div>';
   }
 
-  /* cột nối: 'flat' = 1 đối 1, mặc định = ghép đôi */
-  function connCol(n, flat) {
-    var items = '';
-    for (var i = 0; i < n; i++) items += '<i><s></s><b></b><s></s></i>';
-    return '<div class="bk-conn' + (flat ? ' flat' : '') + '">' + items + '</div>';
+  function updateBracketSvg() {
+    $$('.bk').forEach(function (bk) {
+      var svg = bk.querySelector('.bk-svg-lines');
+      if (!svg) return;
+
+      var bkRect = bk.getBoundingClientRect();
+      if (bkRect.width === 0 || bkRect.height === 0) return;
+
+      var sport = bk.getAttribute('data-sport') || 'pb';
+      var winColor = sport === 'cl' ? '#0284c7' : '#22703a';
+      var winArrId = sport === 'cl' ? 'arr-cl' : 'arr-pb';
+
+      var w = Math.max(bk.scrollWidth, bk.clientWidth);
+      var h = Math.max(bk.scrollHeight, bk.clientHeight);
+      svg.setAttribute('width', w);
+      svg.setAttribute('height', h);
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+
+      var defs = '<defs>' +
+        '<marker id="arr-def" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">' +
+          '<path d="M 1 1.5 L 6.5 4 L 1 6.5 Z" fill="#94a3b8" />' +
+        '</marker>' +
+        '<marker id="' + winArrId + '" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">' +
+          '<path d="M 1 1.5 L 6.5 4 L 1 6.5 Z" fill="' + winColor + '" />' +
+        '</marker>' +
+      '</defs>';
+
+      var paths = '';
+      var cards = bk.querySelectorAll('.bkm[data-mid]');
+      var cardMap = {};
+      cards.forEach(function (c) { cardMap[c.getAttribute('data-mid')] = c; });
+
+      cards.forEach(function (destCard) {
+        var mid = destCard.getAttribute('data-mid');
+        var m = T.matchById ? T.matchById[mid] : null;
+        if (!m) return;
+
+        var destRect = destCard.getBoundingClientRect();
+        var tx = destRect.left - bkRect.left;
+        var ty = (destRect.top + destRect.bottom) / 2 - bkRect.top;
+
+        var srcA = (m.a && m.a.k === 'winner') ? cardMap[m.a.m] : null;
+        var srcB = (m.b && m.b.k === 'winner') ? cardMap[m.b.m] : null;
+
+        if (!srcA && !srcB) return;
+
+        if (srcA && srcB) {
+          var rectA = srcA.getBoundingClientRect();
+          var rectB = srcB.getBoundingClientRect();
+
+          var upperIsA = rectA.top <= rectB.top;
+          var rTop = upperIsA ? rectA : rectB;
+          var rBot = upperIsA ? rectB : rectA;
+          var mTop = upperIsA ? m.a.m : m.b.m;
+          var mBot = upperIsA ? m.b.m : m.a.m;
+
+          var sxTop = rTop.right - bkRect.left;
+          var syTop = (rTop.top + rTop.bottom) / 2 - bkRect.top;
+          var sxBot = rBot.right - bkRect.left;
+          var syBot = (rBot.top + rBot.bottom) / 2 - bkRect.top;
+
+          var sx = Math.max(sxTop, sxBot);
+          var mx = sx + (tx - sx) * 0.48;
+
+          var vTop = T.view(T.matchById[mTop]);
+          var vBot = T.view(T.matchById[mBot]);
+          var winTop = vTop && vTop.done;
+          var winBot = vBot && vBot.done;
+
+          var r = Math.min(8, Math.abs(ty - syTop) / 2, Math.abs(syBot - ty) / 2, (tx - sx) / 4);
+
+          var pathTop = 'M ' + sxTop + ' ' + syTop +
+                        ' L ' + (mx - r) + ' ' + syTop +
+                        ' Q ' + mx + ' ' + syTop + ' ' + mx + ' ' + (syTop + r) +
+                        ' L ' + mx + ' ' + ty;
+
+          var pathBot = 'M ' + sxBot + ' ' + syBot +
+                        ' L ' + (mx - r) + ' ' + syBot +
+                        ' Q ' + mx + ' ' + syBot + ' ' + mx + ' ' + (syBot - r) +
+                        ' L ' + mx + ' ' + ty;
+
+          var hasAdv = winTop || winBot;
+          var stemCls = hasAdv ? 'bk-path win' : 'bk-path';
+          var stemMarker = hasAdv ? 'url(#' + winArrId + ')' : 'url(#arr-def)';
+          var stemPath = 'M ' + mx + ' ' + ty + ' L ' + tx + ' ' + ty;
+
+          paths += '<path class="' + (winTop ? 'bk-path win' : 'bk-path') + '" d="' + pathTop + '" />';
+          paths += '<path class="' + (winBot ? 'bk-path win' : 'bk-path') + '" d="' + pathBot + '" />';
+          paths += '<path class="' + stemCls + '" marker-end="' + stemMarker + '" d="' + stemPath + '" />';
+
+        } else {
+          var srcCard = srcA || srcB;
+          var srcRef = srcA ? m.a : m.b;
+          var srcRect = srcCard.getBoundingClientRect();
+          var sx = srcRect.right - bkRect.left;
+          var sy = (srcRect.top + srcRect.bottom) / 2 - bkRect.top;
+          var mx = sx + (tx - sx) * 0.48;
+
+          var vSrc = T.view(T.matchById[srcRef.m]);
+          var isWin = vSrc && vSrc.done;
+          var pCls = isWin ? 'bk-path win' : 'bk-path';
+          var pMarker = isWin ? 'url(#' + winArrId + ')' : 'url(#arr-def)';
+
+          var pathStr = '';
+          if (Math.abs(ty - sy) < 3) {
+            pathStr = 'M ' + sx + ' ' + sy + ' L ' + tx + ' ' + ty;
+          } else {
+            var r = Math.min(8, Math.abs(ty - sy) / 2, (tx - sx) / 4);
+            var dir = ty > sy ? 1 : -1;
+            pathStr = 'M ' + sx + ' ' + sy +
+                      ' L ' + (mx - r) + ' ' + sy +
+                      ' Q ' + mx + ' ' + sy + ' ' + mx + ' ' + (sy + r * dir) +
+                      ' L ' + mx + ' ' + (ty - r * dir) +
+                      ' Q ' + mx + ' ' + ty + ' ' + (mx + r) + ' ' + ty +
+                      ' L ' + tx + ' ' + ty;
+          }
+
+          paths += '<path class="' + pCls + '" marker-end="' + pMarker + '" d="' + pathStr + '" />';
+        }
+      });
+
+      svg.innerHTML = defs + paths;
+    });
   }
 
   function renderBracket(ev) {
@@ -1236,8 +1381,6 @@
 
     if (ev.format === 'r6diff') return renderR6(ev, k);
 
-    /* Vòng vớt không chạy 1-1 vào tứ kết nên không vẽ thành một cột của
-       nhánh; nó là một nhánh phụ, vẽ riêng ở dưới cùng bảng chọn 2 đội. */
     var rounds = [];
     ['VL', 'TK', 'BK', 'CK'].forEach(function (r) {
       var list = T.matchesOf(ev.id).filter(function (m) { return m.round === r; })
@@ -1246,28 +1389,13 @@
     });
 
     var html = '<div class="bk-scroll"><div class="bk" data-sport="' + k + '">';
-    rounds.forEach(function (rd, i) {
+    html += '<svg class="bk-svg-lines" aria-hidden="true"></svg>';
+    rounds.forEach(function (rd) {
       html += '<div class="bk-wrapcol"><span class="rnd">' + esc(rd.name) + '</span>' +
               '<div class="bk-col">' +
               rd.list.map(function (m) { return bkCard(m, rd.key === 'CK' ? 'ck' : ''); }).join('') +
               '</div></div>';
-      var next = rounds[i + 1];
-      if (next) html += connCol(next.list.length, next.list.length === rd.list.length);
     });
-
-    /* cột cuối: đội vô địch */
-    var pod = T.podium(ev);
-    html += connCol(1, true) +
-      '<div class="bk-wrapcol"><span class="rnd">Vô địch</span>' +
-        '<div class="bk-col"><div class="bkm champ' + (pod.champion ? ' got' : '') + '">' +
-          '<div class="hd"><span class="tm">Nhà vô địch</span></div>' +
-          '<div class="sd ' + (pod.champion ? 'win' : 'pend') + '">' +
-            '<span class="nm">' + esc(pod.champion || 'Chờ chung kết') + '</span>' +
-            '<span class="pt">' + (pod.champion ? '🏆' : '–') + '</span>' +
-          '</div>' +
-        '</div></div>' +
-      '</div>';
-
     html += '</div></div>';
 
     var lose = loserBranch(ev);
@@ -1365,23 +1493,46 @@
 
   function podiumHtml(ev) {
     var p = T.podium(ev);
-    function cell(cls, med, label, val) {
+    var isR6 = ev.format === 'r6diff';
+
+    function podCard(rankCls, icon, medal, title, val, hint) {
       var list = val == null ? [] : (Array.isArray(val) ? val : [val]);
-      var body = list.length
-        ? list.map(function (x) { return '<div class="nm">' + esc(x) + '</div>'; }).join('')
-        : '<div class="nm pend">Chưa có</div>';
-      return '<div class="pod ' + cls + '"><div class="r">' + med + ' ' + label + '</div>' + body + '</div>';
+      var hasWinner = list.length > 0;
+      var bodyHtml = hasWinner
+        ? list.map(function (x) {
+            return '<div class="pod-winner"><span class="pod-star">★</span><span class="pod-name">' + esc(x) + '</span></div>';
+          }).join('')
+        : '<div class="pod-winner pend"><span class="pod-dot"></span><i>' + esc(hint || 'Chờ kết quả') + '</i></div>';
+
+      return '<div class="pod-card ' + rankCls + (hasWinner ? ' has-winner' : '') + '">' +
+        '<div class="pod-top">' +
+          '<span class="pod-badge">' + medal + ' ' + title + '</span>' +
+          '<span class="pod-icon">' + icon + '</span>' +
+        '</div>' +
+        '<div class="pod-body">' + bodyHtml + '</div>' +
+      '</div>';
     }
-    return '<div class="podium" style="margin-top:22px">' +
-      cell('g1', '🥇', 'Giải nhất', p.champion) +
-      cell('g2', '🥈', 'Giải nhì', p.runnerUp) +
-      cell('g3', '🥉', ev.format === 'r6diff' ? 'Hạng ba' : 'Đồng giải ba', p.third) +
+
+    return '<div class="podium-shell">' +
+      '<div class="podium-header">' +
+        '<div class="podium-title"><svg class="ic" width="18" height="18"><use href="#i-trophy"/></svg><b>Bảng vinh danh giải thưởng</b></div>' +
+        '<span class="podium-sub">' + esc(ev.name) + '</span>' +
+      '</div>' +
+      '<div class="podium-grid">' +
+        podCard('gold',   '🏆', '🥇', 'Giải Nhất', p.champion, 'Chờ trận chung kết') +
+        podCard('silver', '🥈', '🥈', 'Giải Nhì',  p.runnerUp,  'Chờ trận chung kết') +
+        podCard('bronze', '🥉', '🥉', isR6 ? 'Hạng Ba' : 'Đồng Giải Ba', p.third, 'Chờ trận bán kết') +
+      '</div>' +
     '</div>';
   }
 
   function renderBracketPane(evId) {
     var ev = T.eventById[evId];
     var head = '';
+    if (ev.statusNote) {
+      head = '<div class="note" style="margin-bottom:16px"><div><b>' + esc(ev.name) + ':</b> ' +
+             esc(ev.statusNote) + '</div></div>';
+    }
     if (localSeeds[ev.id] && localSeeds[ev.id].length) {
       head += '<p class="bk-hint">Nhánh này đang dùng kết quả <b>bốc thăm lưu trên máy này</b>, ' +
               'máy khác sẽ thấy khác. Dán đoạn <code>seeds</code> vào data.js để chốt cho cả nhà, ' +
@@ -1395,6 +1546,10 @@
       head += '<p class="bk-hint">Kéo ngang để xem hết nhánh đấu.</p>';
     }
     $('#bracket-pane').innerHTML = '<div class="pane">' + head + renderBracket(ev) + '</div>';
+    requestAnimationFrame(function () {
+      updateBracketSvg();
+      setTimeout(updateBracketSvg, 60);
+    });
   }
 
   /* =====================================================================
@@ -1639,6 +1794,7 @@
      ===================================================================== */
   function buildTabs(host, items, onPick, accentCls) {
     var el = $(host);
+    if (!el) return;
     var panelId = el.id.replace('-tabs', '-pane');
     if (accentCls) el.className = 'tabs reveal ' + accentCls;
     el.innerHTML = items.map(function (it, i) {
@@ -2143,7 +2299,8 @@
       lockBehind(v || proj.classList.contains('on'));
       if (v) $('#adm-x').focus(); else restoreFocus();
     }
-    $('#btn-adm').addEventListener('click', function () { openAdm(true); });
+    var bAdm = $('#btn-adm');
+    if (bAdm) bAdm.addEventListener('click', function () { openAdm(true); });
 
     /* chọn sân + nút cộng trừ điểm + nhảy tới trận chưa đấu */
     $('#adm-body').addEventListener('click', function (e) {
@@ -2178,19 +2335,23 @@
       }
     });
 
-    /* Lối vào kín cho thư ký ngoài sân: chạm vào dấu hiệu CHP 5 lần. */
-    var mark = $('.rail .mark');
+    /* Lối vào kín cho thư ký ngoài sân: chạm vào logo CHP 5 lần liên tiếp. */
+    var mark = $('.rail .mark') || $('.mark');
     if (mark) {
-      var taps = 0, tapT = 0;
+      var taps = 0, tapTimer = null;
       mark.addEventListener('click', function (e) {
-        var now = Date.now();
-        taps = (now - tapT < 1200) ? taps + 1 : 1;
-        tapT = now;
+        taps++;
+        if (tapTimer) clearTimeout(tapTimer);
         if (taps >= 5) {
           e.preventDefault();
+          e.stopPropagation();
           taps = 0;
           openAdm(true);
+          return;
         }
+        tapTimer = setTimeout(function () {
+          taps = 0;
+        }, 1200);
       });
     }
     $('#adm-x').addEventListener('click', function () { openAdm(false); });
@@ -2273,7 +2434,6 @@
     renderAgenda();
     renderAsk();
     renderMiniGame();
-    renderPeopleWall();
     renderQr();
     renderSport();
     renderGeneral();
@@ -2314,12 +2474,6 @@
       cur.bracket = k; renderBracketPane(k); revealScan();
     });
 
-    buildTabs('#team-tabs', D.events.map(function (e) {
-      return { id: e.id, label: e.short };
-    }).concat([{ id: 'jump', label: 'Nhảy dây' }]), function (k) {
-      cur.team = k; renderTeamPane(k); revealScan();
-    });
-
     buildTabs('#rule-tabs', D.rules.groups.map(function (g) {
       return { id: g.key, label: g.label };
     }), function (k) { renderRulePane(k); revealScan(); });
@@ -2331,6 +2485,7 @@
     startLive();
     sizeTabbar();
     window.addEventListener('resize', sizeTabbar);
+    window.addEventListener('resize', updateBracketSvg);
 
     /* nội dung dựng bằng JS nên mốc #... phải cuộn lại sau khi dựng xong */
     if (location.hash.length > 1) {

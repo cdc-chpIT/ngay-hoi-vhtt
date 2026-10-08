@@ -10,8 +10,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234fb463'/%3E%3Cpath d='M22 11a7 7 0 1 0 0 10' fill='none' stroke='%23080b12' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/style.css?v=20261008c">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/favicon.png">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 </head>
 <body>
 
@@ -50,9 +52,8 @@
 <header class="rail" id="topbar">
   <a class="mark" href="#top" aria-label="Ngày hội CHP — về đầu trang">
     <span class="mk" aria-hidden="true">
-      <svg viewBox="0 0 32 32"><path d="M23 10.5a8 8 0 1 0 0 11" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg>
+      <img src="assets/img/logo-icon-square.png" alt="Logo CHP">
     </span>
-    <b>CHP</b>
   </a>
   <nav class="nav" id="nav" aria-label="Mục lục">
       <a href="#van-hoa"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flag"/></svg><i>Văn hóa</i></a>
@@ -60,7 +61,6 @@
       <a href="#minigame"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-game"/></svg><i>Mini game</i></a>
       <a href="#the-thao"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ball"/></svg><i>Thể thao</i></a>
       <a href="#nhanh-dau"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trophy"/></svg><i>Nhánh đấu</i></a>
-      <a href="#cac-doi"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-users"/></svg><i>Các đội</i></a>
       <a href="#lich"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg><i>Lịch</i></a>
       <a href="#luat"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg><i>Luật</i></a>
   </nav>
@@ -267,18 +267,6 @@
     </div>
   </section>
 
-  <!-- ============ CÁC ĐỘI ============ -->
-  <section class="section" id="cac-doi">
-    <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow" id="eb-dangky">Danh sách đăng ký</span>
-        <h2>Các đội &amp; vận động viên</h2>
-      </div>
-      <div class="people reveal" id="people-wall"></div>
-      <div class="tabs reveal" id="team-tabs" role="tablist"></div>
-      <div id="team-pane" role="tabpanel" tabindex="0"></div>
-    </div>
-  </section>
 
   <!-- ============ LUẬT ============ -->
   <section class="section" id="luat">
@@ -329,7 +317,7 @@
     </div>
     <div class="lk">
       <a class="btn btn-sm" href="#top">Về đầu trang</a>
-      <button class="btn btn-sm" id="btn-adm">Bảng BTC</button>
+      <button class="btn btn-sm" id="btn-adm" style="display:none">Bảng BTC</button>
     </div>
   </div>
 </footer>
@@ -377,6 +365,6 @@
 <script src="assets/js/data.js"></script>
 <script src="assets/js/tournament.js"></script>
 <script src="assets/js/live.js"></script>
-<script src="assets/js/app.js"></script>
+<script src="assets/js/app.js?v=20261008c"></script>
 </body>
 </html>
