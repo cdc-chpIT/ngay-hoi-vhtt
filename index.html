@@ -194,6 +194,12 @@
           <h3 style="margin-bottom:14px">Quét mã để đặt câu hỏi</h3>
           <div class="qr-box" id="qr-main" aria-label="Mã QR dẫn tới form đặt câu hỏi"></div>
           <div class="qr-url" id="qr-url"></div>
+          <div class="qr-act">
+            <button class="btn btn-sm btn-pri" id="btn-proj" type="button">
+              <svg width="17" height="17" aria-hidden="true"><use href="#i-qr"/></svg>
+              Phóng to toàn màn hình
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -218,14 +224,9 @@
         <p id="sport-lead"></p>
       </div>
 
-      <div class="filt reveal" id="ev-filter" role="group" aria-label="Lọc nội dung theo trạng thái"></div>
-      <div class="evs reveal" id="event-cards"></div>
-      <p class="filt-empty" id="ev-empty" hidden>Không có nội dung nào ở trạng thái này.</p>
-
-      <div class="sec-head reveal" style="margin-bottom:14px">
-        <h3 style="font-size:1.15rem">Trên từng sân</h3>
-      </div>
+      <div class="filt reveal" id="ev-filter" role="group" aria-label="Lọc sân theo trạng thái"></div>
       <div class="courts reveal" id="court-board"></div>
+      <p class="filt-empty" id="ev-empty" hidden>Không có sân nào ở trạng thái này.</p>
       <div style="margin-top:14px" id="live-state"></div>
     </div>
   </section>

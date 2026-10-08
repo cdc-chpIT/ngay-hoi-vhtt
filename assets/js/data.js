@@ -262,8 +262,7 @@ var VHTT_DATA = {
       finalsTogether: true,  /* hai chung kết pickleball đá đồng thời */
       courts: [
         { id: 'PB1', name: 'Sân Pickleball 1', short: 'PB 1' },
-        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' },
-        { id: 'PB3', name: 'Sân Pickleball 3', short: 'PB 3' }
+        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' }
       ],
       /* Thứ tự ưu tiên khi hai trận cùng xếp được vào một giờ. */
       roundOrder: [
@@ -286,16 +285,15 @@ var VHTT_DATA = {
       start: '13:30',
       courts: [
         { id: 'CL1', name: 'Sân Cầu lông 1', short: 'CL 1' },
-        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' }
+        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' },
+        { id: 'CL3', name: 'Sân Cầu lông 3', short: 'CL 3' }
       ],
       roundOrder: [
         ['cl-nam', 'VL'],
-        ['cl-mix', 'TK'],
+        ['cl-mix', 'R1'],
         ['cl-nam', 'VV'],
         ['cl-nam', 'TK'],
-        ['cl-mix', 'BK'],
         ['cl-nam', 'BK'],
-        ['cl-mix', 'TB'],
         ['cl-nam', 'TB'],
         ['cl-mix', 'CK'],
         ['cl-nam', 'CK']
@@ -304,17 +302,16 @@ var VHTT_DATA = {
   ],
 
   /* ================== CÁC NỘI DUNG THI ĐẤU ==================
+     Bảng ghép cặp lấy đúng theo bốn bảng của BTC. Vòng loại ghép lần lượt
+     Đội 1–2, Đội 3–4 … nên thứ tự đội ở đây chính là thứ tự trận.
      format:
-       'q12r'   = 12 đội, không ai được miễn. 6 trận vòng loại, 6 đội thắng
-                  vào thẳng tứ kết; 6 đội thua đấu 3 trận vòng vớt, lấy thêm
-                  2 đội theo hiệu số rồi tổng điểm.
+       'q12r'   = 12 đội. 6 trận vòng loại, 6 đội thắng vào thẳng tứ kết;
+                  6 đội thua đấu 3 trận nhánh thua, lấy thêm 2 đội theo
+                  hiệu số rồi tổng điểm.
        'ko8'    = 8 đội, loại trực tiếp từ tứ kết.
-       'ko12b4' = 12 đội, 4 đội được miễn vòng loại (không dùng năm nay).
-       'r6diff' = 6 đội, 3 trận rồi lấy 2 hiệu số cao nhất (không dùng năm nay).
-     durations: thời lượng mỗi trận theo từng vòng, tính bằng phút.
-     thirdPlace: có trận tranh hạng Ba hay không.
-     seeds: thứ tự bốc thăm. Đây là thứ tự đội trong bảng chia của BTC;
-            bấm "Bốc thăm vị trí" trong Bảng BTC để xáo lại.                */
+       'r6diff' = 6 đội, 3 trận vòng đầu, 2 đội thắng có hiệu số cao nhất
+                  vào chung kết, đội thắng còn lại hạng ba.
+     durations: thời lượng mỗi trận theo từng vòng, tính bằng phút.          */
   events: [
 
     /* ---------- PICKLEBALL ĐÔI NAM ---------- */
@@ -329,25 +326,24 @@ var VHTT_DATA = {
       thirdPlace: false,
       targetScore: 11,
       durations: { VL: 10, VV: 10, TK: 10, BK: 16, CK: 16 },
-      scoring: 'Vòng loại, vòng vớt và tứ kết ăn điểm trực tiếp. ' +
+      scoring: 'Vòng loại, nhánh thua và tứ kết ăn điểm trực tiếp. ' +
                'Bán kết và chung kết tính điểm theo lượt giao.',
-      drawRule: 'Đội đã ghép sẵn theo bảng chia của BTC. ' +
-                'Vòng loại ghép lần lượt Đội 1–2, 3–4 … 11–12.',
+      drawRule: 'Đội và thứ tự trận lấy theo bảng ghép cặp của BTC.',
       status: 'ok',
-      statusNote: 'Đội 12 còn một suất chưa chốt người.',
+      statusNote: 'Đội 2 còn một suất chưa chốt người.',
       teams: [
-        { id: 1, p1: 'Hồ Thái Hùng', p2: 'Nguyễn Đức Thắng', dept: 'BGĐ · A&I' },
-        { id: 2, p1: 'Nguyễn Khắc Cường', p2: 'Vũ Đức Mạnh', dept: 'A&I' },
-        { id: 3, p1: 'Phạm Tiến Dũng', p2: 'Nguyễn Quốc Tuấn', dept: 'ADM · CHPS' },
-        { id: 4, p1: 'Vũ Minh Đức', p2: 'Nguyễn Huy Bình', dept: 'GMD · IBIM' },
-        { id: 5, p1: 'Đoàn Bảo Quốc', p2: 'Trần Quảng Toản', dept: 'IBIM' },
-        { id: 6, p1: 'Nguyễn Hậu Cần', p2: 'Phạm Trung Đức', dept: 'IBIM' },
-        { id: 7, p1: 'Nguyễn Tất Quý Bình', p2: 'Hoàng Nghĩa Quang', dept: 'PMD · SRI' },
-        { id: 8, p1: 'Cấn Huy Hoàng', p2: 'Kiều Bá Quyên', dept: 'SRI' },
-        { id: 9, p1: 'Trần Thế Anh', p2: 'Nguyễn Văn Duy', dept: 'SRI' },
-        { id: 10, p1: 'Nguyễn Ngọc Tuấn', p2: 'Ngô Tấn Sơn', dept: 'TED' },
-        { id: 11, p1: 'Nguyễn Tuyển Việt', p2: 'Trần Việt Hùng', dept: 'UHRI' },
-        { id: 12, p1: 'Nguyễn Huy Hoàng', p2: 'Tuyển thủ nam 3', dept: 'VPĐD', pending: true }
+        { id: 1, p1: 'Nguyễn Đức Thắng', p2: 'Nguyễn Tuyển Việt', dept: 'A&I · UHRI' },
+        { id: 2, p1: 'Phạm Trung Đức', p2: 'Tuyển thủ nam 3', dept: 'IBIM · VPĐD', pending: true },
+        { id: 3, p1: 'Nguyễn Khắc Cường', p2: 'Đoàn Bảo Quốc', dept: 'A&I · IBIM' },
+        { id: 4, p1: 'Hoàng Nghĩa Quang', p2: 'Vũ Đức Mạnh', dept: 'SRI · A&I' },
+        { id: 5, p1: 'Phạm Tiến Dũng', p2: 'Kiều Bá Quyên', dept: 'ADM · SRI' },
+        { id: 6, p1: 'Nguyễn Ngọc Tuấn', p2: 'Trần Quảng Toản', dept: 'TED · IBIM' },
+        { id: 7, p1: 'Vũ Minh Đức', p2: 'Cấn Huy Hoàng', dept: 'GMD · SRI' },
+        { id: 8, p1: 'Nguyễn Huy Bình', p2: 'Trần Thế Anh', dept: 'IBIM · SRI' },
+        { id: 9, p1: 'Trần Việt Hùng', p2: 'Nguyễn Hậu Cần', dept: 'UHRI · IBIM' },
+        { id: 10, p1: 'Nguyễn Huy Hoàng', p2: 'Nguyễn Quốc Tuấn', dept: 'VPĐD · CHPS' },
+        { id: 11, p1: 'Hồ Thái Hùng', p2: 'Ngô Tấn Sơn', dept: 'BGĐ · TED' },
+        { id: 12, p1: 'Nguyễn Tất Quý Bình', p2: 'Nguyễn Văn Duy', dept: 'PMD · SRI' }
       ],
       seeds: [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
@@ -367,22 +363,18 @@ var VHTT_DATA = {
       targetScore: 11,
       durations: { TK: 10, BK: 16, CK: 16 },
       scoring: 'Tứ kết ăn điểm trực tiếp. Bán kết và chung kết tính điểm theo lượt giao.',
-      drawRule: 'Tám đội vào thẳng tứ kết theo thứ tự trong bảng chia.',
+      drawRule: 'Tám đội vào thẳng tứ kết theo bảng ghép cặp của BTC.',
       status: 'ok',
-      statusNote: 'Bốn suất dự bị trong bảng chia chưa gán tên, chưa xếp vào đội nào.',
-      waiting: {
-        label: 'Suất dự bị chưa chốt người',
-        names: ['Tuyển thử nữ 1', 'Tuyển thử nữ 2', 'Tuyển thủ nam 1', 'Tuyển thủ nam 2']
-      },
+      statusNote: 'Ba suất còn ghi là tuyển thủ dự bị, BTC chốt tên trước giờ thi đấu.',
       teams: [
-        { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Nguyễn Đức Thắng', dept: 'BGĐ · A&I' },
-        { id: 2, p1: 'Nguyễn Khắc Cường', p2: 'Nguyễn Thị Thanh Hoa', dept: 'A&I · ADM' },
-        { id: 3, p1: 'Trương Xuân Phương', p2: 'Nguyễn Quốc Tuấn', dept: 'CDC · CHPS' },
-        { id: 4, p1: 'Bùi Thị Trâm', p2: 'Trần Thị Xuyến', dept: 'FIN' },
-        { id: 5, p1: 'Trần Mạnh Cường', p2: 'Nguyễn Thị Quý Thương', dept: 'GMD' },
-        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Tất Quý Bình', dept: 'HPTC · PMD' },
-        { id: 7, p1: 'Hà Quang Đạt', p2: 'Nguyễn Ngọc Tuấn', dept: 'SRI · TED' },
-        { id: 8, p1: 'Ngô Tấn Sơn', p2: 'Ngô Trung Phương', dept: 'TED · UHRI' }
+        { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Ngô Tấn Sơn', dept: 'BGĐ · TED' },
+        { id: 2, p1: 'Tuyển thủ nữ 1 (Chị Loan)', p2: 'Nguyễn Ngọc Tuấn', dept: 'TED', pending: true },
+        { id: 3, p1: 'Trương Xuân Phương', p2: 'Tuyển thủ nam 1', dept: 'CDC · VPĐD', pending: true },
+        { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
+        { id: 5, p1: 'Tuyển thủ nữ 2 (Chị Nga)', p2: 'Ngô Trung Phương', dept: 'UHRI', pending: true },
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Tuyển thủ nam 2', dept: 'HPTC · VPĐD', pending: true },
+        { id: 7, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Quốc Tuấn', dept: 'FIN · CHPS' },
+        { id: 8, p1: 'Huỳnh Minh Nguyệt', p2: 'Nguyễn Khắc Cường', dept: 'ADM · A&I' }
       ],
       seeds: [
         1, 2, 3, 4, 5, 6, 7, 8
@@ -402,22 +394,21 @@ var VHTT_DATA = {
       targetScore: 21,
       durations: { mac_dinh: 15 },
       scoring: 'Mọi vòng đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
-      drawRule: 'Đội đã ghép sẵn theo bảng chia của BTC. ' +
-                'Vòng loại ghép lần lượt Đội 1–2, 3–4 … 11–12.',
+      drawRule: 'Đội và thứ tự trận lấy theo bảng ghép cặp của BTC.',
       status: 'ok',
       teams: [
-        { id: 1, p1: 'Nguyễn Đức Thắng', p2: 'Nguyễn Khắc Cường', dept: 'A&I' },
-        { id: 2, p1: 'Hoàng Quốc Đại', p2: 'Phạm Tiến Dũng', dept: 'A&I · ADM' },
-        { id: 3, p1: 'Nguyễn Trường Lâm', p2: 'Đặng Minh Hưng', dept: 'CDC · CHPS' },
-        { id: 4, p1: 'Nguyễn Quốc Tuấn', p2: 'Trần Mạnh Cường', dept: 'CHPS · GMD' },
-        { id: 5, p1: 'Nguyễn Sơn Tùng', p2: 'Nguyễn Tất Quý Bình', dept: 'PMD' },
-        { id: 6, p1: 'Nguyễn Sách Hưng', p2: 'Hoàng Nghĩa Quang', dept: 'PMD · SRI' },
-        { id: 7, p1: 'Cấn Huy Hoàng', p2: 'Kiều Bá Quyên', dept: 'SRI' },
-        { id: 8, p1: 'Hà Quang Đạt', p2: 'Trần Thế Anh', dept: 'SRI' },
-        { id: 9, p1: 'Mai Xuân Hòa', p2: 'Nguyễn Văn Duy', dept: 'SRI' },
-        { id: 10, p1: 'Đỗ Thanh Sơn', p2: 'Đỗ Quang Tùng', dept: 'TED' },
-        { id: 11, p1: 'Nguyễn Mạnh Hùng', p2: 'Trần Đức Thái', dept: 'TED' },
-        { id: 12, p1: 'Nguyễn Thanh Bình', p2: 'Ngô Trung Phương', dept: 'TED · UHRI' }
+        { id: 1, p1: 'Nguyễn Khắc Cường', p2: 'Nguyễn Trường Lâm', dept: 'A&I · CDC' },
+        { id: 2, p1: 'Phạm Tiến Dũng', p2: 'Đỗ Thanh Sơn', dept: 'ADM · TED' },
+        { id: 3, p1: 'Mai Xuân Hòa', p2: 'Đặng Minh Hưng', dept: 'SRI · CHPS' },
+        { id: 4, p1: 'Nguyễn Sơn Tùng', p2: 'Hoàng Quốc Đại', dept: 'PMD · A&I' },
+        { id: 5, p1: 'Nguyễn Tất Quý Bình', p2: 'Trần Đức Thái', dept: 'PMD · TED' },
+        { id: 6, p1: 'Nguyễn Sách Hưng', p2: 'Nguyễn Văn Duy', dept: 'PMD · SRI' },
+        { id: 7, p1: 'Hoàng Nghĩa Quang', p2: 'Nguyễn Mạnh Hùng', dept: 'SRI · TED' },
+        { id: 8, p1: 'Cấn Huy Hoàng', p2: 'Đỗ Quang Tùng', dept: 'SRI · TED' },
+        { id: 9, p1: 'Kiều Bá Quyên', p2: 'Trần Mạnh Cường', dept: 'SRI · GMD' },
+        { id: 10, p1: 'Hà Quang Đạt', p2: 'Nguyễn Thanh Bình', dept: 'SRI · TED' },
+        { id: 11, p1: 'Trần Thế Anh', p2: 'Ngô Trung Phương', dept: 'SRI · UHRI' },
+        { id: 12, p1: 'Nguyễn Quốc Tuấn', p2: 'Nguyễn Đức Thắng', dept: 'CHPS · A&I' }
       ],
       seeds: [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
@@ -431,32 +422,24 @@ var VHTT_DATA = {
       short: 'CL nam nữ',
       sport: 'cầu lông',
       venueId: 'cl',
-      format: 'ko8',
-      teamCount: 8,
-      thirdPlace: true,
+      format: 'r6diff',
+      teamCount: 6,
       targetScore: 21,
       durations: { mac_dinh: 15 },
       scoring: 'Đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
-      drawRule: 'Tám đội vào thẳng tứ kết theo thứ tự trong bảng chia.',
-      status: 'needs-decision',
-      statusNote: 'Nội dung này có 19 người đăng ký — số lẻ. ' +
-                  'Bảng chia mới ghép được 8 đội, còn 3 người chưa có đồng đội.',
-      waiting: {
-        label: 'Đã đăng ký nhưng chưa ghép được đội',
-        names: ['Trần Đức Thái', 'Nguyễn Thanh Bình', 'Ngô Trung Phương']
-      },
+      drawRule: 'Sáu đội đấu 3 trận vòng đầu. Hai đội thắng có hiệu số cao nhất ' +
+                'vào chung kết, đội thắng còn lại nhận hạng ba.',
+      status: 'ok',
       teams: [
-        { id: 1, p1: 'Nguyễn Khắc Cường', p2: 'Lê Thị Ngọc', dept: 'A&I · ADM' },
-        { id: 2, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Trương Xuân Phương', dept: 'ADM · CDC' },
-        { id: 3, p1: 'Đặng Minh Hưng', p2: 'Nguyễn Quốc Tuấn', dept: 'CHPS' },
-        { id: 4, p1: 'Bùi Thị Trâm', p2: 'Trần Thị Xuyến', dept: 'FIN' },
-        { id: 5, p1: 'Nguyễn Thị Quý Thương', p2: 'Hà Thị Nga', dept: 'GMD' },
-        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Phạm Trung Đức', dept: 'HPTC · IBIM' },
-        { id: 7, p1: 'Nguyễn Sơn Tùng', p2: 'Nguyễn Sách Hưng', dept: 'PMD' },
-        { id: 8, p1: 'Hà Quang Đạt', p2: 'Mai Xuân Hòa', dept: 'SRI' }
+        { id: 1, p1: 'Lê Thị Ngọc', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
+        { id: 2, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Sách Hưng', dept: 'FIN · PMD' },
+        { id: 3, p1: 'Trần Thị Xuyến', p2: 'Nguyễn Thanh Bình', dept: 'FIN · TED' },
+        { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Mai Xuân Hòa', dept: 'ADM · SRI' },
+        { id: 5, p1: 'Trương Xuân Phương', p2: 'Trần Đức Thái', dept: 'CDC · TED' },
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Sơn Tùng', dept: 'HPTC · PMD' }
       ],
       seeds: [
-        1, 2, 3, 4, 5, 6, 7, 8
+        1, 2, 3, 4, 5, 6
       ]
     }
   ],
