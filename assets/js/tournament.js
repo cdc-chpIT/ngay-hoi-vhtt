@@ -145,9 +145,13 @@ var Tournament = (function () {
     var queues = state.venues.map(function (v) {
       var seq = [];
       v.roundOrder.forEach(function (pair) {
-        state.matches.forEach(function (m) {
-          if (m.eventId === pair[0] && m.round === pair[1]) seq.push(m);
+        var group = state.matches.filter(function (m) {
+          return m.eventId === pair[0] && m.round === pair[1];
         });
+        /* sắp theo số trận cho ổn định — cuối hàm này mảng matches bị sắp
+           lại theo giờ, nếu lấy luôn thứ tự đó thì chạy lại sẽ ra lịch khác */
+        group.sort(function (a, b) { return a.index - b.index; });
+        seq = seq.concat(group);
       });
       return { venue: v, seq: seq, i: 0 };
     });
@@ -157,8 +161,13 @@ var Tournament = (function () {
     queues.forEach(function (q) {
       q.seq.forEach(function (m) { queued[m.id] = true; });
     });
-    state.matches.forEach(function (m) {
-      if (queued[m.id]) return;
+    var leftovers = state.matches.filter(function (m) { return !queued[m.id]; });
+    leftovers.sort(function (a, b) {
+      return a.eventId.localeCompare(b.eventId) ||
+             a.round.localeCompare(b.round) ||
+             a.index - b.index;
+    });
+    leftovers.forEach(function (m) {
       var ev = state.eventById[m.eventId];
       var q = null;
       queues.forEach(function (x) { if (x.venue.id === ev.venueId) q = x; });

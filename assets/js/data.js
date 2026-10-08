@@ -18,7 +18,7 @@ var VHTT_DATA = {
     org: 'CHP Group',
     title: 'Ngày hội Văn hóa – Thể thao',
     year: '2026',
-    theme: 'Xây dựng Văn hóa CHP',
+    theme: 'Văn hóa CHP',
     pillarLine: 'Truyền thống · Tự lực · Thích ứng',
     message: 'Truyền thống là nền tảng — Tự lực là mục tiêu — Thích ứng là phương thức',
     tagline: 'Một ngày để nghe nhau, chơi cùng nhau và cổ vũ hết mình.',
@@ -206,14 +206,15 @@ var VHTT_DATA = {
       'Điểm tính theo cả độ chính xác lẫn tốc độ trả lời.',
       'Bảng xếp hạng hiện trực tiếp trên màn hình hội trường.'
     ],
-    topics: [
-      { name: 'Lịch sử CHP',        desc: 'HPEC, CKJVN và các mốc thành lập' },
-      { name: 'Tầm nhìn & giá trị', desc: 'Sứ mệnh, giá trị cốt lõi, DNA C – H – P' },
-      { name: 'Dự án tiêu biểu',    desc: 'Đại Ngãi, Trần Hưng Đạo, cầu cảnh quan, UHRI Hub, CDC' },
-      { name: 'Ba bài sáng nay',    desc: 'Nội dung ba bài phát biểu vừa nghe' }
-    ],
-    prizes: '01 giải Nhất, 01 giải Nhì, 01 giải Ba và các giải khuyến khích',
-    prizeNote: 'Mức giải thưởng đang trình Ban lãnh đạo duyệt.'
+    /* Mỗi câu trả lời đúng được thưởng bằng này tiền. */
+    prizePerCorrect: 100000,
+
+    /* Danh sách người đạt giải — BTC điền trong lúc chơi hoặc ngay sau đó.
+       Để rỗng thì trang hiện dòng "chưa có kết quả".
+       Mẫu một dòng:
+         { name: 'Nguyễn Văn A', dept: 'A&I', correct: 7 }
+       Tiền thưởng trang tự nhân: correct × prizePerCorrect.                */
+    winners: []
   },
 
   /* ================== ẢNH NGÀY HỘI ==================
@@ -243,7 +244,7 @@ var VHTT_DATA = {
     /* Sơ đồ thi đấu của BTC: ai phải đá hai lượt liền nhau thì trọng tài
        cho nghỉ 5 phút rồi lùi giờ trận đó tương ứng. */
     playerRestMinutes: 5,
-    endBy: '16:10'          /* mốc phải xong phần thi đấu; quá thì trang báo đỏ */
+    endBy: '16:00'          /* mốc phải xong phần thi đấu; quá thì trang báo đỏ */
   },
 
   /* ================== SÂN & KHU THI ĐẤU ==================
@@ -257,11 +258,12 @@ var VHTT_DATA = {
       sport: 'pickleball',
       slotMinutes: 10,       /* mặc định; từng vòng có thời lượng riêng ở durations */
       gridMinutes: 5,
-      start: '13:40',
-      finalsTogether: true,  /* hai chung kết pickleball đá đồng thời trên 2 sân */
+      start: '13:30',
+      finalsTogether: true,  /* hai chung kết pickleball đá đồng thời */
       courts: [
         { id: 'PB1', name: 'Sân Pickleball 1', short: 'PB 1' },
-        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' }
+        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' },
+        { id: 'PB3', name: 'Sân Pickleball 3', short: 'PB 3' }
       ],
       /* Thứ tự ưu tiên khi hai trận cùng xếp được vào một giờ. */
       roundOrder: [
@@ -281,11 +283,10 @@ var VHTT_DATA = {
       sport: 'cầu lông',
       slotMinutes: 15,
       gridMinutes: 5,
-      start: '13:40',
+      start: '13:30',
       courts: [
         { id: 'CL1', name: 'Sân Cầu lông 1', short: 'CL 1' },
-        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' },
-        { id: 'CL3', name: 'Sân Cầu lông 3', short: 'CL 3' }
+        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' }
       ],
       roundOrder: [
         ['cl-nam', 'VL'],

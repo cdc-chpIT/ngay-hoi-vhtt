@@ -19,6 +19,16 @@ var SITE_CONFIG = {
   venueName: 'Hội trường Viện Hàn lâm Khoa học xã hội Việt Nam',
   venueAddress: 'Số 1 Liễu Giai, Ba Đình, Hà Nội',
   venueNote: 'Buổi sáng tại hội trường; buổi chiều chuyển sang nhà thi đấu.',
+
+  /* --- Ảnh nền khối mở đầu -------------------------------------------
+     Bỏ ảnh vào assets/img/ rồi khai ở đây. Nhiều ảnh thì trang tự chạy
+     mờ chuyển qua lại. Để mảng rỗng thì quay về tranh vẽ cầu dây văng. */
+  heroPhotos: [
+    'assets/img/ngay-hoi-2025.jpg',
+    'assets/img/hop-mat.jpg'
+  ],
+  heroPhotoSeconds: 9,         // bao lâu thì đổi sang ảnh kế tiếp
+
   /* Buổi chiều thi đấu ở chỗ khác, không cùng chỗ với buổi sáng */
   sportVenueName: 'Nhà thi đấu Bệnh viện 354',
   sportVenueAddress: '',
@@ -29,8 +39,8 @@ var SITE_CONFIG = {
        Mở Google Form -> Gửi (Send) -> chọn tab <>  -> copy giá trị src
      Dán đúng link dạng  https://docs.google.com/forms/d/e/.../viewform?embedded=true
      Để '' nếu chưa có -> trang hiện hướng dẫn thay cho form.         */
-  formEmbedUrl: '',
-  formOpenUrl: '',             // link rút gọn để mở form ở tab mới / in QR
+  formEmbedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdJS3QGCS6hvi5JxPLerN2XFWkie4sTTPi-S4JuwnqwPcBCqQ/viewform?embedded=true',
+  formOpenUrl: 'https://forms.gle/RWESNtXvSpQERPqs8',   // link rút gọn để mở form ở tab mới / in QR
 
   /* --- 3b. Link vào phòng mini game (Kahoot / Quizizz / Google Forms)
      Để '' thì trang chỉ hiện hướng dẫn, không hiện nút và mã QR.      */

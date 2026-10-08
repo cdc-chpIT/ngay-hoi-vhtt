@@ -95,6 +95,27 @@ Mở `assets/js/config.js` — mọi thứ quan trọng nằm ở đó, có chú
 | Danh sách đội, vận động viên | mảng `events` và `jumpRope` trong `assets/js/data.js` |
 | Kết quả trận đấu | object `results` trong `assets/js/data.js` |
 
+### Ảnh nền khối mở đầu
+
+Hai ảnh đang dùng nằm ở `assets/img/`:
+
+| File | Nội dung |
+|---|---|
+| `ngay-hoi-2025.jpg` | Ảnh chụp chung Ngày hội Văn hóa Thể thao CHP 2025 |
+| `hop-mat.jpg` | Ảnh họp mặt tại hội trường |
+
+Trang chạy mờ chuyển qua lại giữa các ảnh, mặc định 9 giây một lần.
+Đổi ảnh thì bỏ file mới vào `assets/img/` rồi sửa `heroPhotos` trong `config.js`:
+
+```js
+heroPhotos: ['assets/img/anh-1.jpg', 'assets/img/anh-2.jpg'],
+heroPhotoSeconds: 9,
+```
+
+Để mảng rỗng (`heroPhotos: []`) thì quay về tranh vẽ cầu dây văng.
+Ảnh nên **nằm ngang**, tối thiểu 1600px bề ngang; trang tự cắt theo khung
+và phủ một lớp tối lên để chữ trắng đọc được.
+
 ### Thêm ảnh thật
 
 **Ảnh diễn giả.** Bỏ ảnh vào `assets/img/`, rồi thêm trường `photo` cho bài tương ứng
@@ -288,6 +309,8 @@ Trang đang hiển thị rõ các điểm này để không ai hiểu nhầm:
    chưa có tên cụ thể. Điền vào `talks[0].speaker` trong `data.js` khi đã chốt.
 2. **Mini game**: chưa chốt nền tảng (Kahoot / Quizizz / Google Forms) và chưa có link phòng chơi.
    Điền `quizJoinUrl` trong `config.js`.
+   *(Form đặt câu hỏi thì đã gắn xong — `formEmbedUrl` và `formOpenUrl` trong `config.js`.
+   Mã QR ở mục Hỏi diễn giả và chế độ máy chiếu đều trỏ thẳng vào form này.)*
 3. **Google Form đặt câu hỏi** chưa có — điền `formEmbedUrl` trong `config.js`.
 4. **Địa chỉ web công khai** chưa có — điền `siteUrl` để mã QR trỏ đúng.
 5. **Buổi chiều**: kế hoạch chính thức chỉ ghi “Đại hội thể thao, kế hoạch riêng,
