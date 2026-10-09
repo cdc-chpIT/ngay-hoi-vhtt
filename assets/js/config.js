@@ -12,7 +12,8 @@ var SITE_CONFIG = {
      BIÊN BẢN HỌP KHÔNG GHI NGÀY SỰ KIỆN (06/10/2026 là ngày họp),
      nên mục này đang để trống, BTC điền vào khi đã chốt.            */
   eventDate: '2026-10-17T08:30',       // Thứ Bảy 17/10/2026, theo kế hoạch BTC
-  doorsOpen: '08:00',                  // giờ bắt đầu đón khách
+  doorsOpen: '08:00',                  // giờ mở cửa đón khách
+  dayEnd:    '17:00',                  // giờ khép lại ngày hội
   eventDateLabel: 'Đang chốt ngày',    // chữ hiển thị khi chưa có ngày
 
   /* --- 2. Địa điểm ------------------------------------------------- */
@@ -31,6 +32,7 @@ var SITE_CONFIG = {
 
   /* Buổi chiều thi đấu ở chỗ khác, không cùng chỗ với buổi sáng */
   sportVenueName: 'Nhà thi đấu Bệnh viện 354',
+  sportHours: '13:30 – 16:30',        // khung giờ in trên dải tối mục Thể thao
   sportVenueAddress: '',
   dinnerPlace: 'Tiệc giao lưu buổi tối',
 
@@ -43,7 +45,8 @@ var SITE_CONFIG = {
   formOpenUrl: 'https://forms.gle/RWESNtXvSpQERPqs8',   // link rút gọn để mở form ở tab mới / in QR
 
   /* --- 3b. Link vào phòng mini game (Kahoot / Quizizz / Google Forms)
-     Để '' thì trang chỉ hiện hướng dẫn, không hiện nút và mã QR.      */
+     Điền vào đây thì mục Mini game hiện mã QR, nút phóng to và nút vào
+     phòng chơi. Để '' thì chỗ mã QR chỉ ghi "BTC chiếu mã lên màn hình". */
   quizJoinUrl: '',
 
   /* --- 4. Link công khai của trang này (dùng để tạo mã QR) ---------

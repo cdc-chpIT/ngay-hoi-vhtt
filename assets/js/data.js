@@ -42,9 +42,9 @@ var VHTT_DATA = {
       key: 'truyenthong',
       name: 'Truyền thống',
       role: 'là nền tảng',
-      /* đổi ảnh thì sửa đúng hai dòng này; focus là vị trí cắt cho rõ mặt người */
-      photo: 'assets/img/ngay-hoi-2025.jpg',
-      focus: '50% 38%',
+      /* đổi ảnh thì sửa đúng hai dòng này; focus là vị trí cắt */
+      photo: 'assets/img/truyen-thong.jpg',
+      focus: '50% 62%',
       short: 'Chúng ta đứng trên nền móng nào',
       body: 'Những gì CHP đang có hôm nay không tự nhiên mà có. ' +
             'Trước khi nói về công nghệ và tương lai, hãy nhớ chúng ta đứng trên nền móng nào.'
@@ -53,8 +53,8 @@ var VHTT_DATA = {
       key: 'tuluc',
       name: 'Tự lực',
       role: 'là mục tiêu',
-      photo: 'assets/img/hop-mat.jpg',
-      focus: '50% 42%',
+      photo: 'assets/img/tu-luc.jpg',
+      focus: '46% 52%',
       short: 'Tự quyết và chịu trách nhiệm đến cùng',
       body: 'Tự lực không phải là khẩu hiệu trên slide, mà là điều diễn ra hằng ngày ở công trường: ' +
             'tự quyết, tự xoay xở và chịu trách nhiệm đến cùng.'
@@ -63,8 +63,8 @@ var VHTT_DATA = {
       key: 'thichung',
       name: 'Thích ứng',
       role: 'là phương thức',
-      photo: 'assets/img/hop-mat.jpg',
-      focus: '78% 46%',
+      photo: 'assets/img/thich-ung.jpg',
+      focus: '40% 66%',
       short: 'Học nhanh hơn tốc độ thay đổi',
       body: 'Thích ứng không phải là chạy theo công nghệ, mà là giữ được khả năng học nhanh hơn ' +
             'tốc độ thay đổi. AI là công cụ để người CHP làm chủ, không phải thứ thay thế con người.'
@@ -131,11 +131,6 @@ var VHTT_DATA = {
       desc: 'Ban lãnh đạo mở đầu ngày hội và xác lập ba trục văn hóa của năm.',
       owner: 'Ban Giám đốc' },
 
-    { start: '09:00', end: '09:05', fixed: true, part: 'morning', icon: 'mic',
-      title: 'MC dẫn dắt chương trình',
-      desc: 'Giới thiệu đại biểu, chủ đề văn hóa và cách đặt câu hỏi cho diễn giả.',
-      owner: 'MC' },
-
     { start: '09:10', end: '09:25', fixed: true, part: 'morning', icon: 'talk',
       title: 'Bài 1 — Văn hóa Truyền thống CHP',
       desc: 'Truyền thống là nền tảng: chuyện của những người đi trước.',
@@ -194,9 +189,11 @@ var VHTT_DATA = {
       title: 'Tổng hợp kết quả & trao giải',
       desc: 'Trao giải chung cho cả bốn nội dung và nội dung nhảy dây.' },
 
+    /* place: địa điểm riêng của mốc này, in ngay dưới tên mốc.
+       Chỉ Liên hoan có, các mốc khác đã nói rõ chỗ ngay trong tên. */
     { start: '17:30', end: null, fixed: true, part: 'evening', icon: 'dinner',
       title: 'Liên hoan',
-      desc: 'Phần mở rộng, không bắt buộc.',
+      place: 'Nhà hàng Bia Hải Xồm — số 5 Phan Kế Bính, Giảng Võ, Hà Nội',
       tag: 'Tự nguyện' }
   ],
 
@@ -261,7 +258,7 @@ var VHTT_DATA = {
   venues: [
     {
       id: 'pb',
-      name: 'Khu Pickleball',
+      name: 'Pickleball',
       sport: 'pickleball',
       slotMinutes: 10,       /* mặc định; từng vòng có thời lượng riêng ở durations */
       gridMinutes: 5,
@@ -285,7 +282,7 @@ var VHTT_DATA = {
     },
     {
       id: 'cl',
-      name: 'Khu Cầu lông',
+      name: 'Cầu lông',
       sport: 'cầu lông',
       slotMinutes: 15,
       gridMinutes: 5,

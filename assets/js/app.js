@@ -91,13 +91,6 @@
   };
 
   /* người đăng ký từ 2 nội dung trở lên — BTC cần biết để tránh xếp trùng giờ */
-  function multiEntrants() {
-    return Object.keys(PEOPLE)
-      .filter(function (k) { return PEOPLE[k].length > 1; })
-      .map(function (k) { return { name: k, where: PEOPLE[k] }; })
-      .sort(function (a, b) { return b.where.length - a.where.length || a.name.localeCompare(b.name, 'vi'); });
-  }
-
   function lastEndMin() {
     return T.matches.reduce(function (n, m) { return Math.max(n, m.endMin || 0); }, 0);
   }
@@ -109,30 +102,10 @@
   /* =====================================================================
      HERO
      ===================================================================== */
+  /* Khối mở đầu chỉ còn tên ngày hội, dòng trạng thái và phần đếm ngược.
+     Dòng trạng thái do renderHeroNow dựng, chạy cùng nhịp với đồng hồ. */
   function renderHero() {
-    var i = D.intro;
-    $('#hero-theme').textContent = i.theme;
-
-    $('#hero-pillars').innerHTML = D.pillars.map(function (pl, k) {
-      return (k ? '<i aria-hidden="true">/</i>' : '') + '<span style="--i:' + k + '">' + esc(pl.name) + '</span>';
-    }).join('');
-
     var when = eventDateOrNull();
-    var dateTxt = when ? vnDate(when) : (CFG.eventDateLabel || 'Đang chốt ngày');
-
-    if ($('#hero-date')) $('#hero-date').textContent = dateTxt;
-
-    $('#hero-meta').innerHTML = [
-      ['clock', (CFG.doorsOpen || '08:00') + ' – 18:00'],
-      ['pin',   'Sáng: ' + (CFG.venueName || '')],
-      ['ball',  'Chiều: ' + (CFG.sportVenueName || CFG.venueName || '') +
-                ' · ' + COUNTS.courts + ' sân'],
-      ['users', '60 – 80 người · ' + (D.intro.members || []).join(' · ')]
-    ].filter(function (r) { return r[1]; })
-     .map(function (r) {
-       return '<div>' + icon(r[0], 17) + '<b>' + esc(r[1]) + '</b></div>';
-     }).join('');
-
     /* đang xem thử thì đếm ngược theo giờ thật sẽ mâu thuẫn với bảng đang diễn ra */
     if (when && !Live.nowOrPreview(CFG).preview) startCountdown(when.getTime());
   }
@@ -146,6 +119,18 @@
       });
     } catch (e) {
       return d.toLocaleDateString('vi-VN');
+    }
+  }
+
+  /* giờ phút theo đồng hồ Việt Nam, bất kể máy người xem đặt múi giờ nào */
+  function vnHHMM(d) {
+    try {
+      return d.toLocaleTimeString('vi-VN', {
+        hour: '2-digit', minute: '2-digit', hour12: false,
+        timeZone: 'Asia/Ho_Chi_Minh'
+      });
+    } catch (e) {
+      return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
     }
   }
 
@@ -208,48 +193,209 @@
   /* ---------------------------------------------------------------
      Lịch chương trình: lưới thẻ vuông, mỗi thẻ một mốc trong ngày.
      --------------------------------------------------------------- */
+  /* Lịch xếp theo buổi như thời khóa biểu. Thứ tự buổi cố định ở đây,
+     còn thứ tự mốc trong một buổi thì giữ nguyên như trong data.js.    */
+  var AG_PARTS = [
+    { k: 'morning',   label: 'Buổi sáng' },
+    { k: 'noon',      label: 'Buổi trưa' },
+    { k: 'afternoon', label: 'Buổi chiều' },
+    { k: 'evening',   label: 'Buổi tối' }
+  ];
+
+  /* Mỗi mốc là một nhà ga trên tuyến: giờ ở trên, chấm ga nằm đúng trên
+     đường ray, tên ga và các nhãn ở dưới. Không còn khung thẻ nào.
+     Tên ga để nằm ngang chứ không viết nghiêng như bản đồ tàu thật — chữ
+     nghiêng 45° đẹp nhưng đọc khó, mà đây là thứ người ta tra vội giữa
+     hội trường.                                                          */
+  function agItem(t, k, tm, i) {
+    var pillar = t.talk ? D.pillars[t.talk - 1] : null;
+    return '<div class="ag-item mt-st reveal" data-idx="' + k + '" data-part="' + esc(t.part) + '"' +
+        (pillar ? ' data-pillar="' + esc(pillar.key) + '"' : '') +
+        (t.sport ? ' data-sport="1"' : '') +
+        ' style="--d:' + (Math.min(i, 8) * 35) + 'ms">' +
+      '<div class="mt-when"><b>' + esc(tm.start) + '</b>' +
+        (tm.end ? '<span>' + esc(tm.end) + '</span>' : '') + '</div>' +
+      '<i class="mt-dot" aria-hidden="true"></i>' +
+      '<div class="ag-b">' +
+        '<h3>' + esc(t.title) + '</h3>' +
+        /* chỉ mục nào có địa điểm riêng mới in thêm một dòng */
+        (t.place ? '<p class="ag-pl">' + icon('pin', 14) + esc(t.place) + '</p>' : '') +
+        '<div class="ag-tags">' +
+          (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
+          (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
+          (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
+          (t.sport ? '<a class="chip ok" href="#the-thao" data-go-sport="1">Xem lịch từng trận</a>' : '') +
+          '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* khoảng giờ của cả buổi, in cạnh tên buổi */
+  function agSpan(list) {
+    var a = list[0].tm.start;
+    var b = list[list.length - 1].tm.end;
+    return b ? a + ' – ' + b : 'từ ' + a;
+  }
+
   function renderAgenda() {
     var host = $('#agenda');
     if (!host) return;
 
-    var html = '';
+    var bucket = {};
     D.timeline.forEach(function (t, k) {
       var tm = slotTime(t);
       if (!tm || !tm.start) return;
-
-      var pillar = t.talk ? D.pillars[t.talk - 1] : null;
-      html += '<div class="ag-item reveal" data-idx="' + k + '" data-part="' + esc(t.part) + '"' +
-          (pillar ? ' data-pillar="' + esc(pillar.key) + '"' : '') +
-          (t.sport ? ' data-sport="1"' : '') +
-          ' style="--d:' + (Math.min(k, 8) * 35) + 'ms">' +
-        '<div class="ag-c">' +
-          '<div class="ag-top">' +
-            '<div class="ag-ic">' + icon(t.icon, 20) + '</div>' +
-            '<div class="ag-t"><b>' + esc(tm.start) + '</b>' +
-              (tm.end ? '<span>' + esc(tm.end) + '</span>' : '') + '</div>' +
-          '</div>' +
-          '<div class="ag-b">' +
-            '<h3>' + esc(t.title) + '</h3>' +
-            '<p>' + esc(t.desc) + '</p>' +
-          '</div>' +
-          '<div class="ag-tags">' +
-            (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
-            (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
-            (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
-            (t.sport ? '<a class="chip ok" href="#lich" data-go-sport="1">Xem lịch từng trận</a>' : '') +
-            '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
+      var p = t.part || 'morning';
+      (bucket[p] = bucket[p] || []).push({ t: t, k: k, tm: tm });
     });
 
-    host.innerHTML = html;
+    var n = 0, parts = '';
+    AG_PARTS.forEach(function (p) {
+      var list = bucket[p.k];
+      if (!list || !list.length) return;
+      parts += '<section class="tl-part" data-part="' + p.k + '">' +
+          '<header class="tlp-h"><span class="tlp-in"><b>' + esc(p.label) + '</b>' +
+            '<span>' + esc(agSpan(list)) + '</span></span></header>' +
+          '<div class="tl-row">' +
+            list.map(function (x) { return agItem(x.t, x.k, x.tm, n++); }).join('') +
+          '</div>' +
+        '</section>';
+    });
+
+    host.innerHTML =
+      '<div class="tl-scroll" tabindex="0" role="region"' +
+          ' aria-label="Lịch chương trình cả ngày, kéo ngang để xem tiếp">' +
+        '<div class="tl-track">' + parts + '</div>' +
+      '</div>' +
+      '<p class="tl-hint">Kéo ngang để đi hết tuyến</p>';
+
+    wireTl();
+    tlLast = -2;
+  }
+
+  /* --------------------------------------------------------------
+     Kéo dải lịch bằng chuột. Điện thoại đã cuộn ngang sẵn nên chỉ cần
+     lo con chuột. Kéo quá 5px thì nuốt luôn cú click, không thì thả tay
+     ra là trúng vào thẻ bên dưới.
+     -------------------------------------------------------------- */
+  /* --------------------------------------------------------------
+     Kéo dải lịch bằng chuột. Điện thoại đã cuộn ngang sẵn nên chỉ cần
+     lo con chuột. Kéo quá 5px thì nuốt luôn cú click, không thì thả tay
+     ra là trúng vào thẻ bên dưới.
+     Gắn một lần ở cấp trang: bảng BTC có thể dựng lại dải lịch, gắn vào
+     từng dải thì mỗi lần dựng lại là chồng thêm một bộ nghe sự kiện.
+     -------------------------------------------------------------- */
+  var tlWired = false;
+  function wireTl() {
+    if (tlWired) return;
+    tlWired = true;
+    var sc = null, down = false, moved = false, x0 = 0, s0 = 0;
+
+    function scrollerOf(e) {
+      return e.target && e.target.closest ? e.target.closest('.tl-scroll') : null;
+    }
+
+    document.addEventListener('mousedown', function (e) {
+      if (e.button !== 0) return;
+      var el = scrollerOf(e);
+      if (!el) return;
+      sc = el; down = true; moved = false; x0 = e.pageX; s0 = el.scrollLeft;
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!down || !sc) return;
+      var dx = e.pageX - x0;
+      if (!moved && Math.abs(dx) > 5) { moved = true; sc.classList.add('drag'); }
+      if (moved) { e.preventDefault(); sc.scrollLeft = s0 - dx; }
+    });
+    document.addEventListener('mouseup', function () {
+      if (!down) return;
+      down = false;
+      if (moved && sc) {
+        var el = sc;
+        setTimeout(function () { el.classList.remove('drag'); }, 0);
+      }
+    });
+    document.addEventListener('click', function (e) {
+      var el = scrollerOf(e);
+      if (el && el.classList.contains('drag')) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+
+    /* Đường chân trời trôi chậm hơn hàng thẻ cho ra chiều sâu. Nền của
+       thẻ cuộn không tự dịch theo nội dung nên phải tự dời lấy. */
+    var pTick = false;
+    document.addEventListener('scroll', function (e) {
+      var el = e.target;
+      if (!el || !el.classList || !el.classList.contains('tl-scroll')) return;
+      if (reduce || pTick) return;
+      pTick = true;
+      requestAnimationFrame(function () {
+        pTick = false;
+        el.style.backgroundPosition =
+          '0 0, ' + Math.round(-el.scrollLeft * 0.34) + 'px calc(100% - 10px)';
+      });
+    }, true);
+
+    /* Vị trí con trỏ "đang ở đây" đo bằng pixel của bố cục thật, nên bố
+       cục đổi là phải đo lại: đổi bề ngang màn, và lúc font hiển thị xong
+       (chữ đổi bề ngang thì thẻ cũng xê dịch theo). Truyền lại tlLast để
+       nó chỉ đặt lại chỗ chứ không tự kéo, giành tay người đang xem. */
+    var rz = 0;
+    addEventListener('resize', function () {
+      clearTimeout(rz);
+      rz = setTimeout(function () { placeTlNow(tlLast); }, 150);
+    });
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(function () { placeTlNow(tlLast); });
+    }
+  }
+
+  /* Tô phần tuyến đã chạy qua: mỗi buổi tự tô đoạn ray của mình bằng màu
+     của nó, cắt đúng ở ga đang dừng. Đo bằng toạ độ màn hình vì ga nằm
+     lồng trong buổi, offsetLeft chỉ tính trong buổi đó.                 */
+  var tlLast = -2;
+  function placeTlNow(on) {
+    var track = $('#agenda .tl-track');
+    if (!track) return;
+    var card = $('#agenda .ag-item.now');
+    var tr = track.getBoundingClientRect();
+    var x = -1;
+    if (card) {
+      var cr = card.getBoundingClientRect();
+      x = Math.round(cr.left - tr.left + 12);   /* 12px: đúng tâm chấm ga */
+    }
+
+    $$('.tl-part', track).forEach(function (sec) {
+      var r = sec.getBoundingClientRect();
+      var a = r.left - tr.left;
+      var run = x < 0 ? 0 : Math.max(0, Math.min(r.width, x - a));
+      sec.style.setProperty('--run', Math.round(run) + 'px');
+    });
+
+    if (x < 0) { tlLast = on; return; }
+
+    /* chỉ tự kéo khi ga đang dừng vừa đổi, không giành tay người xem */
+    if (on !== tlLast) {
+      tlLast = on;
+      var sc = $('#agenda .tl-scroll');
+      if (!sc) return;
+      var to = Math.max(0, x - sc.clientWidth / 2);
+      if (!reduce && sc.scrollTo) {
+        try { sc.scrollTo({ left: to, behavior: 'smooth' }); return; } catch (e) {}
+      }
+      sc.scrollLeft = to;
+    }
   }
 
   /* đánh dấu mốc đang diễn ra trên dòng thời gian */
   function markTimelineNow(st) {
-    var on = (st && st.phase === 'live' && st.current && !st.current.synthetic)
-      ? st.current.idx : -1;
+    /* Buổi chiều, live.js dựng thêm một mốc "bao" cả khoảng thi đấu (idx -1)
+       và mốc đó ngắn hơn mốc thật nên được chọn làm current. Nếu chỉ nhìn
+       current thì suốt từ 13:40 đến 16:10 lịch không sáng ô nào. Gặp mốc
+       bao thì lùi về mốc thật đang chạy cùng lúc.                       */
+    var pick = (st && st.phase === 'live' && st.current) ? st.current : null;
+    if (pick && pick.synthetic) pick = (st.alsoNow && st.alsoNow[0]) || null;
+    var on = pick ? pick.idx : -1;
     /* bài nào đang trình bày thì ảnh của trục đó phóng to */
     var liveItem = (st && st.phase === 'live' && st.current) ? st.current.item : null;
     if (liveItem && liveItem.talk && D.pillars[liveItem.talk - 1]) {
@@ -261,6 +407,11 @@
       var chip = $('.ag-live', el);
       if (chip) chip.hidden = !is;
     });
+    /* buổi nào đang chứa mốc đó thì tên buổi cũng sáng lên */
+    $$('#agenda .tl-part').forEach(function (sec) {
+      sec.classList.toggle('now', !!$('.ag-item.now', sec));
+    });
+    placeTlNow(on);
   }
 
   /* =====================================================================
@@ -290,29 +441,31 @@
     }
   }
 
+  /* Địa chỉ cho từng mã QR. Trả về '' nghĩa là chưa có gì để tạo mã. */
+  function qrTarget(kind) {
+    if (kind === 'quiz') return CFG.quizJoinUrl || '';
+    var form = CFG.formOpenUrl || CFG.formEmbedUrl || '';
+    if (form) return form;
+    if (location.protocol === 'file:' && !CFG.siteUrl) return '';
+    /* chưa gắn form thì dẫn thẳng xuống mục Hỏi diễn giả, đừng thả người
+       quét xuống đầu trang rồi bắt họ tự tìm. */
+    return siteUrl() + '#hoi-dap';
+  }
+
   function renderQr() {
     /* Mục này là để đặt câu hỏi, nên mã QR trỏ thẳng vào form.
-       Chưa gắn form thì quay về địa chỉ trang như trước. */
-    var form = CFG.formOpenUrl || CFG.formEmbedUrl || '';
-    var url = form || siteUrl();
-    var askUrl = form || (siteUrl() + '#hoi-dap');
-    var offline = !form && location.protocol === 'file:' && !CFG.siteUrl;
-
-    if (offline) {
-      var warn = '<p style="color:#333;padding:14px;font-size:.84rem;max-width:220px">' +
+       Chưa gắn form thì quay về địa chỉ trang như trước.
+       Mã trong cửa sổ máy chiếu dựng lúc bấm mở, xem showProj().    */
+    var url = qrTarget('ask');
+    if (!url) {
+      $('#qr-main').innerHTML = '<p style="color:#333;padding:14px;font-size:.84rem;max-width:200px">' +
         'Trang đang mở từ ổ đĩa nên chưa có địa chỉ để tạo mã QR. ' +
         'Sau khi đưa web lên mạng, điền <b>siteUrl</b> trong config.js.</p>';
-      $('#qr-main').innerHTML = warn;
-      $('#qr-proj').innerHTML = warn;
       $('#qr-url').textContent = 'Chưa có địa chỉ công khai';
-      $('#proj-url').textContent = 'Chưa có địa chỉ công khai';
       return;
     }
-
     makeQr($('#qr-main'), url, 4);
-    makeQr($('#qr-proj'), askUrl, 8);
     $('#qr-url').textContent = url;
-    $('#proj-url').textContent = askUrl;
   }
 
   /* =====================================================================
@@ -401,6 +554,92 @@
     return out;
   }
 
+  /* ---------------- dòng "mấy giờ rồi, đang tới mục nào" ----------------
+     Một dòng duy nhất ngay dưới tên ngày hội, đổi theo năm trạng thái của
+     ngày hội. Phần chữ đọc được thì để máy đọc màn hình đọc; phần số giờ và
+     phần "còn mấy phút" đổi liên tục nên đánh dấu ẩn khỏi máy đọc, nếu
+     không cứ mỗi lượt cập nhật là nó đọc lại cả dòng.                   */
+  var HNOW = {
+    before:  { cls: 'soon', tag: 'Sắp diễn ra' },
+    live:    { cls: 'live', tag: 'Đang diễn ra' },
+    gap:     { cls: 'rest', tag: 'Đang nghỉ' },
+    after:   { cls: 'end',  tag: 'Đã kết thúc' },
+    unknown: { cls: 'idle', tag: '' }
+  };
+
+  function heroNowInfo(st) {
+    var base = HNOW[st.phase] || HNOW.unknown;
+    var out = { cls: base.cls, tag: base.tag, txt: '', sub: '' };
+
+    if (st.phase === 'live') {
+      out.txt = st.current.item.title;
+      /* Tên mục buổi chiều đã nói sẵn "trên 5 sân". Khi vài sân đã đấu xong
+         thì câu đó nói quá, nên đếm lại theo số sân còn đang đánh. */
+      var all = (st.courts || []).length;
+      var play = (st.courts || []).filter(function (c) {
+        return c.state === 'playing';
+      }).length;
+      if (play && play < all) out.txt = 'Đang thi đấu trên ' + play + ' sân';
+      out.sub = 'còn ' + fmtLeft(st.minutesLeft * 60000);
+
+    } else if (st.phase === 'gap') {
+      out.txt = st.next
+        ? 'Tiếp theo ' + Live.toHHMM(st.next.startMin) + ' · ' + st.next.item.title
+        : 'Hôm nay đã xong';
+
+    } else if (st.phase === 'after') {
+      out.txt = 'Cảm ơn cả nhà đã tới chung vui';
+
+    } else {
+      var when = eventDateOrNull();
+      var mo = CFG.doorsOpen || '08:00';
+      var hours = CFG.dayEnd ? 'từ ' + mo + ' đến ' + CFG.dayEnd : 'đón khách từ ' + mo;
+      out.txt = (when ? vnDate(when) : (CFG.eventDateLabel || 'Đang chốt ngày')) +
+                ' · ' + hours;
+    }
+    return out;
+  }
+
+  /* Trong ngày thì lấy giờ của bộ đếm sự kiện; ngoài ngày đó lấy đồng hồ thật.
+     Khi đang xem thử bằng ?gio=... thì np.now đã bị ghim nên vẫn đúng.     */
+  function heroNowClock(st, np) {
+    if ((st.phase === 'live' || st.phase === 'gap') && st.nowMin != null) {
+      return Live.toHHMM(st.nowMin);
+    }
+    return vnHHMM(np.now);
+  }
+
+  function renderHeroNow(st, np) {
+    var host = $('#hero-now');
+    if (!host) return;
+
+    var info = heroNowInfo(st);
+    var key = [st.phase, info.cls, info.tag, info.txt].join('|');
+    if (host.dataset.k !== key) {
+      host.dataset.k = key;
+      host.innerHTML =
+        '<span class="hnow-in" data-s="' + info.cls + '">' +
+          '<span class="hn-dot" aria-hidden="true"><i></i></span>' +
+          '<b class="hn-time" aria-hidden="true"></b>' +
+          (info.tag ? '<span class="hn-tag">' + esc(info.tag) + '</span>' : '') +
+          '<span class="hn-txt">' + esc(info.txt) + '</span>' +
+          '<span class="hn-sub" aria-hidden="true"></span>' +
+        '</span>';
+    }
+
+    var t = $('.hn-time', host);
+    if (t) {
+      var now = heroNowClock(st, np);
+      t.textContent = now || '';
+      t.hidden = !now;
+    }
+    var sub = $('.hn-sub', host);
+    if (sub) {
+      sub.textContent = info.sub;
+      sub.hidden = !info.sub;
+    }
+  }
+
   function lsShow(n) {
     var slides = $$('#hero-slides .hs');
     if (!slides.length) return;
@@ -415,6 +654,13 @@
       b.classList.toggle('on', on);
       b.setAttribute('aria-current', on ? 'true' : 'false');
     });
+    /* slide mở đầu đã có giờ ngay trong dòng trạng thái, đồng hồ ở góc thẻ
+       lúc đó là thừa — chỉ để nó cho các slide chạy theo giờ. */
+    var card = $('.hero-card');
+    if (card) {
+      card.classList.toggle('on-intro',
+        !!(slides[lsIdx] && slides[lsIdx].dataset.k === 'intro'));
+    }
   }
 
   function lsAuto() {
@@ -453,6 +699,9 @@
         $('.hs-lbl', clock).textContent = st.phase === 'live' ? 'Trực tiếp' : 'Đang nghỉ';
       }
     }
+
+    /* dòng trạng thái ở slide mở đầu — cập nhật cả khi các slide không đổi */
+    renderHeroNow(st, np);
 
     if (!force && key === liveKey) { renderNowbar(st); markTimelineNow(st); return; }
     liveKey = key;
@@ -755,23 +1004,40 @@
   }
 
 
+  /* Ô mã QR của mini game, xếp cạnh các bước y như mục Hỏi diễn giả.
+     Chưa có link phòng chơi thì để ô trống có ghi chú — không bịa ra một
+     mã QR dẫn tới chỗ không có thật. */
+  function quizSide() {
+    var url = CFG.quizJoinUrl || '';
+    if (!url) {
+      return '<b class="qs-t">Mã QR phòng chơi</b>' +
+        '<div class="qr-box qr-wait">BTC chiếu mã lên màn hình hội trường khi bắt đầu chơi</div>';
+    }
+    return '<b class="qs-t">Quét mã để vào phòng chơi</b>' +
+      '<div class="qr-box" id="qr-quiz" aria-label="Mã QR dẫn tới phòng chơi mini game"></div>' +
+      '<div class="qr-url">' + esc(url) + '</div>' +
+      '<button class="btn btn-sm btn-pri" type="button" data-proj="quiz" ' +
+        'aria-label="Phóng to mã QR phòng chơi ra toàn màn hình">' +
+        '<svg width="17" height="17" aria-hidden="true"><use href="#i-qr"/></svg>Phóng to</button>' +
+      '<a class="btn btn-sm qs-go" target="_blank" rel="noopener" href="' + esc(url) + '">Vào phòng chơi ↗</a>';
+  }
+
   function renderMiniGame() {
     var g = D.miniGame;
 
-    var join = CFG.quizJoinUrl
-      ? '<div style="margin-top:14px"><a class="btn btn-pri btn-sm" target="_blank" rel="noopener" href="' +
-        esc(CFG.quizJoinUrl) + '">Vào phòng chơi ↗</a></div>'
-      : '';
-
     $('#mg-body').innerHTML =
       '<div class="mg">' +
-        '<div class="card reveal">' +
-          '<h3 style="margin-bottom:10px">Cách tham gia</h3>' +
-          '<ul class="steps">' + g.how.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') + '</ul>' +
-          join +
+        '<div class="card qa-card reveal">' +
+          '<div class="qa-main">' +
+            '<h3 style="margin-bottom:10px">Cách tham gia</h3>' +
+            '<ul class="steps">' + g.how.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') + '</ul>' +
+          '</div>' +
+          '<div class="qa-side">' + quizSide() + '</div>' +
         '</div>' +
         '<div class="reveal" style="--d:90ms">' + prizeBox(g) + '</div>' +
       '</div>';
+
+    if (CFG.quizJoinUrl) makeQr($('#qr-quiz'), CFG.quizJoinUrl, 4);
   }
 
   /* đổi số tiền sang dạng dễ đọc: 100000 -> "100.000đ" */
@@ -832,6 +1098,9 @@
     { k: 'done', label: 'Đã xong' }
   ];
   var evFilter = 'all';
+  /* Bảng sân có hai mức: gọn (chỉ trận đang/sắp đánh) và mở (đủ mọi trận
+     của từng sân). Nút "Chi tiết từng trận" lật qua lại. */
+  var courtOpen = false;
 
   /* Trạng thái một nội dung: đã xong / đang đấu / sắp đấu.
      Ưu tiên kết quả thật; chưa có kết quả nào thì xét theo giờ. */
@@ -880,11 +1149,8 @@
   }
 
   function renderSport() {
-    var from = Tournament.toHHMM(Math.min.apply(null, T.matches.map(function (m) { return m.startMin; })));
     $('#sport-lead').textContent =
-      (CFG.sportVenueName ? CFG.sportVenueName + ' · ' : '') +
-      COUNTS.courts + ' sân chạy song song, ' + T.matches.length + ' trận, ' +
-      from + ' – ' + Tournament.toHHMM(lastEndMin()) + '.';
+      [CFG.sportVenueName, CFG.sportHours].filter(Boolean).join(', ');
 
     renderCourtBoard();
     renderEvFilter();
@@ -915,6 +1181,16 @@
   /* Mỗi sân một thẻ: đang đánh trận nào, tiếp theo là trận nào. */
   /* Tên một đội tách thành từng dòng: mỗi vận động viên một dòng, không
      để tên bị ngắt giữa chừng. Chỗ đứng chưa rõ ai thì chỉ có một dòng. */
+  /* Icon của từng môn: vợt cho pickleball, quả cầu cho cầu lông, sợi dây
+     cho nhảy dây. Nhận cả id nội dung (pb-nam, cl-mix) lẫn key nhóm luật
+     (pickleball, caulong, nhayday). */
+  function sportIcon(k) {
+    k = String(k || '');
+    if (k.indexOf('cl') === 0 || k.indexOf('cau') === 0) return 'i-shuttle';
+    if (k.indexOf('nhay') === 0 || k.indexOf('jump') === 0) return 'i-rope';
+    return 'i-paddle';
+  }
+
   function teamLines(ev, side) {
     if (side.teamId != null && ev.teamById[side.teamId]) {
       var t = ev.teamById[side.teamId];
@@ -934,6 +1210,31 @@
     '</div>';
   }
 
+  /* Một trận trong danh sách mở rộng: vẫn là bảng tên trắng đặt trên mặt
+     sân như thẻ gọn, chỉ dồn mỗi đội vào một dòng cho đỡ cao — 44 trận mà
+     dựng nguyên khối như thẻ gọn thì cuộn mỏi tay.                      */
+  function crtMatchRow(m, now) {
+    var v = T.view(m);
+    var ev = T.eventById[m.eventId];
+
+    function side(team, score, which) {
+      var cls = team.pending ? ' pend' : (v.done && v.winnerSide === which ? ' win' : '');
+      return '<div class="crm-s' + cls + '">' +
+        '<span class="crm-n">' + esc(teamLines(ev, team).join(' / ')) + '</span>' +
+        '<b>' + (score == null ? '–' : score) + '</b></div>';
+    }
+
+    return '<div class="crm' + (now ? ' now' : '') + '">' +
+      '<div class="crm-h">' +
+        '<b>' + esc(m.time) + '</b>' +
+        '<span>' + esc(v.event.short + ' · ' + m.label) + '</span>' +
+        (now ? '<i>đang đánh</i>' : '') +
+      '</div>' +
+      side(v.teamA, v.scoreA, 'a') +
+      side(v.teamB, v.scoreB, 'b') +
+    '</div>';
+  }
+
   function courtCard(c, live) {
     var m = (live && live.match) || c.next;
     var state = m ? ((live && live.state) || 'next') : 'done';
@@ -941,7 +1242,15 @@
     var played = T.matchesOfCourt(c.court.id).filter(function (x) { return T.view(x).done; }).length;
 
     var body;
-    if (!m) {
+    if (courtOpen) {
+      /* mở: thay hẳn ô trận hiện tại bằng danh sách đủ các trận của sân,
+         trận đang đánh được đánh dấu — không xếp chồng hai thứ lên nhau */
+      var all = T.matchesOfCourt(c.court.id);
+      body = '<div class="crt-all">' + all.map(function (x) {
+        return crtMatchRow(x, !!(m && x.id === m.id));
+      }).join('') + '</div>';
+
+    } else if (!m) {
       body = '<div class="crt-empty">Đã đấu xong cả ' + c.total + ' trận</div>';
     } else {
       var v = T.view(m);
@@ -1026,157 +1335,33 @@
   /* =====================================================================
      LỊCH THI ĐẤU
      ===================================================================== */
-  var schedViews = [
-    { id: 'cal',   label: 'Lịch sân' },
-    { id: 'court', label: 'Theo sân' },
-    { id: 'time',  label: 'Theo giờ' },
-    { id: 'event', label: 'Theo nội dung' },
-    { id: 'jump',  label: 'Nhảy dây' }
-  ];
+  /* Lịch từng trận nay nằm ngay trong mục Thể thao (nút "Chi tiết từng
+     trận" mở ô sân ra), nên mục Lịch chỉ còn chương trình cả ngày.
+     Bộ dựng lịch cũ — renderSchedule, courtCalendar, scheduleNotes — đã
+     bỏ cùng với khung chứa nó.                                          */
 
-  /* cảnh báo xếp giờ: tổng thời lượng và người đăng ký nhiều nội dung */
-  function scheduleNotes() {
-    var endBy = (D.schedule || {}).endBy;
-    var end = lastEndMin(), html = '';
+  /* Nhảy dây: trước nằm trong lịch thi đấu, nay là một khối riêng ở cuối
+     mục Thể thao. */
+  function renderJump() {
+    var host = $('#jump-pane');
+    if (!host) return;
+    var jr = D.jumpRope;
 
-    if (endBy && end > Tournament.toMin(endBy)) {
-      html += '<div class="note" style="margin-bottom:12px"><div>Lịch hiện tại kéo đến <b>' +
-        Tournament.toHHMM(end) + '</b>, quá mốc ' + esc(endBy) + '. ' +
-        'Cách xử lý: thêm sân cho khu đang quá tải, rút thời lượng trong ' +
-        '<code>durations</code>, hoặc đổi thứ tự vòng trong <code>roundOrder</code> ' +
-        '— tất cả ở data.js.</div></div>';
-    }
+    var html = '<div class="jb-h"><b>' + esc(jr.name) + '</b>' +
+      '<span>' + esc(jr.station) + ' · từ ' + esc(jr.start) + '</span></div>' +
+      '<p class="jb-rule">' + esc(jr.rule) + '</p>';
 
-    var multi = multiEntrants();
-    if (!multi.length) return html;
-
-    var drawn = D.events.filter(function (e) { return (e.seeds || []).length; }).length;
-    html += '<details class="card" style="margin-bottom:16px">' +
-      '<summary style="cursor:pointer;font-weight:650;list-style:none">' +
-      '⚠️ ' + multi.length + ' người đăng ký từ 2 nội dung trở lên — bấm để xem</summary>' +
-      '<p style="font-size:.9rem;color:var(--muted);margin:10px 0">' +
-      (drawn === D.events.length
-        ? 'Lịch đã tự giãn để không ai phải đánh hai trận cùng lúc, mỗi người nghỉ ít nhất ' +
-          ((D.schedule || {}).playerRestMinutes || 10) + ' phút giữa hai trận.'
-        : 'Lịch chỉ tự tránh trùng giờ sau khi đã bốc thăm vị trí cho cả bốn nội dung. ' +
-          'Hiện mới có ' + drawn + '/' + D.events.length + ' nội dung đã bốc, nên BTC lưu ý ' +
-          'những người dưới đây khi gọi tên vào sân.') +
-      '</p><div class="plist">' +
-      multi.map(function (p) {
-        return '<div class="pl"><span class="n">' + esc(p.name) + '</span>' +
-               '<span class="d">' + esc(p.where.join(' · ')) + '</span></div>';
-      }).join('') + '</div></details>';
-    return html;
-  }
-
-  /* ---------------------------------------------------------------
-     Lịch sân: mỗi sân một cột, giờ chạy dọc, mỗi trận là một khối cao
-     đúng bằng thời lượng của nó. Nhìn phát biết sân nào đang trống.
-     --------------------------------------------------------------- */
-  function courtCalendar() {
-    var ms = T.matches.filter(function (m) { return m.court && m.startMin != null; });
-    if (!ms.length) return '';
-
-    var from = Math.min.apply(null, ms.map(function (m) { return m.startMin; }));
-    var to   = Math.max.apply(null, ms.map(function (m) { return m.endMin; }));
-    from = Math.floor(from / 30) * 30;
-    to   = Math.ceil(to / 30) * 30;
-
-    /* nhảy dây chạy song song, cho vào một cột riêng cho đủ bức tranh */
-    var cols = [];
-    D.venues.forEach(function (vn) {
-      vn.courts.forEach(function (c) {
-        cols.push({ id: c.id, name: c.short || c.name, venue: vn, list: T.matchesOfCourt(c.id) });
-      });
+    T.jumpHeats.forEach(function (h) {
+      html += '<div class="heat"><div class="hh"><b>' + esc(h.time) + ' – ' + esc(h.endTime) + '</b>' +
+        '<span class="chip">' + esc(h.groupLabel) + ' · lượt ' + h.heat + '</span></div>' +
+        '<div class="bibs">' + h.athletes.map(function (a) {
+          return '<span class="bib"><i>' + esc(a.bib) + '</i>' + esc(a.name) +
+                 ' <span class="chip dim">' + esc(a.dept) + '</span></span>';
+        }).join('') + '</div></div>';
     });
 
-    var marks = '';
-    for (var t = from; t <= to; t += 30) {
-      marks += '<div class="cc-mark" style="--t:' + (t - from) + '"><span>' +
-               Tournament.toHHMM(t) + '</span></div>';
-    }
-
-    var body = cols.map(function (c) {
-      var blocks = c.list.map(function (m) {
-        var v = T.view(m);
-        var dur = m.endMin - m.startMin;
-        var k = sportKey(v.event.sport);
-        return '<div class="cc-b ' + k + (v.done ? ' done' : '') + '"' +
-          ' style="--s:' + (m.startMin - from) + ';--d:' + dur + '"' +
-          ' title="' + esc(m.time + '–' + m.endTime + ' · ' + v.event.short + ' · ' + m.label +
-                           ': ' + v.teamA.label + ' vs ' + v.teamB.label) + '">' +
-          '<b>' + esc(m.label) + '</b>' +
-          '<span class="cc-ev">' + esc(v.event.short) + '</span>' +
-          '<span class="cc-tm">' + esc(m.time) + '</span>' +
-        '</div>';
-      }).join('');
-      return '<div class="cc-col"><header>' + esc(c.name) + '</header>' +
-             '<div class="cc-body">' + blocks + '</div></div>';
-    }).join('');
-
-    return '<div class="cc-wrap"><div class="cc" style="--from:' + from + ';--to:' + to + '">' +
-      '<div class="cc-rail"><header></header><div class="cc-body">' + marks + '</div></div>' +
-      body +
-    '</div></div>' +
-    '<p class="cc-hint">Chiều cao mỗi khối đúng bằng thời lượng trận. ' +
-      'Khoảng trống là lúc sân đó nghỉ. Kéo ngang để xem hết các sân.</p>';
-  }
-
-  function renderSchedule(view) {
-    var host = $('#sched-pane'), html = scheduleNotes();
-
-    if (view === 'cal') {
-      host.innerHTML = html + courtCalendar();
-      return;
-
-    } else if (view === 'court') {
-      D.venues.forEach(function (vn) {
-        vn.courts.forEach(function (c) {
-          var list = T.matchesOfCourt(c.id);
-          html += '<div class="m-group"><h3><b>' + esc(c.name) + '</b>' +
-                  '<span class="chip dim">' + list.length + ' trận</span></h3>' +
-                  '<div class="m-list">' +
-                  list.map(function (m) { return matchRow(m, { showEvent: true }); }).join('') +
-                  '</div></div>';
-        });
-      });
-
-    } else if (view === 'time') {
-      var slots = {};
-      T.matches.forEach(function (m) { (slots[m.time] = slots[m.time] || []).push(m); });
-      Object.keys(slots).sort().forEach(function (t) {
-        html += '<div class="m-group"><h3><b>' + esc(t) + '</b>' +
-                '<span class="chip dim">' + slots[t].length + ' sân cùng đánh</span></h3>' +
-                '<div class="m-list">' +
-                slots[t].map(function (m) { return matchRow(m, { showEvent: true }); }).join('') +
-                '</div></div>';
-      });
-
-    } else if (view === 'event') {
-      D.events.forEach(function (ev) {
-        var list = T.matchesOf(ev.id).slice().sort(function (a, b) { return a.startMin - b.startMin; });
-        html += '<div class="m-group"><h3><b>' + esc(ev.name) + '</b>' +
-                '<span class="chip dim">' + list.length + ' trận</span></h3>' +
-                '<div class="m-list">' + list.map(function (m) { return matchRow(m); }).join('') +
-                '</div></div>';
-      });
-
-    } else {
-      var jr = D.jumpRope;
-      html += '<div class="note" style="margin-bottom:16px"><div><b>' + esc(jr.station) + '</b> — ' +
-              esc(jr.rule) + '</div></div>';
-      T.jumpHeats.forEach(function (h) {
-        html += '<div class="heat"><div class="hh"><b>' + esc(h.time) + ' – ' + esc(h.endTime) + '</b>' +
-                '<span class="chip">' + esc(h.groupLabel) + ' · lượt ' + h.heat + '</span></div>' +
-                '<div class="bibs">' + h.athletes.map(function (a) {
-                  return '<span class="bib"><i>' + esc(a.bib) + '</i>' + esc(a.name) +
-                         ' <span class="chip dim">' + esc(a.dept) + '</span></span>';
-                }).join('') + '</div></div>';
-      });
-      html += '<p style="color:var(--muted-2);font-size:.86rem;margin-top:10px">' + esc(jr.note) + '</p>';
-    }
-
-    host.innerHTML = '<div class="pane">' + html + '</div>';
+    html += '<p class="jb-note">' + esc(jr.note) + '</p>';
+    host.innerHTML = html;
   }
 
   /* =====================================================================
@@ -1383,8 +1568,8 @@
 
     var lose = loserBranch(ev);
     var win = lose
-      ? '<div class="bk-branch win"><div class="bk-bh"><b>Nhánh thắng</b>' +
-        '<span>Thắng là đi tiếp tới chung kết.</span></div>' + html + '</div>'
+      ? '<div class="bk-branch win"><div class="bk-bh"><b>Nhánh thắng</b></div>' +
+        html + '</div>'
       : html;
     return win + lose + thirdPlaceHtml(ev) + podiumHtml(ev);
   }
@@ -1407,7 +1592,8 @@
     } else if (rp.ready) {
       note = '<span class="chip ok">Đã chọn xong 2 đội lên tứ kết</span>';
     } else {
-      note = '<span class="chip">Chờ đủ kết quả 3 trận</span>';
+      /* chưa có kết quả thì chưa có gì để nói, để trống cho đỡ rối */
+      note = '';
     }
 
     var rows = rp.rows.map(function (r, i) {
@@ -1421,11 +1607,9 @@
 
     var k = sportKey(ev.sport);
     return '<div class="bk-branch lose">' +
-      '<div class="bk-bh"><b>Nhánh thua</b>' +
-        '<span>Sáu đội thua vòng loại đấu tiếp. Hai đội thắng có hiệu số cao nhất quay lại tứ kết; ' +
-        'bằng hiệu số thì xét tổng điểm.</span>' + note + '</div>' +
+      '<div class="bk-bh"><b>Nhánh thua</b>' + note + '</div>' +
       '<div class="bk-scroll"><div class="bk" data-sport="' + k + '">' +
-        '<div class="bk-wrapcol"><span class="rnd">Nhánh thua</span>' +
+        '<div class="bk-wrapcol">' +
           '<div class="bk-col bk-row">' + vv.map(function (m) { return bkCard(m); }).join('') + '</div>' +
         '</div>' +
       '</div></div>' +
@@ -1437,8 +1621,7 @@
   function thirdPlaceHtml(ev) {
     var tb = T.matchById[ev.id + '-TB-1'];
     if (!tb) return '';
-    return '<div class="vv tb"><div class="vv-h"><b>Tranh hạng Ba</b>' +
-      '<span>Hai đội thua bán kết gặp nhau.</span></div>' +
+    return '<div class="vv tb"><div class="vv-h"><b>Tranh hạng Ba</b></div>' +
       '<div class="vv-m">' + matchRow(tb) + '</div></div>';
   }
 
@@ -1511,11 +1694,9 @@
 
   function renderBracketPane(evId) {
     var ev = T.eventById[evId];
+    /* Suất chưa chốt người đã được đánh dấu ngay trên thẻ trận (.pend),
+       nên không cần thêm một dòng báo nữa ở đầu nhánh. */
     var head = '';
-    if (ev.statusNote) {
-      head = '<div class="note" style="margin-bottom:16px"><div><b>' + esc(ev.name) + ':</b> ' +
-             esc(ev.statusNote) + '</div></div>';
-    }
     if (localSeeds[ev.id] && localSeeds[ev.id].length) {
       head += '<p class="bk-hint">Nhánh này đang dùng kết quả <b>bốc thăm lưu trên máy này</b>, ' +
               'máy khác sẽ thấy khác. Dán đoạn <code>seeds</code> vào data.js để chốt cho cả nhà, ' +
@@ -1612,11 +1793,6 @@
     }
 
     var ev = T.eventById[key], html = '';
-    if (ev.statusNote) {
-      html += '<div class="note" style="margin-bottom:16px"><div>' + esc(ev.statusNote) + '</div></div>';
-    }
-    html += '<p style="color:var(--muted);font-size:.92rem;margin-bottom:16px">' +
-            esc(ev.drawRule) + '</p>';
 
     if ((ev.teams || []).length) {
       var k = sportKey(ev.sport);
@@ -1695,60 +1871,101 @@
       '</svg>'
   };
 
-  function renderRulePane(key) {
-    var g = D.rules.groups.filter(function (x) { return x.key === key; })[0];
-    var html = '<div class="pane" data-accent="' + g.accent + '">';
+  /* Luật trình bày thành slide. Trước đây đổ hết sơ đồ, mọi khối luật và
+     các bảng ví dụ nối đuôi nhau nên mục này dài gấp ba mục khác, đọc mệt.
+     Giờ mỗi trang một ý; các trang xếp chồng trong cùng một ô lưới nên
+     khung giữ đúng chiều cao trang cao nhất, lật qua lại không giật. */
+  var rdIdx = 0;
+
+  function ruleSlides(g, key) {
+    var out = [];
 
     if (g.court && COURT_SVG[key]) {
-      html += '<figure class="diag" style="margin:0 0 16px">' + COURT_SVG[key] +
+      out.push({
+        label: 'Sân thi đấu',
+        html: '<figure class="diag">' + COURT_SVG[key] +
               '<figcaption><b>' + esc(g.court.size) + '.</b> ' + esc(g.court.detail) +
-              ' Mũi tên vàng là hướng giao.</figcaption></figure>';
+              ' Mũi tên vàng là hướng giao.</figcaption></figure>'
+      });
     }
 
-    html += '<div class="rule-cols">' + g.blocks.map(function (b) {
-      return '<div class="rblock"><h4>' + esc(b.title) + '</h4><ul>' +
-             b.items.map(function (i) { return '<li>' + esc(i) + '</li>'; }).join('') +
-             '</ul></div>';
-    }).join('') + '</div>';
+    /* hai khối luật một trang: đủ ngắn để đọc hết mà không phải lật nhiều */
+    for (var i = 0; i < g.blocks.length; i += 2) {
+      var pair = g.blocks.slice(i, i + 2);
+      out.push({
+        label: pair.map(function (b) { return b.title; }).join(' · '),
+        html: '<div class="rule-cols">' + pair.map(function (b) {
+          return '<div class="rblock"><h4>' + esc(b.title) + '</h4><ul>' +
+                 b.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
+                 '</ul></div>';
+        }).join('') + '</div>'
+      });
+    }
 
-    if (g.examples.length) {
-      html += '<div class="grid g-2" style="margin-top:14px">' + g.examples.map(function (ex) {
-        return '<div class="tblwrap"><table class="ex"><caption>' + esc(ex.title) + '</caption>' +
+    (g.examples || []).forEach(function (ex) {
+      out.push({
+        label: ex.title,
+        html: '<div class="tblwrap"><table class="ex">' +
           '<thead><tr>' + ex.head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead>' +
           '<tbody>' + ex.rows.map(function (r) {
             return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>';
-          }).join('') + '</tbody></table></div>';
-      }).join('') + '</div>';
-    }
+          }).join('') + '</tbody></table></div>'
+      });
+    });
 
-    if (g.tip) html += '<div class="tip">' + esc(g.tip) + '</div>';
-    $('#rule-pane').innerHTML = html + '</div>';
+    return out;
   }
 
-  function renderGeneral() {
-    $('#gen-rules').innerHTML = D.rules.common.items.map(function (it, i) {
-      return '<div class="it reveal" style="--d:' + (i * 55) + 'ms">' +
-        '<span class="k">' + (i + 1) + '</span>' +
-        '<div><b>' + esc(it.n) + '</b><p>' + esc(it.t) + '</p></div>' +
+  function renderRulePane(key) {
+    var g = D.rules.groups.filter(function (x) { return x.key === key; })[0];
+    if (!g) return;
+    var sl = ruleSlides(g, key);
+    rdIdx = 0;
+
+    var nav = sl.length < 2 ? '' :
+      '<div class="rdeck-nav">' +
+        '<button class="rd-b" type="button" data-d="-1" aria-label="Trang luật trước">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button>' +
+        '<div class="rd-dots">' + sl.map(function (x, i) {
+          return '<button type="button" data-i="' + i + '" class="' + (i ? '' : 'on') +
+                 '" aria-label="' + esc(x.label) + '"></button>';
+        }).join('') + '</div>' +
+        '<button class="rd-b" type="button" data-d="1" aria-label="Trang luật sau">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button>' +
       '</div>';
-    }).join('');
+
+    $('#rule-pane').innerHTML =
+      '<div class="pane" data-accent="' + esc(g.accent) + '">' +
+        '<div class="rdeck">' +
+          '<div class="rd-head"><b class="rd-label">' + esc(sl[0] ? sl[0].label : '') + '</b>' +
+            '<span class="rd-count">1 / ' + sl.length + '</span></div>' +
+          '<div class="rdeck-track" aria-live="polite">' + sl.map(function (x, i) {
+            return '<section class="rslide' + (i ? '' : ' on') + '" aria-hidden="' + (i ? 'true' : 'false') +
+                   '" aria-label="' + esc(x.label) + '">' + x.html + '</section>';
+          }).join('') + '</div>' +
+          nav +
+        '</div>' +
+      '</div>';
   }
 
-  /* =====================================================================
-     GIẢI THƯỞNG
-     ===================================================================== */
-  function renderAwards() {
-    var a = D.awards;
-    $('#award-note').textContent = a.note;
-    var med = ['🥇', '🥈', '🥉'];
-    $('#award-cards').innerHTML = a.perEvent.map(function (p, i) {
-      return '<div class="awc r' + p.rank + ' reveal" style="--d:' + (i * 70) + 'ms">' +
-        '<div class="med">' + med[i] + '</div><b>' + esc(p.label) + '</b>' +
-        '<span><i data-countup="' + p.count + '" style="font-style:normal">' + p.count + '</i> giải mỗi nội dung' + (p.note ? '<br>' + esc(p.note) : '') + '</span></div>';
-    }).join('');
-    $('#award-lines').innerHTML = a.lines.map(function (l) {
-      return '<li>' + esc(l) + '</li>';
-    }).join('');
+  function rdShow(n) {
+    var sl = $$('#rule-pane .rslide');
+    if (!sl.length) return;
+    rdIdx = (n + sl.length) % sl.length;
+    sl.forEach(function (el, i) {
+      var on = i === rdIdx;
+      el.classList.toggle('on', on);
+      el.setAttribute('aria-hidden', on ? 'false' : 'true');
+    });
+    $$('#rule-pane .rd-dots button').forEach(function (b, i) {
+      b.classList.toggle('on', i === rdIdx);
+      b.setAttribute('aria-current', i === rdIdx ? 'true' : 'false');
+    });
+    var lb = $('#rule-pane .rd-label'), ct = $('#rule-pane .rd-count');
+    if (lb) lb.textContent = sl[rdIdx].getAttribute('aria-label') || '';
+    if (ct) ct.textContent = (rdIdx + 1) + ' / ' + sl.length;
   }
 
   /* các con số nhỏ trên tiêu đề mục: lấy từ dữ liệu để không bao giờ lệch */
@@ -1763,6 +1980,8 @@
     el.innerHTML = items.map(function (it, i) {
       return '<button role="tab" aria-controls="' + panelId + '" aria-selected="' + (i === 0) +
              '" tabindex="' + (i === 0 ? 0 : -1) + '" data-k="' + esc(it.id) + '">' +
+             (it.icon ? '<svg width="15" height="15" aria-hidden="true"><use href="#' +
+                        it.icon + '"/></svg>' : '') +
              esc(it.label) + '</button>';
     }).join('');
 
@@ -2052,10 +2271,9 @@
   /* =====================================================================
      VẼ LẠI PHẦN PHỤ THUỘC KẾT QUẢ
      ===================================================================== */
-  var cur = { sched: 'court', bracket: null, team: null };
+  var cur = { bracket: null, team: null };
 
   function refreshResults() {
-    renderSchedule(cur.sched);
     if (cur.bracket) renderBracketPane(cur.bracket);
     renderCourtBoard();
     if (typeof renderLive === 'function') renderLive(true);
@@ -2247,8 +2465,37 @@
       lockBehind(v || adm.classList.contains('on'));
       if (v) $('#proj-x').focus(); else restoreFocus();
     }
-    var bp = $('#btn-proj');
-    if (bp) bp.addEventListener('click', function () { openProj(true); });
+    /* Một cửa sổ máy chiếu dùng chung cho cả hai mã QR: bấm nút nào thì
+       dựng mã của nút đó. Bắt ở cấp trang vì nút của mini game do JS dựng. */
+    var PROJ = {
+      ask: {
+        t: 'Quét mã để đặt câu hỏi',
+        s: 'Mở trang Ngày hội trên điện thoại rồi gửi câu hỏi cho diễn giả'
+      },
+      quiz: {
+        t: 'Quét mã để vào phòng chơi',
+        s: 'Mở trên điện thoại, đăng nhập bằng họ tên và bộ phận của mình'
+      }
+    };
+    function showProj(kind) {
+      var m = PROJ[kind] || PROJ.ask;
+      $('#proj-t').textContent = m.t;
+      $('#proj-s').textContent = m.s;
+      var u = qrTarget(kind);
+      if (u) {
+        makeQr($('#qr-proj'), u, 8);
+        $('#proj-url').textContent = u;
+      } else {
+        $('#qr-proj').innerHTML = '<p style="color:#333;padding:16px;max-width:320px">' +
+          'Chưa có địa chỉ để tạo mã QR.</p>';
+        $('#proj-url').textContent = '';
+      }
+      openProj(true);
+    }
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest ? e.target.closest('[data-proj]') : null;
+      if (b) showProj(b.getAttribute('data-proj'));
+    });
     $('#proj-x').addEventListener('click', function () { openProj(false); });
 
     /* bảng BTC */
@@ -2264,6 +2511,18 @@
     }
     var bAdm = $('#btn-adm');
     if (bAdm) bAdm.addEventListener('click', function () { openAdm(true); });
+
+    /* lật trang luật */
+    $('#rule-pane').addEventListener('click', function (e) {
+      var b = e.target.closest('.rd-b');
+      if (b) { rdShow(rdIdx + Number(b.dataset.d)); return; }
+      var d = e.target.closest('.rd-dots button');
+      if (d) rdShow(Number(d.dataset.i));
+    });
+    $('#rule-pane').addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft')  { rdShow(rdIdx - 1); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { rdShow(rdIdx + 1); e.preventDefault(); }
+    });
 
     /* chọn sân + nút cộng trừ điểm + nhảy tới trận chưa đấu */
     $('#adm-body').addEventListener('click', function (e) {
@@ -2399,43 +2658,37 @@
     renderMiniGame();
     renderQr();
     renderSport();
-    renderGeneral();
-    renderAwards();
+    renderJump();
 
-    buildTabs('#cal-tabs', [
-      { id: 'prog',  label: 'Chương trình' },
-      { id: 'sport', label: 'Thể thao' }
-    ], function (k) {
-      var prog = $('#cal-prog'), sport = $('#cal-sport');
-      if (prog)  prog.hidden  = k !== 'prog';
-      if (sport) sport.hidden = k !== 'sport';
+    /* Nút "Chi tiết từng trận": mở từng ô sân ra thành danh sách đủ các
+       trận của sân đó, ngay tại chỗ. */
+    function setCourtOpen(v) {
+      courtOpen = !!v;
+      var btn = $('#go-all');
+      if (btn) btn.setAttribute('aria-expanded', courtOpen ? 'true' : 'false');
+      renderCourtBoard();
+      renderEvFilter();
+      applyEvFilter();
       revealScan();
-    });
-
-    /* chip "Xem lịch từng trận" trong lịch chương trình nhảy sang lịch thi đấu */
-    var calPane = $('#cal-pane');
-    if (calPane) {
-      calPane.addEventListener('click', function (e) {
-        var a = e.target.closest('[data-go-sport]');
-        if (!a) return;
-        e.preventDefault();
-        var b = $('#cal-tabs button[data-k="sport"]');
-        if (b) b.click();
-      });
     }
+    var goAll = $('#go-all');
+    if (goAll) goAll.addEventListener('click', function () { setCourtOpen(!courtOpen); });
 
-    buildTabs('#sched-tabs', schedViews, function (k) {
-      cur.sched = k; renderSchedule(k); revealScan();
+    /* chip "Xem lịch từng trận" trong lịch chương trình: nhảy tới mục Thể
+       thao để href="#the-thao" lo, ở đây chỉ lo mở sẵn bảng sân ra. */
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('[data-go-sport]')) return;
+      if (!courtOpen) setCourtOpen(true);
     });
 
     buildTabs('#bracket-tabs', D.events.map(function (e) {
-      return { id: e.id, label: e.short };
+      return { id: e.id, label: e.short, icon: sportIcon(e.id) };
     }), function (k) {
       cur.bracket = k; renderBracketPane(k); revealScan();
     });
 
     buildTabs('#rule-tabs', D.rules.groups.map(function (g) {
-      return { id: g.key, label: g.label };
+      return { id: g.key, label: g.label, icon: sportIcon(g.key) };
     }), function (k) { renderRulePane(k); revealScan(); });
 
     wire();

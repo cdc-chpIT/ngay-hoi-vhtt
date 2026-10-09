@@ -39,6 +39,29 @@
     return n;
   }
 
+  /* Tách theo từ, không theo ký tự. Mỗi ký tự một khối riêng thì máy có
+     quyền xuống dòng ở giữa tên — màn hình hẹp đọc ra "VĂN HÓA & TH /
+     Ể THAO". Gói trọn từ vào một khối thì chỉ còn xuống dòng ở dấu cách. */
+  function splitWords(el, start, step) {
+    if (el.dataset.sp) return 0;
+    var words = el.textContent.split(/(\s+)/);
+    el.dataset.sp = '1';
+    el.textContent = '';
+    var n = 0;
+    words.forEach(function (w) {
+      if (!w) return;
+      if (/^\s+$/.test(w)) { el.appendChild(document.createTextNode(' ')); return; }
+      var mask = document.createElement('span'); mask.className = 'sp-mask';
+      var inner = document.createElement('span'); inner.className = 'sp-ch';
+      inner.textContent = w;
+      mask.style.setProperty('--d', (start + n * step) + 'ms');
+      mask.appendChild(inner);
+      el.appendChild(mask);
+      n++;
+    });
+    return n;
+  }
+
   /* tiêu đề mục: gom theo dòng thật rồi cho từng dòng trượt lên.
      Phải đo offsetTop của từng từ vì số dòng đổi theo bề ngang màn hình. */
   function splitLines(el, step) {
@@ -73,18 +96,11 @@
     });
   }
 
-  /* Kiểu nào có tên ở đây thì tách theo ký tự, số là nhịp lệch giữa các ký
-     tự. Các kiểu còn lại (dash, drop, flap, stamp) tách theo DÒNG: tách ký
-     tự biến mỗi con chữ thành một inline-block và trình duyệt được phép
-     ngắt dòng giữa hai cái, nên ở màn hẹp tiêu đề vỡ giữa từ. */
-  var CHAR_FX = { ink: 22, pop: 35, podium: 30 };
-
+  /* Mọi tiêu đề mục đều tách theo DÒNG rồi trượt lên. Tách theo ký tự thì
+     mỗi con chữ thành một inline-block và trình duyệt được phép ngắt dòng
+     giữa hai cái, nên ở màn hẹp tiêu đề vỡ giữa từ. */
   function splitHeading(h) {
-    var step = CHAR_FX[h.dataset.fx];
-    if (!step) { splitLines(h, 90); return true; }
-    var text = h.dataset.spText || h.textContent.trim();
-    h.dataset.spText = text;
-    splitChars(h, 0, step, h.dataset.fx === 'podium');
+    splitLines(h, 90);
     return true;
   }
 
@@ -93,8 +109,10 @@
     if (!h1 || h1.dataset.spDone) return;
     h1.dataset.spDone = '1';
     var l1 = $('.l1', h1), l2 = $('.l2', h1);
+    /* dòng trên chữ nhỏ, luôn nằm gọn một dòng nên tách từng ký tự được;
+       dòng tên ngày hội chữ to, phải tách theo từ kẻo gãy giữa tên */
     var n = l1 ? splitChars(l1, 0, 30) : 0;
-    if (l2) splitChars(l2, n * 30 + 120, 30);
+    if (l2) splitWords(l2, n * 30 + 140, 85);
     requestAnimationFrame(function () {
       requestAnimationFrame(function () { h1.classList.add('sp-go'); });
     });
@@ -311,7 +329,10 @@
     rz = setTimeout(function () {
       /* số dòng của tiêu đề đổi theo bề ngang nên phải chia lại */
       $$('.sec-head h2, .sec-head h3').forEach(function (h) {
-        if (!h.dataset.spText || CHAR_FX[h.dataset.fx]) return;
+        /* CHAR_FX là biến của bản cũ, đã bỏ khi mọi tiêu đề đều tách theo
+           dòng. Còn sót lại ở đây nên mỗi lần đổi bề ngang là văng lỗi
+           và tiêu đề không được chia lại dòng. */
+        if (!h.dataset.spText) return;
         var shown = h.classList.contains('sp-go');
         splitLines(h, 90);
         if (shown) h.classList.add('sp-go');
