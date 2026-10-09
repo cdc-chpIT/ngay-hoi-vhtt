@@ -206,49 +206,38 @@
   }
 
   /* ---------------------------------------------------------------
-     Lịch chương trình: bày theo kiểu lịch một ngày — cột giờ bên trái,
-     nội dung bên phải, chia theo buổi.
+     Lịch chương trình: lưới thẻ vuông, mỗi thẻ một mốc trong ngày.
      --------------------------------------------------------------- */
-  var PART_NAME = {
-    morning:   'Buổi sáng · Phần Văn hóa',
-    noon:      'Buổi trưa',
-    afternoon: 'Buổi chiều · Đại hội thể thao',
-    evening:   'Buổi tối'
-  };
-
   function renderAgenda() {
     var host = $('#agenda');
     if (!host) return;
 
-    var html = '', part = null;
+    var html = '';
     D.timeline.forEach(function (t, k) {
       var tm = slotTime(t);
       if (!tm || !tm.start) return;
-
-      if (t.part !== part) {
-        part = t.part;
-        html += '<div class="ag-part"><b>' + esc(PART_NAME[part] || '') + '</b></div>';
-      }
 
       var pillar = t.talk ? D.pillars[t.talk - 1] : null;
       html += '<div class="ag-item reveal" data-idx="' + k + '" data-part="' + esc(t.part) + '"' +
           (pillar ? ' data-pillar="' + esc(pillar.key) + '"' : '') +
           (t.sport ? ' data-sport="1"' : '') +
           ' style="--d:' + (Math.min(k, 8) * 35) + 'ms">' +
-        '<div class="ag-t"><b>' + esc(tm.start) + '</b>' +
-          (tm.end ? '<span>' + esc(tm.end) + '</span>' : '') + '</div>' +
         '<div class="ag-c">' +
-          '<div class="ag-ic">' + icon(t.icon, 20) + '</div>' +
+          '<div class="ag-top">' +
+            '<div class="ag-ic">' + icon(t.icon, 20) + '</div>' +
+            '<div class="ag-t"><b>' + esc(tm.start) + '</b>' +
+              (tm.end ? '<span>' + esc(tm.end) + '</span>' : '') + '</div>' +
+          '</div>' +
           '<div class="ag-b">' +
             '<h3>' + esc(t.title) + '</h3>' +
             '<p>' + esc(t.desc) + '</p>' +
-            '<div class="ag-tags">' +
-              (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
-              (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
-              (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
-              (t.sport ? '<a class="chip ok" href="#lich" data-go-sport="1">Xem lịch từng trận</a>' : '') +
-              '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
-            '</div>' +
+          '</div>' +
+          '<div class="ag-tags">' +
+            (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
+            (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
+            (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
+            (t.sport ? '<a class="chip ok" href="#lich" data-go-sport="1">Xem lịch từng trận</a>' : '') +
+            '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -626,14 +615,12 @@
   }
 
   function renderPillarShots() {
-    var t = $('#van-hoa-title');
-    if (t) t.textContent = D.intro.theme;
-
     var host = $('#pillar-shots');
     if (!host) return;
     host.innerHTML = D.pillars.map(function (pl, k) {
       var art = pl.photo
-        ? '<img src="' + esc(pl.photo) + '" alt="' + esc(pl.name) + '">'
+        ? '<img src="' + esc(pl.photo) + '" alt="' + esc(pl.name) + '"' +
+          (pl.focus ? ' style="object-position:' + esc(pl.focus) + '"' : '') + '>'
         : (POSTER[pl.key] || '');
       return '<figure class="pshot" data-k="' + esc(pl.key) + '" tabindex="0" role="button" ' +
           'aria-label="Phóng to ' + esc(pl.name) + '" style="--d:' + (k * 90) + 'ms">' +
@@ -770,10 +757,6 @@
 
   function renderMiniGame() {
     var g = D.miniGame;
-    $('#mg-lead').textContent =
-      g.questions + '. Cả hội trường cùng chơi trên điện thoại, ' +
-      'bảng xếp hạng hiện trực tiếp trên màn hình. ' +
-      g.minutes + ' phút chơi và ' + g.awardMinutes + ' phút trao giải.';
 
     var join = CFG.quizJoinUrl
       ? '<div style="margin-top:14px"><a class="btn btn-pri btn-sm" target="_blank" rel="noopener" href="' +
@@ -1752,7 +1735,7 @@
   }
 
   /* =====================================================================
-     GIẢI THƯỞNG + FAQ + FOOTER
+     GIẢI THƯỞNG
      ===================================================================== */
   function renderAwards() {
     var a = D.awards;
@@ -1761,34 +1744,14 @@
     $('#award-cards').innerHTML = a.perEvent.map(function (p, i) {
       return '<div class="awc r' + p.rank + ' reveal" style="--d:' + (i * 70) + 'ms">' +
         '<div class="med">' + med[i] + '</div><b>' + esc(p.label) + '</b>' +
-        '<span>' + p.count + ' giải mỗi nội dung' + (p.note ? '<br>' + esc(p.note) : '') + '</span></div>';
+        '<span><i data-countup="' + p.count + '" style="font-style:normal">' + p.count + '</i> giải mỗi nội dung' + (p.note ? '<br>' + esc(p.note) : '') + '</span></div>';
     }).join('');
     $('#award-lines').innerHTML = a.lines.map(function (l) {
       return '<li>' + esc(l) + '</li>';
     }).join('');
   }
 
-  function renderFaq() {
-    $('#faq').innerHTML = D.faq.map(function (f) {
-      return '<details><summary>' + esc(f.q) + '</summary><div class="ans">' + esc(f.a) + '</div></details>';
-    }).join('');
-  }
-
   /* các con số nhỏ trên tiêu đề mục: lấy từ dữ liệu để không bao giờ lệch */
-  function renderEyebrows() {
-    var set = {
-      'eb-dangky': COUNTS.entries + ' lượt đăng ký',
-      'eb-tran': T.matches.length + ' trận trên ' + COUNTS.courts + ' sân'
-    };
-    for (var id in set) { var el = document.getElementById(id); if (el) el.textContent = set[id]; }
-  }
-
-  function renderFoot() {
-    $('#foot-note').textContent =
-      'Trang nội bộ cho ngày hội. Thông tin tổng hợp từ Kế hoạch tổ chức Ngày hội Văn hóa ' +
-      'CHP 2026, bộ luật thi đấu và bảng chia đội của Ban Tổ chức. ' + (CFG.adminHint || '');
-  }
-
   /* =====================================================================
      TABS
      ===================================================================== */
@@ -2438,9 +2401,6 @@
     renderSport();
     renderGeneral();
     renderAwards();
-    renderFaq();
-    renderFoot();
-    renderEyebrows();
 
     buildTabs('#cal-tabs', [
       { id: 'prog',  label: 'Chương trình' },

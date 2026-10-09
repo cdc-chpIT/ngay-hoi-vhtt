@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20261008c">
+<link rel="stylesheet" href="assets/css/style.css?v=20261009w">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/img/favicon.png">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -166,11 +166,12 @@
   </section>
 
   <!-- ============ BA TRỤC VĂN HÓA ============ -->
+  <div class="mq" aria-hidden="true">
+    <div class="mq-row" id="mq-row"><span>Truyền thống <i>&#9670;</i> Tự lực <i>&#9670;</i> Thích ứng <i>&#9670;</i> <b>VĂN HÓA CHP 2026</b> <i>&#9670;</i> </span></div>
+  </div>
+
   <section class="section" id="van-hoa">
     <div class="wrap">
-      <div class="sec-head mid reveal">
-        <h2 id="van-hoa-title">Văn hóa CHP</h2>
-      </div>
       <div class="pshow reveal" id="pillar-shots"></div>
     </div>
   </section>
@@ -180,8 +181,7 @@
   <section class="section" id="hoi-dap">
     <div class="wrap">
       <div class="sec-head mid reveal">
-        <span class="eyebrow">Phần Văn hóa</span>
-        <h2>Hỏi diễn giả</h2>
+        <h2 data-fx="ink">Hỏi diễn giả</h2>
       </div>
 
       <div class="qa-grid">
@@ -209,8 +209,7 @@
   <section class="section" id="minigame">
     <div class="wrap">
       <div class="sec-head mid reveal">
-        <h2>Mini game trắc nghiệm</h2>
-        <p id="mg-lead"></p>
+        <h2 data-fx="pop">Mini game</h2>
       </div>
       <div id="mg-body"></div>
     </div>
@@ -220,7 +219,7 @@
   <section class="section" id="the-thao">
     <div class="wrap">
       <div class="sec-head mid reveal">
-        <h2>Đại hội thể thao</h2>
+        <h2 data-fx="dash">Đại hội thể thao</h2>
         <p id="sport-lead"></p>
       </div>
 
@@ -235,7 +234,7 @@
   <section class="section" id="nhanh-dau">
     <div class="wrap">
       <div class="sec-head mid reveal">
-        <h2>Nhánh đấu &amp; kết quả</h2>
+        <h2 data-fx="drop">Nhánh đấu &amp; kết quả</h2>
       </div>
       <div class="tabs reveal" id="bracket-tabs" role="tablist"></div>
       <div id="bracket-pane" role="tabpanel" tabindex="0"></div>
@@ -245,9 +244,8 @@
   <!-- ============ LỊCH THI ĐẤU ============ -->
   <section class="section" id="lich">
     <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow" id="eb-tran">Thứ Bảy 17/10/2026</span>
-        <h2>Lịch</h2>
+      <div class="sec-head mid reveal">
+        <h2 data-fx="flap">Lịch</h2>
       </div>
 
       <div class="tabs big reveal" id="cal-tabs" role="tablist" aria-label="Chọn loại lịch"></div>
@@ -271,57 +269,37 @@
   <!-- ============ LUẬT ============ -->
   <section class="section" id="luat">
     <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Đọc trước khi vào sân</span>
-        <h2>Luật thi đấu</h2>
+      <div class="sec-head mid reveal">
+        <h2 data-fx="stamp">Luật thi đấu</h2>
       </div>
       <div class="tabs reveal" id="rule-tabs" role="tablist"></div>
       <div id="rule-pane" role="tabpanel" tabindex="0"></div>
 
-      <div class="sec-head reveal" style="margin:34px 0 14px">
+      <div class="sec-head mid reveal" style="margin:34px 0 14px">
         <h3 style="font-size:1.15rem">Quy định chung</h3>
       </div>
       <div class="gen reveal" id="gen-rules"></div>
     </div>
   </section>
 
-  <!-- ============ GIẢI THƯỞNG + FAQ ============ -->
+  <!-- ============ GIẢI THƯỞNG ============ -->
   <section class="section" id="giai-thuong">
     <div class="wrap">
-      <div class="sec-head reveal">
-        <span class="eyebrow">Huy chương &amp; cúp</span>
-        <h2>Giải thưởng</h2>
+      <div class="sec-head mid reveal">
+        <h2 data-fx="podium">Giải thưởng</h2>
         <p id="award-note"></p>
       </div>
       <div class="aw reveal" id="award-cards" style="margin-bottom:16px"></div>
       <div class="card reveal" style="margin-bottom:34px">
         <ul class="rblock" style="padding:0;border:0;background:none" id="award-lines"></ul>
       </div>
-
-      <div class="sec-head reveal" style="margin-bottom:14px">
-        <h3 style="font-size:1.15rem">Câu hỏi thường gặp</h3>
-      </div>
-      <div class="faq reveal" id="faq"></div>
     </div>
   </section>
 
   <!-- ============ ẢNH ============ -->
 </main>
 
-<!-- ============ FOOTER ============ -->
-<footer class="foot">
-  <div class="wrap in">
-    <div>
-      <p><b style="color:var(--text)">Ngày hội Văn hóa – Thể thao CHP 2026</b></p>
-      <p id="foot-note"></p>
-    </div>
-    <div class="lk">
-      <a class="btn btn-sm" href="#top">Về đầu trang</a>
-      <button class="btn btn-sm" id="btn-adm" style="display:none">Bảng BTC</button>
-    </div>
-  </div>
-</footer>
-
+<button class="btn btn-sm btn-adm-float" id="btn-adm" style="display:none">Bảng BTC</button>
 <button class="totop" id="totop" aria-label="Về đầu trang"><svg width="20" height="20"><use href="#i-up"/></svg></button>
 
 <!-- ============ PHÓNG TO ẢNH ============ -->
@@ -361,10 +339,11 @@
 </aside>
 
 <script src="assets/js/vendor-qrcode.js"></script>
-<script src="assets/js/config.js"></script>
-<script src="assets/js/data.js"></script>
-<script src="assets/js/tournament.js"></script>
-<script src="assets/js/live.js"></script>
-<script src="assets/js/app.js?v=20261008c"></script>
+<script src="assets/js/config.js?v=20261009w"></script>
+<script src="assets/js/data.js?v=20261009w"></script>
+<script src="assets/js/tournament.js?v=20261009w"></script>
+<script src="assets/js/live.js?v=20261009w"></script>
+<script src="assets/js/app.js?v=20261009w"></script>
+<script src="assets/js/motion.js?v=20261009w"></script>
 </body>
 </html>

@@ -42,6 +42,9 @@ var VHTT_DATA = {
       key: 'truyenthong',
       name: 'Truyền thống',
       role: 'là nền tảng',
+      /* đổi ảnh thì sửa đúng hai dòng này; focus là vị trí cắt cho rõ mặt người */
+      photo: 'assets/img/ngay-hoi-2025.jpg',
+      focus: '50% 38%',
       short: 'Chúng ta đứng trên nền móng nào',
       body: 'Những gì CHP đang có hôm nay không tự nhiên mà có. ' +
             'Trước khi nói về công nghệ và tương lai, hãy nhớ chúng ta đứng trên nền móng nào.'
@@ -50,6 +53,8 @@ var VHTT_DATA = {
       key: 'tuluc',
       name: 'Tự lực',
       role: 'là mục tiêu',
+      photo: 'assets/img/hop-mat.jpg',
+      focus: '50% 42%',
       short: 'Tự quyết và chịu trách nhiệm đến cùng',
       body: 'Tự lực không phải là khẩu hiệu trên slide, mà là điều diễn ra hằng ngày ở công trường: ' +
             'tự quyết, tự xoay xở và chịu trách nhiệm đến cùng.'
@@ -58,6 +63,8 @@ var VHTT_DATA = {
       key: 'thichung',
       name: 'Thích ứng',
       role: 'là phương thức',
+      photo: 'assets/img/hop-mat.jpg',
+      focus: '78% 46%',
       short: 'Học nhanh hơn tốc độ thay đổi',
       body: 'Thích ứng không phải là chạy theo công nghệ, mà là giữ được khả năng học nhanh hơn ' +
             'tốc độ thay đổi. AI là công cụ để người CHP làm chủ, không phải thứ thay thế con người.'

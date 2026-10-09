@@ -144,7 +144,7 @@ input { font: inherit; }
 }
 
 /* nội dung tránh cột biểu tượng bên trái */
-main, .foot { padding-inline-start: var(--rail-w); }
+main { padding-inline-start: var(--rail-w); }
 
 .section {
   position: relative;
@@ -400,6 +400,14 @@ main, .foot { padding-inline-start: var(--rail-w); }
   animation: shift 11s ease-in-out infinite alternate;
 }
 @keyframes shift { to { background-position: 100% 0; } }
+
+/* dòng "Văn hóa & Thể thao" cần ~14.2em mới nằm gọn một dòng; trần 6rem ở trên
+   làm nó tràn xuống dòng khi khối chứa hẹp hơn ~1360px, nên khoá thêm theo
+   bề ngang khối chứa. Dưới 620px thì cứ để xuống dòng, bé nữa là không đọc nổi. */
+@media (min-width: 621px) {
+  .hero-in { container-type: inline-size; }
+  .hero h1 { font-size: min(clamp(2.6rem, 9vw, 6rem), 6.8cqw); }
+}
 
 .hero .theme {
   font-size: clamp(1rem, 3vw, 1.3rem);
@@ -1334,15 +1342,6 @@ summary { list-style: none; }
 .faq .ans { padding: 0 16px 15px; font-size: .92rem; color: var(--muted); }
 
 /* ------------------------------ 16. FOOTER ------------------------------ */
-.foot {
-  border-top: 1px solid var(--line);
-  padding: 34px 0 44px;
-  margin-top: 30px;
-}
-.foot .in { display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: center; }
-.foot p { font-size: .86rem; color: var(--muted-2); }
-.foot .lk { display: flex; gap: 8px; flex-wrap: wrap; }
-
 .totop {
   position: fixed; right: 16px; bottom: 16px; z-index: 60;
   width: 44px; height: 44px; border-radius: 50%;
@@ -1775,7 +1774,7 @@ summary { list-style: none; }
   .nowbar, .grain, .qr-card, .cd, .preview-note { display: none !important; }
   .hero-card::after { display: none !important; }
 
-  main, .foot { padding-inline-start: 0 !important; }
+  main { padding-inline-start: 0 !important; }
   .hero { padding: 0 0 18px; }
   .hero-card {
     min-height: 0; padding: 0; color: var(--text);
@@ -1834,7 +1833,6 @@ summary { list-style: none; }
      của máy khuyết đỉnh; chân trang cũng phải chừa chỗ, không thì nút
      "Về đầu trang" và "Bảng BTC" nằm dưới thanh, bấm không được */
   main { padding-bottom: 16px; }
-  .foot { padding-bottom: calc(var(--tabbar-h) + 44px); }
   .totop { bottom: calc(var(--tabbar-h) + 14px); }
 
   /* lớp phủ nằm trên thanh dưới, nhưng hàng nút không được bị nó che */
@@ -2001,52 +1999,57 @@ summary { list-style: none; }
 }
 
 /* ---------- lịch chương trình ---------- */
-.agenda { display: grid; gap: 10px; }
-
-.ag-part {
-  margin: 22px 0 6px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
+/* Lịch chương trình: lưới thẻ vuông, mỗi mốc một thẻ. Giờ nằm trong thẻ
+   nên không còn cột giờ riêng, cũng không còn nhãn chia buổi. */
+.agenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(226px, 1fr));
+  gap: 14px;
 }
-.ag-part:first-child { margin-top: 0; }
-.ag-part b {
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: .78rem; font-weight: 800;
-  letter-spacing: .12em; text-transform: uppercase;
-  color: var(--muted);
-}
-
-.ag-item { display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: start; }
-
-.ag-t {
-  text-align: right; padding-top: 16px;
-  font-variant-numeric: tabular-nums;
-}
-.ag-t b { display: block; font-size: 1.02rem; font-weight: 700; line-height: 1.2; }
-.ag-t span { display: block; font-size: .8rem; color: var(--muted-2); }
+.ag-item { min-width: 0; }
 
 .ag-c {
-  display: flex; gap: 14px; align-items: flex-start;
-  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  aspect-ratio: 1 / 1;
+  padding: 18px;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--r);
   background: var(--panel);
   transition: border-color var(--t), box-shadow var(--t), transform var(--t);
 }
-.ag-item:hover .ag-c { border-color: var(--line-2); box-shadow: var(--shadow); }
+.ag-item:hover .ag-c {
+  border-color: var(--line-2);
+  box-shadow: var(--shadow);
+  transform: translateY(-3px);
+}
 
+.ag-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .ag-ic {
-  width: 42px; height: 42px; border-radius: 13px; flex: none;
+  width: 40px; height: 40px; border-radius: 12px; flex: none;
   display: grid; place-items: center;
   background: var(--panel-2); color: var(--muted);
 }
-.ag-b { min-width: 0; flex: 1; }
+.ag-t { text-align: right; font-variant-numeric: tabular-nums; }
+.ag-t b {
+  display: block;
+  font-family: var(--ff-d); font-stretch: 118%;
+  font-size: 1.08rem; font-weight: 800; line-height: 1.15;
+}
+.ag-t span { display: block; font-size: .76rem; color: var(--muted-2); }
+
+.ag-b { min-width: 0; flex: 1; min-height: 0; overflow: hidden; }
 .ag-b h3 {
   font-family: var(--ff-d); font-stretch: 118%;
-  font-size: 1.1rem; font-weight: 800; line-height: 1.18; margin-bottom: 4px;
+  font-size: 1.02rem; font-weight: 800; line-height: 1.18; margin-bottom: 5px;
 }
-.ag-b p { color: var(--muted); font-size: .92rem; max-width: 78ch; }
-.ag-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+/* thẻ vuông nên chữ dài phải tự hãm, không thì tràn ra ngoài khung */
+.ag-b p {
+  color: var(--muted); font-size: .86rem; line-height: 1.45;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.ag-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
 .ag-tags:empty { display: none; }
 
 /* màu theo buổi và theo trục văn hóa */
@@ -2065,12 +2068,14 @@ summary { list-style: none; }
 .ag-item.now .ag-t b { color: var(--brand); }
 
 @media (max-width: 620px) {
-  .ag-item { grid-template-columns: 58px 1fr; gap: 10px; }
-  .ag-t { padding-top: 14px; }
+  .agenda { grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+  .ag-c { padding: 13px; gap: 8px; }
+  .ag-ic { width: 32px; height: 32px; border-radius: 10px; }
+  .ag-ic svg { width: 17px; height: 17px; }
   .ag-t b { font-size: .92rem; }
-  .ag-c { padding: 14px; gap: 11px; }
-  .ag-ic { width: 36px; height: 36px; border-radius: 11px; }
-  .ag-ic svg { width: 18px; height: 18px; }
+  .ag-t span { font-size: .7rem; }
+  .ag-b h3 { font-size: .9rem; }
+  .ag-b p { font-size: .78rem; -webkit-line-clamp: 3; }
 }
 
 /* ---------- lịch sân ---------- */
@@ -2537,7 +2542,8 @@ summary { list-style: none; }
   width: 100%; height: 100%;
   object-fit: cover; object-position: center 38%;
   opacity: 0;
-  transform: scale(1.04);
+  /* phóng dư một chút để còn chỗ cho parallax trôi mà không hở mép */
+  transform: translate3d(0, var(--px, 0px), 0) scale(1.08);
   transition: opacity 1.4s var(--ease);
 }
 .hero-ph img.on { opacity: 1; }
@@ -2556,3 +2562,642 @@ summary { list-style: none; }
   .hero-ph img { transition: none; transform: none; }
 }
 
+
+/* ============================================================
+   34. HIỆU ỨNG CHUYỂN ĐỘNG
+   Trạng thái ẩn ban đầu đều do motion.js gắn class mới có, nên khi
+   tắt JS hoặc người dùng chọn giảm chuyển động thì trang vẫn hiện đủ.
+   Chỉ đụng tới transform / opacity / clip-path.
+   ============================================================ */
+:root {
+  --e-power3: cubic-bezier(.215, .61, .355, 1);
+  --e-expo:   cubic-bezier(.16, 1, .3, 1);
+}
+
+/* --- chữ trượt lên từ dưới, có khung che --- */
+/* đệm trên dưới để dấu thanh và dấu nặng của tiếng Việt không bị cắt,
+   rồi kéo lại bằng margin âm cho khỏi đội dòng lên */
+.sp-mask {
+  display: inline-block; overflow: hidden; vertical-align: top;
+  padding: .14em 0 .2em; margin: -.14em 0 -.2em;
+}
+.sp-mask-line { display: block; }
+.sp-ch, .sp-line-in {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform .9s var(--e-expo);
+  transition-delay: var(--d, 0ms);
+}
+.sp-go .sp-ch, .sp-go .sp-line-in { transform: none; }
+
+/* --- ảnh mở dần từ dưới lên, ruột ảnh thu từ 1.2 về 1 --- */
+.img-rv {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.1s var(--e-expo);
+}
+.img-rv.in { clip-path: inset(0 0 0 0); }
+.img-rv .px-layer {
+  display: block; position: absolute; inset: -6% 0;
+  will-change: transform;
+}
+.img-rv .px-layer > * {
+  width: 100%; height: 100%; display: block; object-fit: cover;
+  transform: scale(1.2);
+  transition: transform 1.2s var(--e-expo);
+}
+.img-rv.in .px-layer > * { transform: scale(1); }
+.pshot:hover .img-rv.in .px-layer > *,
+.pshot:focus-visible .img-rv.in .px-layer > * { transform: scale(1.05); }
+
+/* .pshot-img đang là khung của ảnh nên phải có mốc định vị cho .px-layer */
+.pshot-img { position: relative; overflow: hidden; }
+
+/* chú thích nhích lên khi rê chuột */
+.pshot figcaption { transition: transform .6s var(--e-power3); }
+.pshot:hover figcaption, .pshot:focus-visible figcaption { transform: translateY(-6px); }
+
+/* --- băng chữ chạy ngang giữa hai mục --- */
+.mq {
+  position: relative; overflow: hidden;
+  padding: 26px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.mq-row { display: flex; width: max-content; will-change: transform; }
+.mq-row > span {
+  display: inline-flex; align-items: center; gap: 28px;
+  padding-right: 28px;
+  font-family: var(--ff-d);
+  font-size: clamp(1.5rem, 4.6vw, 3rem);
+  font-weight: 900; font-stretch: 125%;
+  letter-spacing: -.02em; text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--line-2);
+  white-space: nowrap;
+}
+.mq-row > span b { color: var(--brand); -webkit-text-stroke: 0; font-weight: 900; }
+.mq-row > span i { font-style: normal; color: var(--muted-2); -webkit-text-stroke: 0; font-size: .5em; }
+
+@media (max-width: 760px) {
+  /* bỏ parallax và băng chữ chạy theo tốc độ cuộn, giữ reveal đơn giản */
+  .img-rv .px-layer { position: static; inset: auto; transform: none !important; }
+  .mq { padding: 18px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-ch, .sp-line-in { transform: none !important; transition: none !important; }
+  .sp-mask { overflow: visible; }
+  .img-rv { clip-path: none !important; transition: none !important; }
+  .img-rv .px-layer > * { transform: none !important; transition: none !important; }
+  .mq-row { transform: none !important; }
+  .pshot figcaption { transition: none !important; }
+}
+
+/* ============================================================
+   35. MỖI TIÊU ĐỀ MỤC MỘT KIỂU RIÊNG
+   Bảy mục, bảy VẬT khác nhau: bong bóng thoại, nút bấm, vệt sơn kẻ sân,
+   ô sơ đồ nhánh, tờ lịch treo đinh, con dấu, bục trao giải. Tắt hết hiệu
+   ứng vẫn nhận ra từng mục qua hình dáng, không phải qua màu chữ.
+   Trạng thái ẩn đều chốt vào thuộc tính do motion.js đặt (data-sp,
+   data-sp-text, data-sp-done) nên tắt JS là mọi tiêu đề hiện đủ.
+   ============================================================ */
+
+/* ===== 1. HỎI DIỄN GIẢ — bong bóng thoại: một câu vừa được nói ra =====
+
+   Dáng đứng yên: bong bóng xanh CHP, chữ TRẮNG và KHÔNG viết hoa (lời nói
+   thì không hét), góc dưới bên trái vuông lại, mẩu đuôi nối liền cạnh trái.
+   Lúc hiện: bong bóng bung ra từ mũi đuôi, chữ nằm sẵn bên trong trôi theo
+   đà — một cử chỉ, không phải hai nhịp.
+
+   Mọi trạng thái ẩn đều gắn vào [data-sp] — thuộc tính chỉ có khi splitChars
+   trong motion.js đã chạy — nên tắt JS là thấy nguyên bong bóng có chữ.
+   ============================================================ */
+.sec-head h2[data-fx="ink"] {
+  position: relative;
+  max-width: 100%;
+  /* đè .sec-head.mid h2 (cùng độ ưu tiên (0,2,1), khối này nằm sau nên thắng
+     — đừng chuyển khối này lên trước mục 3 của file) */
+  text-transform: none;
+  /* mỗi ký tự là một inline-block nên trình duyệt được phép ngắt dòng giữa
+     hai con chữ: đo ở khổ hẹp ra "Hỏi di / ễn giả". Bong bóng là vật một
+     dòng, cấm ngắt; khổ dưới 340px thì hạ cỡ chữ chứ không ngắt. */
+  white-space: nowrap;
+  background: var(--brand);
+  color: #fff;
+  /* dọn dư âm của hiệu ứng viền rỗng cũ, phòng khi dán thiếu */
+  -webkit-text-stroke: 0;
+  -webkit-text-fill-color: currentColor;
+  line-height: 1.06;
+  letter-spacing: -.012em;
+  /* Đo thật: dấu cao nhất của "Hỏi diễn giả" là ễ, cao 0.9211em trên đường
+     chân chữ; chân thấp nhất là g, sâu 0.1974em. Cặp .38em / .28em cho đúng
+     0.3010em nền xanh phía trên dấu và 0.2998em phía dưới chân chữ — lệch
+     0.04px. Hạ padding-top xuống dưới .33em là dấu ễ chạm mép xanh. */
+  padding: .38em .62em .28em;
+  border-radius: .5em .5em .5em 0;   /* góc dưới-trái vuông để đuôi liền mạch */
+  margin-bottom: .62em;              /* chừa chỗ cho mẩu đuôi thò xuống .3em */
+  transform-origin: 0 calc(100% + .3em);  /* đúng mũi đuôi, đã đối chiếu */
+}
+
+/* mẩu đuôi: cạnh trái thẳng nối tiếp cạnh trái bong bóng, mũi chếch xuống */
+.sec-head h2[data-fx="ink"]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -.3em;        /* mép trên lấn .04em vào bong bóng nên không hở chỉ */
+  width: .46em;
+  height: .34em;
+  background: var(--brand);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+}
+
+/* trạng thái trước khi hiện — chỉ dính khi motion.js đã tách chữ */
+.sec-head h2[data-fx="ink"][data-sp]:not(.sp-go) {
+  opacity: 0;
+  transform: scale(.34) rotate(-8deg);
+}
+.sec-head h2[data-fx="ink"].sp-go {
+  animation: qSay .72s var(--e-power3) both;
+}
+@keyframes qSay {
+  0%   { opacity: 0; transform: scale(.34) rotate(-8deg); }
+  18%  { opacity: 1; }
+  52%  { transform: scale(1.04) rotate(1.2deg); }
+  76%  { transform: scale(.995) rotate(-.4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* Chữ trôi theo đà bong bóng, KHÔNG mờ dần: luôn đục, chỉ thấp và nhỏ hơn
+   một chút rồi về chỗ. Nhờ vậy không có khoảnh khắc bong bóng rỗng, và
+   không khung hình nào chữ vô hình. Chân chữ g tụt sâu nhất .16em, dưới nó
+   vẫn còn 0.1398em nền xanh nên chữ không bao giờ lọt ra ngoài bong bóng. */
+.sec-head h2[data-fx="ink"] .sp-mask { overflow: visible; }
+.sec-head h2[data-fx="ink"] .sp-ch {
+  -webkit-text-stroke: 0;
+  -webkit-text-fill-color: currentColor;
+  transform: translateY(.16em) scale(.94);
+  transform-origin: 50% 100%;
+  transition: transform .44s var(--e-expo);
+  transition-delay: calc(var(--d, 0ms) + 90ms);
+}
+.sec-head h2[data-fx="ink"].sp-go .sp-ch {
+  transform: none;
+  -webkit-text-fill-color: currentColor;   /* chặn luật cũ nếu còn sót */
+}
+
+/* --- màn rất hẹp: thu cỡ chữ để bong bóng luôn gọn trong một dòng ---
+   Đo: 280px -> 177/248, 320px -> 202/288, 342px trở lên giữ nguyên cỡ chữ
+   như sáu mục kia. Không khổ nào tràn ngang, không khổ nào ngắt chữ. */
+@media (max-width: 340px) {
+  .sec-head h2[data-fx="ink"] { font-size: clamp(1.3rem, 8vw, 1.9rem); }
+}
+
+/* --- giảm chuyển động --- */
+@media (prefers-reduced-motion: reduce) {
+  .sec-head h2[data-fx="ink"] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* --- IN ---
+   Trình duyệt mặc định KHÔNG in màu nền, nên chữ trắng trên bong bóng xanh
+   sẽ ra trắng trên giấy trắng: mất hẳn tiêu đề. Khi in thì đổi thành bong
+   bóng viền rỗng, chữ xanh (viền thì in được), giấu mẩu đuôi. */
+@media print {
+  .sec-head h2[data-fx="ink"] {
+    background: none;
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    border: 2px solid var(--brand);
+    padding: .16em .4em .1em;
+    margin-bottom: .2em;
+  }
+  .sec-head h2[data-fx="ink"]::after { display: none; }
+}
+
+
+/* ===== 2. MINI GAME — nút bấm trả lời: mặt nút tím trên đế đỏ.
+   Hiện ra: cả phím rơi xuống, mặt nút nén lún hết đế, giữ một nhịp rồi
+   bật lên quá tầm. Tắt hiệu ứng vẫn còn nguyên một phím hai tầng. ===== */
+.sec-head h2[data-fx="pop"] {
+  --mg-l: .34em;     /* bề dày đế, tính theo cỡ chữ nên tự co trên điện thoại */
+  --mg-r: 16px;      /* bo góc ngoài; chỗ giáp mối để 4px cho thấy đường ghép */
+  --mg-w: .09em;     /* đế loe ra hai bên, nhìn là thấy hai khối rời */
+  position: relative;
+  color: #fff;                      /* như mục LỊCH, chữ trắng trên nền đặc */
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  line-height: 1;
+  /* trên dày hơn dưới: chữ in hoa không có nét thòng nên phải đẩy xuống cho cân mắt */
+  padding: .3em .58em .22em;
+  /* đế nằm ngoài khối nên phải chừa thêm chỗ, không thì đè vào nội dung dưới */
+  margin-bottom: calc(10px + var(--mg-l));
+  border-radius: var(--mg-r) var(--mg-r) 4px 4px;
+  background: var(--violet);
+}
+/* đế nút: dán ngay dưới mặt nút, loe ra hai bên thành cái bệ */
+.sec-head h2[data-fx="pop"]::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--mg-w)); right: calc(-1 * var(--mg-w));
+  top: 100%;
+  height: var(--mg-l);
+  background: var(--jr);
+  border-radius: 4px 4px var(--mg-r) var(--mg-r);
+  transform-origin: 50% 0;          /* nén từ trên xuống, chân đế đứng im */
+}
+/* chữ đứng yên: nhân vật chính là cả cái phím, không phải từng ký tự.
+   motion.js vẫn tách ký tự (CHAR_FX pop: 35), kiểu này chỉ không dùng --d. */
+.sec-head h2[data-fx="pop"] .sp-mask { overflow: visible; }
+.sec-head h2[data-fx="pop"] .sp-ch,
+.sec-head h2[data-fx="pop"] .sp-line-in {
+  transform: none; transition: none; opacity: 1;
+}
+
+/* Chỉ ẩn chờ cuộn tới khi motion.js đã tách chữ — nó đặt data-sp ngay trong
+   lượt quét đầu, mà thẻ script nằm cuối body nên không kịp nháy. Không có JS
+   thì không có data-sp: phím nằm nguyên trạng, đọc được bình thường. */
+.sec-head h2[data-fx="pop"][data-sp] { opacity: 0; }
+.sec-head h2[data-fx="pop"][data-sp].sp-go { animation: mgCap .92s linear both; }
+.sec-head h2[data-fx="pop"][data-sp].sp-go::before { animation: mgBase .92s linear both; }
+
+/* mặt nút: rơi nhanh dần (0→30%), nện xuống lún hết đế (30→42%),
+   giữ một nhịp (42→56%), rồi bật lên quá tầm và rơi về (56→100%).
+   Mốc nào cũng phải khai đường cong, bỏ sót một mốc là đoạn đó rơi về
+   đường cong của dòng animation, hỏng cả nhịp rơi. */
+@keyframes mgCap {
+  0%   { opacity: 0; transform: translate3d(0, -.95em, 0);
+         animation-timing-function: cubic-bezier(.55, .05, .9, .35); }
+  30%  { opacity: 1; transform: translate3d(0, 0, 0);
+         animation-timing-function: cubic-bezier(.3, .1, .6, 1); }
+  42%  { opacity: 1; transform: translate3d(0, var(--mg-l), 0);
+         animation-timing-function: linear; }
+  56%  { opacity: 1; transform: translate3d(0, var(--mg-l), 0);
+         animation-timing-function: cubic-bezier(.26, 1.75, .5, 1); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+/* đế nút: cùng mốc, cùng đường cong với mặt nút, chỉ đổi cao bằng scaleY.
+   Khớp nhau thì mép trên của đế luôn dính đáy mặt nút, còn chân đế đứng
+   yên tuyệt đối so với trang: mặt nút lún xuống bao nhiêu, đế thấp đi đúng
+   bấy nhiêu. Đổi thời lượng, đổi mốc hay đổi đường cong một bên thôi là
+   chân đế trôi theo ngay — sửa thì phải sửa cả hai. */
+@keyframes mgBase {
+  0%   { transform: scaleY(1);
+         animation-timing-function: cubic-bezier(.55, .05, .9, .35); }
+  30%  { transform: scaleY(1);
+         animation-timing-function: cubic-bezier(.3, .1, .6, 1); }
+  42%  { transform: scaleY(0);
+         animation-timing-function: linear; }
+  56%  { transform: scaleY(0);
+         animation-timing-function: cubic-bezier(.26, 1.75, .5, 1); }
+  100% { transform: scaleY(1); }
+}
+
+@media (max-width: 620px) {
+  .sec-head h2[data-fx="pop"] {
+    --mg-r: 13px;
+    letter-spacing: .045em;
+    padding: .3em .5em .22em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* motion.js thoát sớm khi người dùng chọn giảm chuyển động nên data-sp
+     không có, khối này chỉ lo trường hợp bật tuỳ chọn sau khi trang đã tải */
+  .sec-head h2[data-fx="pop"][data-sp] { opacity: 1; transform: none; animation: none !important; }
+  .sec-head h2[data-fx="pop"][data-sp]::before {
+    opacity: 1; transform: none; animation: none !important;
+  }
+}
+
+/* ===== 3. ĐẠI HỘI THỂ THAO — vệt sơn kẻ sân: chữ khoét trắng trên mảng
+   sơn ô-liu, hai đầu vát xiên tới trước. Hiện ra bằng đúng một nhát sơn
+   kéo từ trái sang phải, chữ lộ dần ngay trong vệt sơn. ===== */
+.sec-head h2[data-fx="dash"] {
+  --slant: .44em;                 /* độ vát hai đầu mảng sơn */
+  color: #fff;
+  background: var(--pb);          /* đúng màu vạch sân pickleball */
+  padding: .4em .72em .34em;
+  letter-spacing: .015em;         /* chữ khoét trắng trên nền đậm cần thưa hơn một chút */
+
+  /* Dáng đứng yên: mảng sơn hình bình hành ngả tới trước.
+     clip-path cắt theo hộp viền nên đệm TRÊN là ràng buộc cứng, không
+     phải chuyện thẩm mỹ: đo bằng canvas, nét mực của Ể (mũ chồng dấu hỏi)
+     vươn cao hơn đường ascent của phông .18em, cộng nửa khoảng dòng âm do
+     line-height 1.02 nữa thì tối thiểu phải .22em. Ở 44px, .22em chỉ còn
+     dư 0.1px — tức là chỉ cần đổi phông hay lệch làm tròn là mũ bị gọt
+     phẳng. .4em dư 8px ở bản rộng, 11px ở bản hẹp. Đừng hạ con số này.
+     Đệm dưới .34em: dấu nặng của Ạ, Ị nằm trong descent của phông, dư 9px. */
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0px 100%);
+  transition: clip-path .62s var(--e-expo);
+}
+
+/* Trạng thái khởi đầu — vệt sơn mới chạm mép trái, chưa kéo.
+   Chốt ở [data-sp-text]: motion.js đặt thuộc tính này ngay trong lúc tách
+   dòng, nên luật dưới đây CHỈ sống khi JS thật sự chạy. Tắt JS hay giảm
+   chuyển động là h2 giữ nguyên hình bình hành đầy đủ ở luật trên — không
+   bao giờ có chuyện tiêu đề nằm ẩn chờ một class không bao giờ tới.
+   transition:none để lúc vừa tách dòng mảng sơn co về mép trái tức thì
+   chứ không chạy ngược một nhát trước mặt người xem. */
+.sec-head h2[data-fx="dash"][data-sp-text]:not(.sp-go) {
+  clip-path: polygon(var(--slant) 0, var(--slant) 0, 0px 100%, 0px 100%);
+  transition: none;
+}
+
+/* Chữ bị nhát sơn kéo theo rồi về đúng chỗ; dòng dưới chậm hơn 90ms theo
+   --d mà motion.js đặt sẵn trên .sp-mask-line (.sp-line-in thừa hưởng).
+   Mở mặt nạ: chuyển động đi ngang, để overflow:hidden thì mép chữ của
+   dòng dài nhất bị cắt lúc đang trượt. clip-path của h2 lo hết phần che. */
+.sec-head h2[data-fx="dash"] .sp-mask-line { overflow: visible; }
+.sec-head h2[data-fx="dash"] .sp-line-in {
+  transform: translateX(-.14em);
+  transition: transform .66s var(--e-expo);
+  transition-delay: calc(var(--d, 0ms) + 120ms);
+}
+.sec-head h2[data-fx="dash"].sp-go .sp-line-in { transform: none; }
+
+/* Màn hẹp thì tiêu đề xuống hai dòng, khối cao gần gấp đôi, nên phải vát
+   sâu hơn mới giữ đúng độ ngả (12 độ so với 14 độ ở bản rộng). Đệm ngang
+   nới theo cho mép vát không ăn vào chữ: luôn giữ padding ngang > --slant
+   ít nhất .14em, đo được 7.3px hở ở 375px. */
+@media (max-width: 620px) {
+  .sec-head h2[data-fx="dash"] { --slant: .62em; padding: .4em .86em .34em; }
+}
+
+/* motion.js thoát ngay khi người dùng
+   chọn giảm chuyển động nên sẽ không có data-sp-text, nhưng chốt luôn cho
+   chắc — phòng khi sau này có ai cho engine chạy trong chế độ đó. */
+@media (prefers-reduced-motion: reduce) {
+  .sec-head h2[data-fx="dash"],
+  .sec-head h2[data-fx="dash"][data-sp-text]:not(.sp-go) {
+    clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0px 100%);
+    transition: none !important;
+  }
+}
+
+/* Khối in này phải nằm ở đây, sau khối @media print chung: hai selector
+   trùng độ ưu tiên nên cái đứng sau mới thắng.
+   Trình duyệt mặc định không in màu nền, mà chữ ở đây khoét trắng — thiếu
+   luật này thì bản in mất hẳn tiêu đề: trắng trên giấy trắng. Các mục khác
+   không dính vì đều là chữ có màu. */
+@media print {
+  .sec-head h2[data-fx="dash"] {
+    background: none; color: var(--pb);
+    padding: 0; clip-path: none;
+  }
+}
+
+/* ===== 4. NHÁNH ĐẤU & KẾT QUẢ — ô ghi tên đội thắng trong sơ đồ nhánh =====
+   Đứng yên đã ra hình: một ô của sơ đồ nhánh — hai nét ngang kẹp trên dưới,
+   bên trái là mối gộp (hai nhánh vào, một thanh dọc, một nhánh chỉ vào ô),
+   bên phải là nhánh đi tiếp vòng sau. Góc vuông, không bo, không nghiêng,
+   chữ dạt trái — ngược hẳn con dấu bo góc nghiêng của mục Luật thi đấu.
+   Cả sơ đồ gói trong MỘT ::before nên chỉ một clip-path là quét xong cả hình.
+   Mục này tách theo DÒNG (không có tên trong CHAR_FX): tách theo ký tự thì
+   mỗi chữ cái là một inline-block và màn 375px ngắt ngay giữa từ. */
+.sec-head h2[data-fx="drop"] {
+  position: relative;
+  color: var(--steel);
+  font-stretch: 105%;        /* hẹp hơn các mục khác: dáng chữ của ô biểu mẫu */
+  letter-spacing: .01em;
+  text-align: left;          /* tên đội viết từ mép trái ô, không canh giữa.
+                                Đây là nét bắt buộc: dòng canh giữa thì lúc ẩn
+                                translateX(-104%) không trôi hết ra khỏi khuôn. */
+  padding: .46em 1.15em .22em 1.5em;
+}
+
+/* 7 nét của ô: 2 nét kẹp trên dưới, 2 nhánh vào, 1 thanh gộp, 1 nhánh chỉ vào
+   ô, 1 nhánh đi tiếp. Tất cả nằm gọn trong padding của h2 nên không nét nào
+   thò ra ngoài hộp, không sinh tràn ngang. */
+.sec-head h2[data-fx="drop"]::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(currentColor, currentColor),   /* nét trên của ô   */
+    linear-gradient(currentColor, currentColor),   /* nét dưới của ô   */
+    linear-gradient(currentColor, currentColor),   /* nhánh vào ở trên */
+    linear-gradient(currentColor, currentColor),   /* nhánh vào ở dưới */
+    linear-gradient(currentColor, currentColor),   /* thanh dọc gộp    */
+    linear-gradient(currentColor, currentColor),   /* nhánh chỉ vào ô  */
+    linear-gradient(currentColor, currentColor);   /* nhánh đi tiếp    */
+  background-repeat: no-repeat;
+  background-size:
+    calc(100% - 1.9em) 3px, calc(100% - 1.9em) 3px,
+    .52em 3px, .52em 3px, 3px 100%, .62em 3px, .78em 3px;
+  background-position:
+    1.12em 0, 1.12em 100%,
+    0 0, 0 100%, .5em 0, .5em 50%, 100% 50%;
+}
+
+/* Trạng thái ẩn chỉ bật khi motion.js tách dòng xong (nó đặt data-sp-done),
+   nên tắt JS là sơ đồ vẫn vẽ đủ và chữ vẫn đọc bình thường.
+   transition chỉ khai ở trạng thái .sp-go, để lúc rơi vào trạng thái ẩn
+   không có gì chạy ngược. */
+.sec-head h2[data-fx="drop"][data-sp-done]::before { clip-path: inset(0 100% 0 0); }
+.sec-head h2[data-fx="drop"][data-sp-done].sp-go::before {
+  clip-path: inset(0 0 0 0);
+  transition: clip-path .62s var(--e-power3) 30ms;
+}
+
+/* Khuôn che từng DÒNG. Hai chỗ phải khác khuôn gốc, cả hai đều đã đo:
+   - đệm trên .26em: trong Archivo 800, dấu chồng của Ấ/Ế vươn 1.040em trên
+     đường chân chữ, mà line-height 1.02 làm mực tràn .195em lên trên mép hộp
+     dòng. Mức .14em của khuôn gốc là CẮT MẤT .055em. .26em chừa lại .065em
+     (đo thật ở 375px: thừa 1,90px trên cả hai dòng).
+   - inline-block + width:100% chứ không phải block: hai dòng kề nhau thì lề
+     âm bị gộp (margin collapsing) nên chỉ còn -.26em thay vì -.50em, hở thêm
+     .24em giữa hai dòng. Để inline-block thì mỗi dòng một hộp dòng riêng,
+     không gộp lề. Đo được bước dòng 1,0197em — đúng bằng line-height. */
+.sec-head h2[data-fx="drop"] .sp-mask-line {
+  display: inline-block; width: 100%;
+  overflow: hidden; vertical-align: top;
+  padding: .26em 0 .24em;
+  margin:  -.26em 0 -.24em;
+}
+
+/* Tên đội trượt ngang vào ô, cùng chiều với nét đang quét: một cử chỉ duy
+   nhất chứ không phải hai. Không đụng tới opacity — chữ không mờ dần. */
+.sec-head h2[data-fx="drop"] .sp-line-in {
+  display: inline-block;
+  transform: translateX(-104%);
+  transition: none;
+}
+.sec-head h2[data-fx="drop"].sp-go .sp-line-in {
+  transform: none;
+  transition: transform .82s var(--e-expo);
+  transition-delay: calc(var(--d, 0ms) + 130ms);
+}
+
+/* --- màn hẹp: tiêu đề xuống hai dòng, thu mối gộp lại cho ô rộng ra.
+       Giữ nguyên nhánh đi tiếp vì ô lúc này rộng bằng cột, bỏ đi thì mép
+       phải của ô hở trống. --- */
+@media (max-width: 620px) {
+  .sec-head h2[data-fx="drop"] { padding: .42em .66em .2em 1.12em; }
+  .sec-head h2[data-fx="drop"]::before {
+    background-size:
+      calc(100% - 1.3em) 3px, calc(100% - 1.3em) 3px,
+      .4em 3px, .4em 3px, 3px 100%, .46em 3px, .5em 3px;
+    background-position:
+      .84em 0, .84em 100%,
+      0 0, 0 100%, .38em 0, .38em 50%, 100% 50%;
+  }
+}
+
+/* --- giảm chuyển động: motion.js thoát ngay từ đầu nên không có data-sp-done
+       và không có khuôn dòng nào, sơ đồ vẽ sẵn, chữ đứng yên. Khối 34 cũng đã
+       hạ mọi transition xuống .001ms. Vẫn chốt lại cho trường hợp người dùng
+       bật tuỳ chọn này sau khi trang đã tải xong. --- */
+@media (prefers-reduced-motion: reduce) {
+  .sec-head h2[data-fx="drop"]::before     { clip-path: none !important; }
+  .sec-head h2[data-fx="drop"] .sp-line-in { transform: none !important; }
+  .sec-head h2[data-fx="drop"]::before,
+  .sec-head h2[data-fx="drop"] .sp-line-in { transition: none !important; animation: none !important; }
+}
+
+/* ===== 5. LỊCH — tờ lịch treo đinh: đu một nhịp rồi đứng thẳng =====
+   Dáng đứng yên: tờ lịch nền cyan nhạt, thanh kẹp cyan dày trên đầu, lỗ xỏ
+   đinh lệch hẳn sang trái và mũ đinh nằm trong lỗ. Tắt JS hay tắt chuyển
+   động vẫn thấy nguyên tờ lịch đó, chữ đọc bình thường.
+   Chuyển động: tờ lịch vừa treo lên đinh, đu tắt dần rồi đứng thẳng. Tâm
+   quay đặt trùng tâm đinh nên tờ lịch đu mà cái đinh đứng yên tại chỗ.
+   Không có hộp cắt nào trong cả khối, nên dấu nặng của Ị không thể bị xén. */
+.sec-head h2[data-fx="flap"] {
+  --lf-bar: .4em;    /* thanh kẹp = border-top, dày theo cỡ chữ */
+  --lf-pin: .62em;   /* tâm đinh, đo từ mép trong bên trái */
+  position: relative;
+  padding: .46em .72em .5em;   /* .5em dưới: dấu nặng của Ị còn cách xa mép */
+  line-height: 1.04;
+  color: var(--text);
+  background: var(--cyan-s);
+  border: 1px solid var(--cyan);
+  border-top: var(--lf-bar) solid var(--cyan);
+  border-radius: 4px 4px var(--r-xs) var(--r-xs);
+  letter-spacing: .06em;       /* từ ngắn, phải thưa ra mới đủ dáng */
+  /* tâm quay trùng khít tâm đinh; +1px là bề dày viền trái */
+  transform-origin: calc(var(--lf-pin) + 1px) calc(var(--lf-bar) / 2);
+}
+
+.sec-head h2[data-fx="flap"]::before,
+.sec-head h2[data-fx="flap"]::after {
+  content: ''; position: absolute;
+  border-radius: 50%; pointer-events: none;
+}
+/* lỗ xỏ: lấy đúng màu nền trang nên trông như khoét thủng tờ lịch */
+.sec-head h2[data-fx="flap"]::before {
+  width: .3em; height: .3em;
+  left: calc(var(--lf-pin) - .15em);
+  top:  calc(var(--lf-bar) / 2 * -1 - .15em);
+  background: var(--bg);
+}
+/* mũ đinh: hình tròn đặt đúng tâm quay, nên phép quay không làm nó xê dịch */
+.sec-head h2[data-fx="flap"]::after {
+  width: .15em; height: .15em;
+  left: calc(var(--lf-pin) - .075em);
+  top:  calc(var(--lf-bar) / 2 * -1 - .075em);
+  background: var(--ink);
+}
+
+/* splitLines vẫn chạy nhưng để trơ hẳn: cả tờ lịch là MỘT khối, không tách chữ.
+   Bắt buộc gỡ translateY(115%) sẵn có — nếu không, lượt nào .sp-go không tới
+   là chữ nằm ẩn luôn. display:block cho cả hai lớp bọc để khung lúc có JS và
+   lúc tắt JS cao đúng bằng nhau (đo thật: 122.3×76 ở 375px, 185.1×106.4 ở
+   1150px, hai trạng thái khớp từng số). */
+.sec-head h2[data-fx="flap"] .sp-mask-line {
+  display: block; overflow: visible; padding: 0; margin: 0;
+}
+.sec-head h2[data-fx="flap"] .sp-line-in {
+  display: block; transform: none; transition: none;
+}
+
+/* Bắt theo .in của khối bọc (app.js) lẫn .sp-go (motion.js): hai lượt cùng
+   một giá trị animation nên cái tới sau không làm chạy lại, kể cả khi resize
+   chia lại dòng. Thẻ h2 không có trạng thái ẩn nào ở mặc định — tắt JS là
+   hiện nguyên tờ lịch, không phụ thuộc .sp-go. */
+.sec-head.in h2[data-fx="flap"],
+.sec-head h2[data-fx="flap"].sp-go {
+  animation: lichSwing .95s var(--e-power3) both;
+}
+@keyframes lichSwing {
+  0%   { transform: rotate(-9deg); }
+  44%  { transform: rotate(4.4deg); }
+  68%  { transform: rotate(-1.9deg); }
+  86%  { transform: rotate(.7deg); }
+  100% { transform: rotate(0); }
+}
+
+@media (max-width: 620px) {
+  /* cỡ chữ tụt còn 1.9rem: bóp lề ngang lại cho tờ lịch khỏi thành tấm biển */
+  .sec-head h2[data-fx="flap"] { padding: .5em .62em .54em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* app.js gắn .in cho mọi .reveal ngay khi tải khi người dùng chọn giảm
+     chuyển động, nên phải tắt hẳn cú đu ở đây. motion.js thì thoát sớm, không
+     tách chữ nữa, h2 chỉ còn text node trần — tờ lịch hiện nguyên, không quay. */
+  .sec-head.in h2[data-fx="flap"],
+  .sec-head h2[data-fx="flap"].sp-go {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* ===== 6. LUẬT THI ĐẤU — con dấu: khung viền, nghiêng, nện xuống ===== */
+.sec-head h2[data-fx="stamp"] {
+  color: var(--clay);
+  border: 3px solid currentColor;
+  border-radius: 10px;
+  padding: .1em .46em .16em;
+  letter-spacing: .07em;
+  opacity: 0;
+  transform: scale(1.8) rotate(-12deg);
+}
+.sec-head h2[data-fx="stamp"] .sp-mask-line { overflow: visible; }
+.sec-head h2[data-fx="stamp"] .sp-line-in { transform: none; transition: none; }
+.sec-head h2[data-fx="stamp"].sp-go {
+  animation: stamp .55s cubic-bezier(.2, .9, .2, 1) both;
+}
+@keyframes stamp {
+  0%   { transform: scale(1.8) rotate(-12deg);  opacity: 0; }
+  58%  { transform: scale(.93) rotate(-1deg);   opacity: 1; }
+  80%  { transform: scale(1.03) rotate(-3.6deg); }
+  100% { transform: scale(1) rotate(-2.5deg);   opacity: 1; }
+}
+
+/* ===== 7. GIẢI THƯỞNG — ánh vàng lướt, ký tự dâng so le như bục trao giải ===== */
+.sec-head h2[data-fx="podium"] {
+  letter-spacing: .02em;
+  background: linear-gradient(100deg, var(--gold) 0 38%, #e3bb5c 50%, var(--gold) 62% 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: goldSweep 4.5s linear infinite;
+}
+.sec-head h2[data-fx="podium"] .sp-ch { transform: translateY(130%); }
+.sec-head h2[data-fx="podium"].sp-go .sp-ch { transform: none; }
+@keyframes goldSweep { from { background-position: 100% 0; } to { background-position: -60% 0; } }
+
+@media (max-width: 620px) {
+  .sec-head h2[data-fx="ink"] .sp-ch { -webkit-text-stroke-width: 1.4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* chốt chung cho hai mục còn lại; từng mục ở trên đã có khối riêng */
+  .sec-head h2[data-fx="stamp"] { opacity: 1; transform: rotate(-2.5deg); animation: none !important; }
+  .sec-head h2[data-fx="stamp"] .sp-line-in,
+  .sec-head h2[data-fx="podium"] .sp-ch {
+    transform: none !important; opacity: 1 !important;
+    transition: none !important; animation: none !important;
+  }
+  .sec-head h2[data-fx="podium"] { animation: none !important; }
+}
+
+/* ============================================================
+   36. NÚT BTC NỔI
+   Trước nằm trong footer, footer gỡ rồi nên cho nổi cạnh mũi tên.
+   ============================================================ */
+.btn-adm-float { position: fixed; right: 16px; bottom: 70px; z-index: 60; }
