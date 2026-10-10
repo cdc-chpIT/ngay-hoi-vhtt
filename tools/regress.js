@@ -9,10 +9,11 @@ function load(mutate){
 function ok(n,c){console.log((c?'PASS':'FAIL')+'  '+n)}
 // A. baseline
 let S=load();
-ok('baseline builds, 44 matches, none unscheduled', S.matches.length===44 && (S.unscheduled||[]).length===0 && S.matches.every(m=>m.court));
-// B. flip cl-mix to ko8 (what the README tells BTC to do)
-S=load(d=>{const e=d.events.find(x=>x.id==='cl-mix');e.format='ko8';e.teamCount=8});
-ok('cl-mix -> ko8 does not crash and schedules everything',
+// 47 tu 10/10/2026: cl-mix len 8 doi (ko8) nen co 7 tran thay vi 4
+ok('baseline builds, 47 matches, none unscheduled', S.matches.length===47 && (S.unscheduled||[]).length===0 && S.matches.every(m=>m.court));
+// B. neu BTC rut lai hai doi bo sung thi cl-mix ve r6diff 6 doi
+S=load(d=>{const e=d.events.find(x=>x.id==='cl-mix');e.format='r6diff';e.teamCount=6;e.teams=e.teams.slice(0,6);e.seeds=[1,2,3,4,5,6]});
+ok('cl-mix -> r6diff does not crash and schedules everything',
    S.matches.every(m=>m.court && m.startMin!=null) && (S.unscheduled||[]).length===0);
 console.log('   matches now:', S.matches.length, 'last end', Tournament_toHHMM(S));
 function Tournament_toHHMM(S){const e=S.matches.reduce((a,m)=>Math.max(a,m.endMin),0);return Math.floor(e/60)+':'+String(e%60).padStart(2,'0')}
@@ -64,4 +65,24 @@ ok('pb-mix now has exactly 8 teams (no overflow)', pm.teams.length === 8 && pm.t
   let dep=0;
   S.matches.forEach(m=>[m.a,m.b].forEach(r=>{if(r&&r.k==='winner'&&S.matchById[r.m].endMin>m.startMin)dep++}));
   ok('no dependency violation after replan', dep===0);
+})();
+
+// H. mot nguoi KHONG duoc dung ten o hai doi cua cung mot noi dung.
+// Them 10/10/2026 vi bang cau long doi nam nu bo sung dang vi pham dieu nay:
+// hai doi cung thang thi chung ket la chinh nguoi do gap chinh minh.
+(function(){
+  const S=load();
+  let dup=[];
+  for (const ev of S.events){
+    const seen={};
+    for (const t of (ev.teams||[]))
+      for (const n of [t.p1,t.p2]) {
+        if(!n) continue;
+        const k=n.trim();
+        if(seen[k]) dup.push(ev.id+': '+k+' (doi '+seen[k]+' va doi '+t.id+')');
+        else seen[k]=t.id;
+      }
+  }
+  ok('khong ai dung ten o hai doi cua cung mot noi dung', dup.length===0);
+  if(dup.length) console.log('   ', dup.join(' | '));
 })();

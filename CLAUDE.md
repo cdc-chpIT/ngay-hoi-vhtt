@@ -155,6 +155,11 @@ vẽ lại rồi mới đo. `document.hidden` cho biết ngay.
   7 / cầu lông trần 26, artifact nói 11 / 30. Trang đang theo artifact.
 - Số người nhảy dây lệch nhau: 33 đăng ký / 24 trong sheet / 30 trên trang.
 - **Năm suất còn ghi "tuyển thủ dự bị"**, BTC cần chốt tên trước ngày hội.
+- **Trần Thị Xuyến đang đứng tên ở hai đội của cầu lông đôi nam nữ** (đội 3
+  với Nguyễn Thanh Bình, đội 8 với Ngô Trung Phương, thêm ngày 10/10). Hai
+  đội nằm hai nhánh nên nếu cùng thắng thì chung kết là chính người đó gặp
+  mình. `tools/regress.js` có phép thử H bắt lỗi này — đang FAIL cho tới khi
+  BTC chốt lại. Đội 7 cũng chưa có bộ phận của Nguyễn Bảo Châu.
 - Mục Nhánh đấu vẫn dùng emoji 🥇🥈🥉 làm huy chương — trái luật ở trên,
   cần đổi sang icon SVG.
 - Ba ảnh `*_n.jpg` trong `assets/img/` chưa dùng tới.

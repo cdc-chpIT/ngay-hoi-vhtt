@@ -19,8 +19,13 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  /* viewBox LÀ BẮT BUỘC. Sprite ở đầu index.html dựng bằng <g>, không phải
+     <symbol>, nên <use> không mang theo khung toạ độ nào. Thiếu viewBox thì
+     hình vẽ trong hệ 24x24 bị xén còn đúng góc trên bên trái 15x15 hay 20x20
+     — ra một mẩu nét cụt, mà không có lỗi console nào báo. */
   function icon(name, size) {
-    return '<svg width="' + (size || 20) + '" height="' + (size || 20) + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+    return '<svg viewBox="0 0 24 24" width="' + (size || 20) + '" height="' + (size || 20) +
+           '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
   }
   function sportKey(s) { return s === 'pickleball' ? 'pb' : 'cl'; }
 
@@ -267,8 +272,7 @@
       '<div class="tl-scroll" tabindex="0" role="region"' +
           ' aria-label="Lịch chương trình cả ngày, kéo ngang để xem tiếp">' +
         '<div class="tl-track">' + parts + '</div>' +
-      '</div>' +
-      '<p class="tl-hint">Kéo ngang để đi hết tuyến</p>';
+      '</div>';
 
     wireTl();
     tlLast = -2;
@@ -867,19 +871,21 @@
     var host = $('#pillar-shots');
     if (!host) return;
     host.innerHTML = D.pillars.map(function (pl, k) {
+      /* mỗi trụ cột gắn với đúng một bài chia sẻ; lấy tên bài và diễn giả
+         từ D.talks để chỉ phải sửa tên người ở một chỗ */
+      var talk = null;
+      D.talks.forEach(function (t) { if (t.pillar === pl.key) talk = t; });
       var art = pl.photo
         ? '<img src="' + esc(pl.photo) + '" alt="' + esc(pl.name) + '"' +
           (pl.focus ? ' style="object-position:' + esc(pl.focus) + '"' : '') + '>'
         : (POSTER[pl.key] || '');
-      return '<figure class="pshot" data-k="' + esc(pl.key) + '" tabindex="0" role="button" ' +
-          'aria-label="Phóng to ' + esc(pl.name) + '" style="--d:' + (k * 90) + 'ms">' +
+      return '<figure class="pshot" data-k="' + esc(pl.key) + '" style="--d:' + (k * 90) + 'ms">' +
         '<div class="pshot-img">' + art + '</div>' +
         '<figcaption>' +
-          '<span class="pshot-no">0' + (k + 1) + '</span>' +
-          '<b>' + esc(pl.name) + '</b>' +
-          '<span class="pshot-role">' + esc(pl.role) + '</span>' +
-          '<p>' + esc(pl.body) + '</p>' +
-          '<span class="pshot-short">' + esc(pl.short) + '</span>' +
+          '<span class="pshot-role">Bài ' + (talk ? talk.no : k + 1) + '</span>' +
+          '<b>' + esc(talk ? talk.name : pl.name) + '</b>' +
+          (talk && talk.speaker
+            ? '<span class="pshot-sp">Diễn giả ' + esc(talk.speaker) + '</span>' : '') +
         '</figcaption>' +
         '<i class="pshot-live" hidden>Đang trình bày</i>' +
       '</figure>';
@@ -892,35 +898,14 @@
     var all = $$('#pillar-shots .pshot');
     var a = 0;
     all.forEach(function (el, i) { if (el.dataset.k === key) a = i; });
-    var n = all.length;
     all.forEach(function (el, i) {
       var on = i === a;
       el.classList.toggle('on', on);
-      /* xếp kiểu album: ảnh to ở giữa, hai ảnh kia nép sang hai bên */
-      el.dataset.pos = on ? 'mid' : (i === (a + n - 1) % n ? 'left' : 'right');
+      /* .now là "đang trình bày thật", chỉ bật cùng lúc với nhãn trên thẻ */
+      el.classList.toggle('now', on && !silent);
       var tag = $('.pshot-live', el);
       if (tag) tag.hidden = !(on && !silent);
     });
-  }
-
-  /* wire() giữ lockBehind trong phạm vi của nó, nên để lại một cầu nối */
-  var lockShot = null;
-
-  /* mở ô phóng to */
-  function openShot(key) {
-    var pl = D.pillars.filter(function (x) { return x.key === key; })[0];
-    if (!pl) return;
-    var box = $('#lbox');
-    $('#lbox-img').innerHTML = pl.photo
-      ? '<img src="' + esc(pl.photo) + '" alt="' + esc(pl.name) + '">'
-      : (POSTER[pl.key] || '');
-    $('#lbox-t').textContent = pl.name;
-    $('#lbox-r').textContent = pl.role;
-    $('#lbox-p').textContent = pl.body;
-    box.classList.add('on');
-    box.dataset.k = key;
-    if (typeof lockShot === 'function') lockShot(true);
-    $('#lbox-x').focus();
   }
 
 
@@ -1018,7 +1003,7 @@
       '<div class="qr-url">' + esc(url) + '</div>' +
       '<button class="btn btn-sm btn-pri" type="button" data-proj="quiz" ' +
         'aria-label="Phóng to mã QR phòng chơi ra toàn màn hình">' +
-        '<svg width="17" height="17" aria-hidden="true"><use href="#i-qr"/></svg>Phóng to</button>' +
+        '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="#i-qr"/></svg>Phóng to</button>' +
       '<a class="btn btn-sm qs-go" target="_blank" rel="noopener" href="' + esc(url) + '">Vào phòng chơi ↗</a>';
   }
 
@@ -1026,62 +1011,16 @@
     var g = D.miniGame;
 
     $('#mg-body').innerHTML =
-      '<div class="mg">' +
-        '<div class="card qa-card reveal">' +
-          '<div class="qa-main">' +
-            '<h3 style="margin-bottom:10px">Cách tham gia</h3>' +
-            '<ul class="steps">' + g.how.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') + '</ul>' +
-          '</div>' +
-          '<div class="qa-side">' + quizSide() + '</div>' +
+      '<div class="card qa-card reveal">' +
+        '<div class="qa-main">' +
+          '<h3 style="margin-bottom:10px">Cách tham gia</h3>' +
+          '<ul class="steps">' + g.how.map(function (h) { return '<li>' + esc(h) + '</li>'; }).join('') + '</ul>' +
         '</div>' +
-        '<div class="reveal" style="--d:90ms">' + prizeBox(g) + '</div>' +
+        '<div class="qa-side">' + quizSide() + '</div>' +
       '</div>';
 
     if (CFG.quizJoinUrl) makeQr($('#qr-quiz'), CFG.quizJoinUrl, 4);
   }
-
-  /* đổi số tiền sang dạng dễ đọc: 100000 -> "100.000đ" */
-  function money(n) {
-    return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
-  }
-
-  /* Ô giải thưởng: mức thưởng mỗi câu đúng, kèm danh sách người đạt giải. */
-  function prizeBox(g) {
-    var per = g.prizePerCorrect || 0;
-    var list = g.winners || [];
-
-    var rows = list.length
-      ? '<ol class="win">' + list.slice().sort(function (a, b) {
-          return (b.correct || 0) - (a.correct || 0);
-        }).map(function (w) {
-          return '<li>' +
-            '<span class="wn">' + esc(w.name) + '</span>' +
-            (w.dept ? '<span class="wd">' + esc(w.dept) + '</span>' : '') +
-            '<span class="wc">' + (w.correct || 0) + ' câu đúng</span>' +
-            '<b class="wm">' + money((w.correct || 0) * per) + '</b>' +
-          '</li>';
-        }).join('') + '</ol>'
-      : '<p class="win-empty">Chưa có kết quả. BTC cập nhật ngay trong lúc chơi.</p>';
-
-    var total = list.reduce(function (n, w) { return n + (w.correct || 0) * per; }, 0);
-
-    return '<div class="card prize">' +
-      '<div class="prize-top">' +
-        '<span class="tro">🏆</span>' +
-        '<div>' +
-          '<h3>Giải thưởng</h3>' +
-          '<p class="prize-rate">Mỗi câu trả lời đúng được <b>' + esc(money(per)) + '</b></p>' +
-        '</div>' +
-      '</div>' +
-      '<div class="prize-list">' +
-        '<div class="prize-h"><b>Người đạt giải</b>' +
-          (list.length ? '<span class="chip ok">' + list.length + ' người · ' + esc(money(total)) + '</span>' : '') +
-        '</div>' +
-        rows +
-      '</div>' +
-    '</div>';
-  }
-
 
   /* =====================================================================
      TỔNG QUAN THỂ THAO
@@ -1220,7 +1159,9 @@
     function side(team, score, which) {
       var cls = team.pending ? ' pend' : (v.done && v.winnerSide === which ? ' win' : '');
       return '<div class="crm-s' + cls + '">' +
-        '<span class="crm-n">' + esc(teamLines(ev, team).join(' / ')) + '</span>' +
+        '<span class="crm-n">' + teamLines(ev, team).map(function (n) {
+          return '<span class="crm-p">' + esc(n) + '</span>';
+        }).join('') + '</span>' +
         '<b>' + (score == null ? '–' : score) + '</b></div>';
     }
 
@@ -1238,6 +1179,10 @@
   function courtCard(c, live) {
     var m = (live && live.match) || c.next;
     var state = m ? ((live && live.state) || 'next') : 'done';
+    /* m lùi về c.next khi chưa có trận nào chạy, nên không được lấy m để
+       đánh dấu "đang đánh" — trước ngày hội sẽ thành mỗi sân một trận đỏ
+       trong khi thẻ sân vẫn ghi "Sắp tới". Chỉ 'playing' mới là đang đánh. */
+    var nowId = (live && live.state === 'playing' && live.match) ? live.match.id : null;
     var tag = CRT_STATE[state] || CRT_STATE.next;
     var played = T.matchesOfCourt(c.court.id).filter(function (x) { return T.view(x).done; }).length;
 
@@ -1247,7 +1192,7 @@
          trận đang đánh được đánh dấu — không xếp chồng hai thứ lên nhau */
       var all = T.matchesOfCourt(c.court.id);
       body = '<div class="crt-all">' + all.map(function (x) {
-        return crtMatchRow(x, !!(m && x.id === m.id));
+        return crtMatchRow(x, x.id === nowId);
       }).join('') + '</div>';
 
     } else if (!m) {
@@ -1287,7 +1232,9 @@
     (st.courts || []).forEach(function (c) { byId[c.court.id] = c; });
 
     var all = T.liveByCourt();
-    $('#court-board').innerHTML = D.venues.map(function (vn) {
+    var board = $('#court-board');
+    board.classList.toggle('open', !!courtOpen);
+    board.innerHTML = D.venues.map(function (vn) {
       var mine = all.filter(function (c) { return c.venue.id === vn.id; });
       if (!mine.length) return '';
       var k = sportKey(vn.sport);
@@ -1339,30 +1286,6 @@
      trận" mở ô sân ra), nên mục Lịch chỉ còn chương trình cả ngày.
      Bộ dựng lịch cũ — renderSchedule, courtCalendar, scheduleNotes — đã
      bỏ cùng với khung chứa nó.                                          */
-
-  /* Nhảy dây: trước nằm trong lịch thi đấu, nay là một khối riêng ở cuối
-     mục Thể thao. */
-  function renderJump() {
-    var host = $('#jump-pane');
-    if (!host) return;
-    var jr = D.jumpRope;
-
-    var html = '<div class="jb-h"><b>' + esc(jr.name) + '</b>' +
-      '<span>' + esc(jr.station) + ' · từ ' + esc(jr.start) + '</span></div>' +
-      '<p class="jb-rule">' + esc(jr.rule) + '</p>';
-
-    T.jumpHeats.forEach(function (h) {
-      html += '<div class="heat"><div class="hh"><b>' + esc(h.time) + ' – ' + esc(h.endTime) + '</b>' +
-        '<span class="chip">' + esc(h.groupLabel) + ' · lượt ' + h.heat + '</span></div>' +
-        '<div class="bibs">' + h.athletes.map(function (a) {
-          return '<span class="bib"><i>' + esc(a.bib) + '</i>' + esc(a.name) +
-                 ' <span class="chip dim">' + esc(a.dept) + '</span></span>';
-        }).join('') + '</div></div>';
-    });
-
-    html += '<p class="jb-note">' + esc(jr.note) + '</p>';
-    host.innerHTML = html;
-  }
 
   /* =====================================================================
      NHÁNH ĐẤU
@@ -1571,7 +1494,9 @@
       ? '<div class="bk-branch win"><div class="bk-bh"><b>Nhánh thắng</b></div>' +
         html + '</div>'
       : html;
-    return win + lose + thirdPlaceHtml(ev) + podiumHtml(ev);
+    /* Bảng vinh danh đã tách sang mục Giải thưởng — để lại ở đây nữa thì
+       cùng một nội dung hiện hai lần trên cùng màn hình. */
+    return win + lose + thirdPlaceHtml(ev);
   }
 
   /* Nhánh thua: sáu đội thua vòng loại đấu tiếp, hai đội tốt nhất quay lại
@@ -1654,42 +1579,322 @@
         '<p style="font-size:.84rem;color:var(--muted-2);margin-top:10px">' +
         'Hai đội hạng 1 và 2 vào chung kết. Đội thắng còn lại nhận hạng ba.</p>' + warn +
       '</div>' +
-    '</div>' + podiumHtml(ev);
+    '</div>';
   }
 
-  function podiumHtml(ev) {
+  /* =====================================================================
+     GIẢI THƯỞNG
+     Một mục riêng, chia theo TAB từng hạng mục. Mỗi tab: ba thẻ lớn cho
+     hạng nhất nhì ba, rồi tới bảng xếp hạng bên dưới.
+     Huy chương vẽ bằng icon SVG trong sprite đầu index.html, không dùng
+     emoji — emoji mỗi máy một kiểu và trình đọc màn hình đọc ra cả tên.
+     ===================================================================== */
+
+  /* 100000 -> "100.000đ". Không dùng toLocaleString vì WebView cũ trong
+     Zalo/Facebook trả về đúng chuỗi "100000" khi không có dữ liệu vùng. */
+  function money(n) {
+    var s = String(Math.round(Math.abs(n))), out = '', i;
+    for (i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 === 0) out += '.';
+      out += s.charAt(i);
+    }
+    return out + 'đ';
+  }
+
+  /* Tiền thưởng từng hạng. CHƯA CHỐT thì trả null và cột bên phải hiện TÊN
+     GIẢI chứ không hiện số — cơ cấu giải thưởng trong data.js còn ghi "ở mức
+     đề xuất", mà trang này ai có link cũng xem được. Bịa một con số lên đó
+     là sai việc thật. BTC chốt rồi thì điền vào D.awards.prize. */
+  function prizeOf(evId, rank) {
+    var p = (D.awards && D.awards.prize) || {};
+    var t = p[evId] || p.all || {};
+    return t[rank] == null ? null : t[rank];
+  }
+
+  /* Đội thắng (win=true) hoặc thua của một trận đã xong. Lấy qua T.view để
+     khỏi phải đụng vào hàm nội bộ của tournament.js. */
+  function sideOf(v, win) {
+    if (!v.done) return null;
+    var s = ((v.winnerSide === 'a') === !!win) ? v.teamA : v.teamB;
+    return (s && !s.pending) ? s : null;
+  }
+
+  function winCount(ev, label) {
+    var n = 0;
+    T.matchesOf(ev.id).forEach(function (m) {
+      var w = sideOf(T.view(m), true);
+      if (w && w.label === label) n++;
+    });
+    return n;
+  }
+
+  function roundLosers(ev, round) {
+    var out = [];
+    T.matchesOf(ev.id).forEach(function (m) {
+      if (m.round !== round) return;
+      var l = sideOf(T.view(m), false);
+      if (l && out.indexOf(l.label) < 0) out.push(l.label);
+    });
+    return out;
+  }
+
+  function asList(v) {
+    if (v == null) return [];
+    return Array.isArray(v) ? v.slice() : [v];
+  }
+
+  /* --------- huy chương vàng cho thẻ hạng nhất ---------
+     Vẽ phẳng hai tông, KHÔNG dùng <defs> hay gradient có id: một trang có
+     thể in hai bục (nhảy dây nam và nữ) nên id sẽ trùng nhau. */
+  function goldMedal() {
+    return '<svg class="aw-medal" viewBox="0 0 52 70" aria-hidden="true">' +
+      '<path d="M13 2 4 5l11 27 9-5z" fill="#a8402c"/>' +
+      '<path d="M39 2l9 3-11 27-9-5z" fill="#c9523a"/>' +
+      '<circle cx="26" cy="48" r="20" fill="#e7c070"/>' +
+      '<path d="M26 28a20 20 0 0 1 0 40z" fill="#c99a3f"/>' +
+      '<circle cx="26" cy="48" r="14.5" fill="none" stroke="#8a6a22" stroke-width="1.8" opacity=".5"/>' +
+      '<text x="26" y="56" text-anchor="middle" font-size="20" font-weight="900" fill="#5a4210">1</text>' +
+    '</svg>';
+  }
+
+  /* --------- thẻ lớn: hạng #1 #2 #3 ---------
+     size: 'lg' cho hạng nhất (ở giữa bục), 'sm' cho các ô hạng ba. */
+  function awBig(pos, kind, lines, pend, stats, iconId, size) {
+    var has = lines.length > 0;
+    return '<article class="aw-big g' + pos + (has ? ' got' : '') +
+      (size ? ' ' + size : '') + '">' +
+      '<span class="aw-pos"><i>Hạng</i><b>#' + pos + '</b></span>' +
+      (pos === 1 ? goldMedal() : '') +
+      '<span class="aw-kind">' + esc(kind) + '</span>' +
+      '<h4>' + (has
+        ? lines.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('')
+        : '<span class="pend">' + esc(pend) + '</span>') + '</h4>' +
+      '<div class="aw-sts">' + stats.map(function (s) {
+        return '<div><i>' + esc(s.k) + '</i><b>' + esc(s.v) + '</b></div>';
+      }).join('') + '</div>' +
+      '<svg class="aw-wm" viewBox="0 0 24 24" aria-hidden="true"><use href="#' + iconId + '"/></svg>' +
+    '</article>';
+  }
+
+  /* --------- bục trao giải ---------
+     Bạc bên trái, vàng ở giữa và to nhất, các ô đồng hạng ba bên phải và
+     nhỏ hơn bạc — đúng dáng bục thật. Vàng đứng ĐẦU trong DOM để trình
+     đọc màn hình và trình duyệt không hiểu grid vẫn đọc đúng thứ hạng;
+     vị trí trái–giữa–phải do CSS order lo. */
+  function awPodium(gold, silver, bronzes) {
+    return '<div class="aw-top">' +
+      '<div class="aw-col c1">' + gold + '</div>' +
+      '<div class="aw-col c2">' + silver + '</div>' +
+      '<div class="aw-col c3">' + bronzes.join('') + '</div>' +
+    '</div>';
+  }
+
+  /* --------- một dòng trong bảng xếp hạng --------- */
+  /* pend = dòng hiện khi chưa có tên. Có pend thì dòng vẫn hiện (để người
+     xem thấy trước cơ cấu giải), không có pend thì dòng rỗng bị bỏ hẳn —
+     dùng cho nhóm "dừng ở tứ kết" lúc chưa đá xong vòng nào. */
+  function awRow(rank, sub, names, right, cls, pend) {
+    if (!names.length && !pend) return '';
+    return '<div class="aw-row' + (cls ? ' ' + cls : '') + '">' +
+      '<span class="aw-rk">' + esc(rank) + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</span>' +
+      '<span class="aw-who">' + (names.length
+        ? names.map(function (n) { return '<b>' + esc(n) + '</b>'; }).join('')
+        : '<b class="pend">' + esc(pend) + '</b>') + '</span>' +
+      '<span class="aw-pz">' + esc(right) + '</span>' +
+    '</div>';
+  }
+
+  function awTable(rows) {
+    if (!rows) return '';
+    return '<div class="aw-tab">' +
+      '<div class="aw-th"><span>Hạng</span><span>Đội</span><span>Giải thưởng</span></div>' +
+      rows + '</div>';
+  }
+
+  /* --------- bốn nội dung đôi --------- */
+  function evAwardPane(ev) {
     var p = T.podium(ev);
-    var isR6 = ev.format === 'r6diff';
+    var medal = ['Giải nhất', 'Giải nhì', ev.format === 'r6diff' ? 'Hạng ba' : 'Đồng giải ba'];
+    var pendText = ['Chờ trận chung kết', 'Chờ trận chung kết', 'Chờ trận bán kết'];
+    var vals = [asList(p.champion), asList(p.runnerUp), asList(p.third)];
+    var icon = sportIcon(ev.id);
 
-    function podCard(rankCls, icon, medal, title, val, hint) {
-      var list = val == null ? [] : (Array.isArray(val) ? val : [val]);
-      var hasWinner = list.length > 0;
-      var bodyHtml = hasWinner
-        ? list.map(function (x) {
-            return '<div class="pod-winner"><span class="pod-star">★</span><span class="pod-name">' + esc(x) + '</span></div>';
-          }).join('')
-        : '<div class="pod-winner pend"><span class="pod-dot"></span><i>' + esc(hint || 'Chờ kết quả') + '</i></div>';
+    function cardFor(pos, list, size) {
+      var pz = prizeOf(ev.id, pos);
+      return awBig(pos, 'Đội', list, pendText[pos - 1], [
+        { k: 'Trận thắng', v: list.length ? String(winCount(ev, list[0])) : '–' },
+        { k: pz == null ? 'Giải' : 'Tiền thưởng', v: pz == null ? medal[pos - 1] : money(pz) }
+      ], icon, size);
+    }
+    /* Bao nhiêu ô hạng ba là do thể thức quyết: có trận tranh hạng Ba thì
+       đúng một đội, không có thì hai đội thua bán kết đồng hạng. */
+    var n3 = ev.thirdPlace ? 1 : 2, cards3 = [];
+    for (var i3 = 0; i3 < n3; i3++) {
+      cards3.push(cardFor(3, vals[2][i3] ? [vals[2][i3]] : [], 'sm'));
+    }
+    var big = awPodium(cardFor(1, vals[0], 'lg'), cardFor(2, vals[1], ''), cards3);
 
-      return '<div class="pod-card ' + rankCls + (hasWinner ? ' has-winner' : '') + '">' +
-        '<div class="pod-top">' +
-          '<span class="pod-badge">' + medal + ' ' + title + '</span>' +
-          '<span class="pod-icon">' + icon + '</span>' +
-        '</div>' +
-        '<div class="pod-body">' + bodyHtml + '</div>' +
-      '</div>';
+    var rows = '';
+    [1, 2, 3].forEach(function (pos) {
+      var pz = prizeOf(ev.id, pos);
+      rows += awRow(String(pos), '', vals[pos - 1],
+        pz == null ? medal[pos - 1] : money(pz), 'g' + pos, pendText[pos - 1]);
+    });
+
+    /* Nhóm dừng ở tứ kết — đúng như bảng kết quả thật hay làm: mấy đội cùng
+       dừng một vòng thì đứng chung một dòng, KHÔNG xếp thứ tự 5-6-7-8 vì
+       nhánh đấu loại trực tiếp không đẻ ra thứ tự đó. Bịa ra là sai. */
+    var onTop = [];
+    vals.forEach(function (l) { onTop = onTop.concat(l); });
+    var tk = roundLosers(ev, 'TK').filter(function (n) { return onTop.indexOf(n) < 0; });
+    rows += awRow('', 'Tứ kết', tk, 'Dừng ở tứ kết', 'grp');
+
+    return big + awTable(rows);
+  }
+
+  /* --------- nhảy dây: xếp hạng riêng nam và nữ --------- */
+  function jumpAwardPane(g) {
+    var list = g.athletes || [];
+    var done = list.filter(function (a) {
+      return typeof a.count === 'number' && isFinite(a.count);
+    });
+    /* Chỉ xếp hạng khi đã đo ĐỦ cả nhóm: đo được 3/11 người mà đã gọi người
+       dẫn đầu là trao giải nhầm. Bằng điểm thì đồng hạng. */
+    var full = list.length > 0 && done.length === list.length;
+    var pend = done.length ? 'Đã đo ' + done.length + '/' + list.length + ' lượt' : 'Chờ thi đấu';
+    var ranks = [[], [], []], byRank = [];
+
+    if (full) {
+      var sorted = done.slice().sort(function (a, b) { return b.count - a.count; });
+      var r = -1, last = null;
+      sorted.forEach(function (a) {
+        if (a.count !== last) { r++; last = a.count; }
+        byRank.push({ r: r + 1, a: a });
+        if (r < 3) ranks[r].push(a);
+      });
     }
 
-    return '<div class="podium-shell">' +
-      '<div class="podium-header">' +
-        '<div class="podium-title"><svg class="ic" width="18" height="18"><use href="#i-trophy"/></svg><b>Bảng vinh danh giải thưởng</b></div>' +
-        '<span class="podium-sub">' + esc(ev.name) + '</span>' +
-      '</div>' +
-      '<div class="podium-grid">' +
-        podCard('gold',   '🏆', '🥇', 'Giải Nhất', p.champion, 'Chờ trận chung kết') +
-        podCard('silver', '🥈', '🥈', 'Giải Nhì',  p.runnerUp,  'Chờ trận chung kết') +
-        podCard('bronze', '🥉', '🥉', isR6 ? 'Hạng Ba' : 'Đồng Giải Ba', p.third, 'Chờ trận bán kết') +
-      '</div>' +
+    function jcard(pos, size) {
+      var top = ranks[pos - 1], first = top[0];
+      return awBig(pos, g.label, top.map(function (a) { return a.name; }), pend, [
+        { k: 'Số lần nhảy', v: first ? String(first.count) : '–' },
+        { k: 'Bộ phận', v: first ? first.dept : '–' }
+      ], 'i-rope', size);
+    }
+    var big = awPodium(jcard(1, 'lg'), jcard(2, ''), [jcard(3, 'sm')]);
+
+    var medal3 = ['Giải nhất', 'Giải nhì', 'Giải ba'];
+    var rows = '', seen = {};
+    if (!full) {
+      /* Chưa đo đủ thì vẫn bày sẵn ba dòng giải, để người xem biết trước cơ
+         cấu — chỉ là chưa có tên ai. */
+      [1, 2, 3].forEach(function (r3) {
+        rows += awRow(String(r3), '', [], medal3[r3 - 1], 'g' + r3, pend);
+      });
+    }
+    byRank.forEach(function (x) {
+      if (seen[x.r]) return;
+      seen[x.r] = 1;
+      var same = byRank.filter(function (y) { return y.r === x.r; });
+      rows += awRow(String(x.r), '', same.map(function (y) {
+        return y.a.name + ' · ' + y.a.count + ' lần';
+      }), x.r <= 3 ? medal3[x.r - 1] : '—', x.r <= 3 ? 'g' + x.r : '');
+    });
+
+    return '<h4 class="aw-sub">' + esc(g.label) + '</h4>' + big + awTable(rows);
+  }
+
+  /* --------- mini game: thưởng theo số câu đúng, không có nhất nhì ba --------- */
+  function miniAwardPane() {
+    var g = D.miniGame, w = (g.winners || []).slice();
+    w.sort(function (a, b) { return (b.correct || 0) - (a.correct || 0); });
+
+    function cash(p) { return (p.correct || 0) * (g.prizePerCorrect || 0); }
+
+    function mcard(pos, size) {
+      var p = w[pos - 1];
+      return awBig(pos, 'Nhiều câu đúng nhất', p ? [p.name] : [],
+        'Công bố ngay sau khi chơi', [
+          { k: 'Câu đúng', v: p ? String(p.correct || 0) : '–' },
+          { k: 'Tiền thưởng', v: p ? money(cash(p)) : money(g.prizePerCorrect) + '/câu' }
+        ], 'i-game', size);
+    }
+    var big = awPodium(mcard(1, 'lg'), mcard(2, ''), [mcard(3, 'sm')]);
+
+    if (!w.length) {
+      return big + '<p class="aw-empty"><span class="pod-dot"></span>' +
+        'Chưa có kết quả. Mỗi câu trả lời đúng được thưởng ' +
+        money(g.prizePerCorrect) + '; danh sách người trúng hiện ngay sau khi chơi xong.</p>';
+    }
+    var rows = w.map(function (p, i) {
+      return awRow(String(i + 1), p.dept || '',
+        [p.name + ' · ' + (p.correct || 0) + ' câu đúng'],
+        money(cash(p)), i < 3 ? 'g' + (i + 1) : '');
+    }).join('');
+    return big + awTable(rows);
+  }
+
+  /* --------- dựng tab và khung nội dung --------- */
+  /* Mỗi hạng mục MỘT icon riêng, không dùng chung sportIcon: bốn nội dung
+     đôi mà chỉ có hai icon thì hai tab cạnh nhau trông y hệt, nhìn lướt là
+     bấm nhầm. Nội dung nam nữ dùng icon "đôi" (hai vợt / hai quả cầu) nên
+     vẫn đọc ra đúng môn, chỉ khác dáng. Màu từng tab đặt trong style.css
+     theo data-k, không nhét vào đây. */
+  var AWARD_ICON = {
+    'pb-nam': 'i-paddle',
+    'pb-mix': 'i-paddle-duo',
+    'cl-nam': 'i-shuttle',
+    'cl-mix': 'i-shuttle-duo'
+  };
+
+  function awardItems() {
+    var out = D.events.map(function (e) {
+      return { id: e.id, label: e.name, icon: AWARD_ICON[e.id] || sportIcon(e.id) };
+    });
+    out.push({ id: 'jump', label: 'Nhảy dây', icon: 'i-rope' });
+    out.push({ id: 'mini', label: 'Mini game', icon: 'i-game' });
+    return out;
+  }
+
+  function awHead(name, tag, done) {
+    return '<div class="aw-h">' +
+      '<h3>' + esc(name) + '</h3>' +
+      /* "Đã có kết quả" chứ không phải "Đã trao giải": trận chung kết xong
+         là biết người thắng, nhưng lễ trao giải tới 15:35 mới diễn ra. */
+      (done ? '<span class="aw-tag done">Đã có kết quả</span>' : '') +
+      '<span class="aw-tag">' + esc(tag) + '</span>' +
     '</div>';
+  }
+
+  function renderAwardPane(key) {
+    var host = $('#award-pane');
+    if (!host) return;
+    var head, body;
+
+    if (key === 'jump') {
+      head = awHead(D.jumpRope.name, 'Xếp hạng riêng nam và nữ', false);
+      /* nam và nữ đứng song song hai cột, không chồng dọc */
+      body = '<div class="aw-two">' +
+        D.jumpRope.groups.map(function (g) {
+          return '<div>' + jumpAwardPane(g) + '</div>';
+        }).join('') + '</div>';
+    } else if (key === 'mini') {
+      head = awHead(D.miniGame.name,
+        money(D.miniGame.prizePerCorrect) + ' mỗi câu đúng',
+        (D.miniGame.winners || []).length > 0);
+      body = miniAwardPane();
+    } else {
+      var ev = T.eventById[key];
+      if (!ev) return;
+      head = awHead(ev.name, ev.teamCount + ' đội', !!T.podium(ev).champion);
+      body = evAwardPane(ev);
+    }
+    host.innerHTML = '<div class="pane">' + head + body + '</div>';
+  }
+
+  /* Vẽ lại đúng tab đang mở khi có kết quả mới về. */
+  function renderAwards() {
+    if (cur.award) renderAwardPane(cur.award);
   }
 
   function renderBracketPane(evId) {
@@ -1832,88 +2037,385 @@
   /* =====================================================================
      LUẬT
      ===================================================================== */
-  var COURT_SVG = {
-    pickleball:
-      '<svg viewBox="0 0 420 200" role="img" aria-label="Sơ đồ sân pickleball">' +
-      '<rect x="10" y="12" width="400" height="176" rx="4" fill="rgba(185,242,74,.07)" stroke="rgba(185,242,74,.5)" stroke-width="2"/>' +
-      '<rect x="146" y="12" width="128" height="176" fill="rgba(185,242,74,.1)"/>' +
-      '<line x1="210" y1="4" x2="210" y2="196" stroke="#fff" stroke-width="3" stroke-dasharray="7 5" opacity=".8"/>' +
-      '<line x1="146" y1="12" x2="146" y2="188" stroke="rgba(185,242,74,.8)" stroke-width="2"/>' +
-      '<line x1="274" y1="12" x2="274" y2="188" stroke="rgba(185,242,74,.8)" stroke-width="2"/>' +
-      '<line x1="10" y1="100" x2="146" y2="100" stroke="rgba(185,242,74,.55)" stroke-width="1.5"/>' +
-      '<line x1="274" y1="100" x2="410" y2="100" stroke="rgba(185,242,74,.55)" stroke-width="1.5"/>' +
-      '<text x="210" y="106" fill="#b9f24a" font-size="11" text-anchor="middle" font-weight="700">LƯỚI</text>' +
-      '<text x="178" y="106" fill="#9aa0b4" font-size="10" text-anchor="middle">bếp</text>' +
-      '<text x="242" y="106" fill="#9aa0b4" font-size="10" text-anchor="middle">bếp</text>' +
-      '<text x="78" y="56" fill="#9aa0b4" font-size="10" text-anchor="middle">ô trái</text>' +
-      '<text x="78" y="150" fill="#9aa0b4" font-size="10" text-anchor="middle">ô phải</text>' +
-      '<text x="342" y="56" fill="#9aa0b4" font-size="10" text-anchor="middle">ô phải</text>' +
-      '<text x="342" y="150" fill="#9aa0b4" font-size="10" text-anchor="middle">ô trái</text>' +
-      '<path d="M60 150 C140 150 260 60 350 56" fill="none" stroke="#ffc24b" stroke-width="2" stroke-dasharray="6 5"/>' +
-      '<path d="M350 56 l-11 -4 l2 9 z" fill="#ffc24b"/>' +
-      '</svg>',
-    caulong:
-      '<svg viewBox="0 0 420 200" role="img" aria-label="Sơ đồ sân cầu lông đôi">' +
-      '<rect x="10" y="12" width="400" height="176" rx="4" fill="rgba(69,216,243,.07)" stroke="rgba(69,216,243,.5)" stroke-width="2"/>' +
-      '<line x1="210" y1="4" x2="210" y2="196" stroke="#fff" stroke-width="3" stroke-dasharray="7 5" opacity=".8"/>' +
-      '<line x1="152" y1="12" x2="152" y2="188" stroke="rgba(69,216,243,.75)" stroke-width="1.5"/>' +
-      '<line x1="268" y1="12" x2="268" y2="188" stroke="rgba(69,216,243,.75)" stroke-width="1.5"/>' +
-      '<line x1="36" y1="12" x2="36" y2="188" stroke="rgba(69,216,243,.55)" stroke-width="1.5"/>' +
-      '<line x1="384" y1="12" x2="384" y2="188" stroke="rgba(69,216,243,.55)" stroke-width="1.5"/>' +
-      '<line x1="10" y1="100" x2="152" y2="100" stroke="rgba(69,216,243,.55)" stroke-width="1.5"/>' +
-      '<line x1="268" y1="100" x2="410" y2="100" stroke="rgba(69,216,243,.55)" stroke-width="1.5"/>' +
-      '<rect x="268" y="12" width="116" height="88" fill="rgba(255,194,75,.2)"/>' +
-      '<text x="326" y="60" fill="#ffc24b" font-size="10" text-anchor="middle" font-weight="700">ô nhận giao</text>' +
-      '<text x="90" y="152" fill="#9aa0b4" font-size="10" text-anchor="middle">người giao (ô phải)</text>' +
-      '<text x="210" y="106" fill="#45d8f3" font-size="11" text-anchor="middle" font-weight="700">LƯỚI</text>' +
-      '<path d="M90 142 C150 130 240 80 320 62" fill="none" stroke="#ffc24b" stroke-width="2" stroke-dasharray="6 5"/>' +
-      '<path d="M320 62 l-11 -4 l2 9 z" fill="#ffc24b"/>' +
-      '</svg>'
+  /* =====================================================================
+     LUẬT — SÁCH LẬT TRANG
+     Mỗi trang một ý luật kèm MỘT hình minh họa. Các trang xếp chồng đúng
+     một ô lưới và lật quanh mép trái như lật sách: trang đang xem nằm trên,
+     các trang sau nằm dưới sẵn rồi, lật là trang trên quay đi và lộ trang
+     dưới ra — không có trang nào phải "bay vào". Bấm thẳng vào nửa phải của
+     trang để sang trang, nửa trái để quay lại; không cần tìm nút mũi tên.
+
+     BỘ HÌNH VẼ THEO ĐÚNG BẢN TRÌNH CHIẾU CỦA BTC: mặt sân tô đặc, vạch kẻ
+     trắng, vùng cần nhớ tô vàng, lưới là nét đậm màu mực. Đây là cách mọi
+     người đã nhìn thấy trên slide nên khỏi phải học lại ký hiệu.
+
+     Màu lấy thẳng từ theme của file .pptx rồi CHỈNH TỐI LẠI cho đủ tương
+     phản: xanh sân pickleball #2F7FB5 của slide chỉ cho chữ trắng 4.36:1,
+     hạ xuống #2a75a8 được 4.89:1; xanh cầu lông #2E8B57 được 4.24:1, hạ
+     xuống #28794b được 5.22:1. Vàng #f2b84b giữ nguyên vì chữ trên nó là
+     màu mực #14213d — 8.66:1.
+     ===================================================================== */
+  var NAVY  = '#14213d';   /* mực, lưới, chữ trên nền vàng      14.26:1 */
+  var PBC   = '#2a75a8';   /* mặt sân pickleball, chữ trắng      4.89:1 */
+  var CLC   = '#28794b';   /* mặt sân cầu lông,  chữ trắng       5.22:1 */
+  var AMB   = '#f2b84b';   /* vùng phải nhớ: bếp, ô nhận giao           */
+  var PANEL = '#eef2f6';   /* nền khung hình                            */
+  var FLOOR = '#dbe2ea';   /* mặt sàn khi nhìn ngang                    */
+  var EDGE  = '#cfd8e3';   /* viền thẻ con                              */
+  var DIM   = '#4e5663';   /* nhãn phụ                           6.48:1 */
+  var BAD   = '#b3161f';   /* lỗi                                6.09:1 */
+  var OK    = '#1f7a43';   /* hợp lệ                             4.64:1 */
+  var A_JR  = '#b63957';   /* nhảy dây                           5.03:1 */
+
+  function svg(label, body) {
+    return '<svg viewBox="0 0 400 220" role="img" aria-label="' + esc(label) + '">' +
+      '<rect x="0" y="0" width="400" height="220" rx="10" fill="' + PANEL + '"/>' + body + '</svg>';
+  }
+  /* Người vẽ thành bóng đặc chứ không phải hình que: ở cỡ nhỏ trên điện
+     thoại nét que 2px mảnh tới mức gãy, bóng đặc thì luôn đọc ra. */
+  function man(x, y, c, s) {
+    return '<g transform="translate(' + x + ',' + y + ') scale(' + (s || 1) + ')">' +
+      '<circle cx="0" cy="0" r="10" fill="' + c + '"/>' +
+      '<path d="M-14 46v-18a14 14 0 0 1 28 0v18z" fill="' + c + '"/></g>';
+  }
+  function tick(x, y, good) {
+    var c = good ? OK : BAD;
+    return '<circle cx="' + x + '" cy="' + y + '" r="13" fill="#fff" stroke="' + c + '" stroke-width="2.4"/>' +
+      (good
+        ? '<path d="M' + (x - 6) + ' ' + y + 'l4.5 5 8-9.5"'
+        : '<path d="M' + (x - 5) + ' ' + (y - 5) + 'l10 10M' + (x + 5) + ' ' + (y - 5) + 'l-10 10"') +
+      ' fill="none" stroke="' + c + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  function lb(x, y, t, c, anchor, bold, size) {
+    return '<text x="' + x + '" y="' + y + '" fill="' + (c || DIM) + '"' +
+      ' font-size="' + (size || 13) + '"' +
+      (anchor ? ' text-anchor="' + anchor + '"' : '') +
+      (bold ? ' font-weight="700"' : '') + '>' + esc(t) + '</text>';
+  }
+  function arrow(d, c, w) {
+    return '<path d="' + d + '" fill="none" stroke="' + c + '" stroke-width="' + (w || 2.6) +
+      '" stroke-dasharray="9 6" stroke-linecap="round"/>';
+  }
+  function head(x, y, c, rot) {
+    return '<path d="M0 0l-14-5.5 3 11z" fill="' + c + '" transform="translate(' + x + ',' + y +
+      ') rotate(' + (rot || 0) + ')"/>';
+  }
+  /* vạch kẻ sân: luôn trắng, luôn 3px — đúng như sân thật và như slide */
+  function ln(x1, y1, x2, y2, w) {
+    return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 +
+      '" stroke="#fff" stroke-width="' + (w || 3) + '"/>';
+  }
+  function card(x, y, w, h, fill) {
+    return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="12" fill="' +
+      (fill || '#fff') + '" stroke="' + EDGE + '" stroke-width="1.6"/>';
+  }
+  function pill(x, y, t, c, bg) {
+    var w = t.length * 7.4 + 24;
+    return '<rect x="' + (x - w / 2) + '" y="' + (y - 15) + '" width="' + w + '" height="26" rx="13" fill="' + bg + '"/>' +
+      lb(x, y + 4, t, c, 'middle', 1, 12.5);
+  }
+
+  var RULE_ART = {
+    /* ---------- sân pickleball nhìn từ trên xuống ---------- */
+    'pb-san': svg('Sơ đồ sân pickleball: bếp tô vàng hai bên lưới, mũi tên là hướng giao chéo sân',
+      '<rect x="16" y="34" width="368" height="152" fill="' + PBC + '"/>' +
+      '<rect x="152" y="34" width="96" height="152" fill="' + AMB + '"/>' +
+      '<rect x="16" y="34" width="368" height="152" fill="none" stroke="#fff" stroke-width="3"/>' +
+      ln(152, 34, 152, 186) + ln(248, 34, 248, 186) +
+      ln(16, 110, 152, 110) + ln(248, 110, 384, 110) +
+      arrow('M116 166 C170 166 256 86 310 78', '#fff', 3) + head(314, 77, '#fff', -28) +
+      lb(70, 76, 'Ô trái', '#fff', 'middle') + lb(70, 148, 'Ô phải', '#fff', 'middle') +
+      lb(320, 162, 'Ô trái', '#fff', 'middle') + lb(320, 58, 'Ô phải', '#fff', 'middle') +
+      lb(176, 115, 'Bếp', NAVY, 'middle', 1) + lb(224, 115, 'Bếp', NAVY, 'middle', 1) +
+      '<line x1="200" y1="24" x2="200" y2="196" stroke="' + NAVY + '" stroke-width="5"/>' +
+      lb(200, 18, 'LƯỚI', NAVY, 'middle', 1) +
+      lb(200, 212, 'Sân 13,41 × 6,10 m — bếp rộng 2,13 m mỗi bên lưới', DIM, 'middle', 0, 12)),
+
+    /* ---------- giao bóng pickleball, nhìn ngang ---------- */
+    'pb-giao': svg('Giao bóng pickleball: vung từ dưới lên, điểm chạm bóng thấp hơn thắt lưng',
+      '<rect x="10" y="118" width="380" height="58" rx="6" fill="#fbe7b9"/>' +
+      '<rect x="10" y="176" width="380" height="28" rx="8" fill="' + FLOOR + '"/>' +
+      '<line x1="10" y1="118" x2="390" y2="118" stroke="' + BAD + '" stroke-width="2.6" stroke-dasharray="9 6"/>' +
+      lb(18, 111, 'thắt lưng', BAD, '', 1, 12.5) +
+      lb(200, 26, 'Vung từ dưới lên, chạm bóng dưới thắt lưng', NAVY, 'middle', 1) +
+      man(104, 48, NAVY) +
+      '<path d="M104 76 L146 106" stroke="' + NAVY + '" stroke-width="7" stroke-linecap="round"/>' +
+      '<ellipse cx="164" cy="126" rx="16" ry="20" fill="' + AMB + '" stroke="' + NAVY + '" stroke-width="2.6"/>' +
+      '<circle cx="198" cy="144" r="10" fill="#fff" stroke="' + NAVY + '" stroke-width="2.6"/>' +
+      arrow('M212 138 C258 126 304 94 342 64', PBC, 3) + head(346, 61, PBC, -34) +
+      tick(228, 164, true) +
+      lb(382, 136, 'vùng chạm bóng hợp lệ', NAVY, 'end', 1, 12.5) +
+      lb(200, 218, 'Đứng sau vạch cuối sân, giao chéo sân, mỗi lượt một quả', DIM, 'middle', 0, 12)),
+
+    /* ---------- luật hai lần nảy ---------- */
+    'pb-hai-nay': svg('Luật hai lần nảy: quả giao nảy một lần, quả trả nảy một lần, từ quả thứ ba mới được vô lê',
+      '<rect x="10" y="168" width="380" height="30" rx="8" fill="' + FLOOR + '"/>' +
+      '<line x1="200" y1="36" x2="200" y2="174" stroke="' + NAVY + '" stroke-width="5"/>' +
+      lb(200, 26, 'LƯỚI', NAVY, 'middle', 1) +
+      arrow('M50 148 C120 46 250 46 296 162', PBC, 3) +
+      arrow('M286 158 C230 62 150 62 110 162', PBC, 3) +
+      '<path d="M118 154 C180 94 262 94 318 128" fill="none" stroke="' + OK + '" stroke-width="3.4"/>' +
+      head(322, 130, OK, 28) +
+      '<circle cx="300" cy="166" r="13" fill="' + AMB + '"/>' + lb(300, 171, '1', NAVY, 'middle', 1) +
+      '<circle cx="106" cy="166" r="13" fill="' + AMB + '"/>' + lb(106, 171, '2', NAVY, 'middle', 1) +
+      lb(50, 140, 'giao', DIM, 'middle', 1, 12) +
+      lb(330, 96, 'quả 3: được vô lê', OK, 'middle', 1, 12.5) +
+      lb(200, 212, 'Số trong vòng tròn vàng là lần nảy — hai quả đầu đều phải nảy', DIM, 'middle', 0, 12)),
+
+    /* ---------- vùng bếp ---------- */
+    'pb-bep': svg('Vùng bếp tô vàng sát lưới: đứng trong bếp không được vô lê, đứng sau vạch bếp thì được',
+      '<rect x="16" y="42" width="368" height="134" fill="' + PBC + '"/>' +
+      '<rect x="16" y="42" width="368" height="50" fill="' + AMB + '"/>' +
+      '<rect x="16" y="42" width="368" height="134" fill="none" stroke="#fff" stroke-width="3"/>' +
+      ln(16, 92, 384, 92) +
+      '<line x1="14" y1="34" x2="386" y2="34" stroke="' + NAVY + '" stroke-width="5"/>' +
+      lb(200, 26, 'LƯỚI', NAVY, 'middle', 1) +
+      lb(376, 76, 'BẾP — vùng cấm vô lê', NAVY, 'end', 1, 12.5) +
+      man(74, 56, '#fff', .62) + tick(114, 70, false) +
+      man(250, 116, '#fff', .78) + tick(296, 136, true) +
+      lb(176, 112, 'vạch bếp', '#fff', 'end', 0, 12) +
+      lb(100, 194, 'Trong bếp: không vô lê', BAD, 'middle', 1, 12.5) +
+      lb(290, 194, 'Sau vạch bếp: được vô lê', OK, 'middle', 1, 12.5) +
+      lb(200, 214, 'Vô lê xong bị đà kéo vào bếp cũng là lỗi', DIM, 'middle', 0, 12)),
+
+    /* ---------- bốn cách mất bóng ---------- */
+    'pb-loi': svg('Bốn cách mất bóng: đánh ra ngoài, không qua lưới, để nảy hai lần, phạm luật bếp',
+      card(10, 14, 186, 78) + card(204, 14, 186, 78) +
+      card(10, 100, 186, 78) + card(204, 100, 186, 78) +
+      /* 1 — ra ngoài sân */
+      '<rect x="22" y="30" width="44" height="44" fill="' + PBC + '"/>' +
+      '<circle cx="74" cy="66" r="7" fill="none" stroke="' + BAD + '" stroke-width="2.4"/>' +
+      lb(86, 48, 'Đánh ra ngoài', NAVY, '', 1, 11.5) +
+      lb(86, 65, 'chạm vạch là trong', DIM, '', 0, 10.5) +
+      /* 2 — không qua lưới */
+      '<line x1="244" y1="28" x2="244" y2="78" stroke="' + NAVY + '" stroke-width="4"/>' +
+      '<circle cx="226" cy="62" r="7" fill="none" stroke="' + BAD + '" stroke-width="2.4"/>' +
+      arrow('M216 38 C224 48 228 54 226 59', BAD, 2.2) +
+      lb(262, 48, 'Không qua lưới', NAVY, '', 1, 11.5) +
+      lb(262, 65, 'hoặc mắc lưới', DIM, '', 0, 10.5) +
+      /* 3 — nảy hai lần */
+      '<line x1="22" y1="152" x2="74" y2="152" stroke="' + DIM + '" stroke-width="2.4"/>' +
+      '<circle cx="30" cy="146" r="6.5" fill="' + AMB + '"/>' +
+      '<circle cx="66" cy="146" r="6.5" fill="' + AMB + '"/>' +
+      '<path d="M30 146 C42 126 56 126 66 146" fill="none" stroke="' + BAD + '" stroke-width="2.4" stroke-dasharray="6 4"/>' +
+      lb(86, 134, 'Bóng nảy 2 lần', NAVY, '', 1, 11.5) +
+      lb(86, 151, 'ở bên sân mình', DIM, '', 0, 10.5) +
+      /* 4 — phạm bếp */
+      '<rect x="216" y="128" width="46" height="36" fill="' + AMB + '"/>' +
+      man(239, 136, NAVY, .4) +
+      lb(274, 134, 'Phạm luật bếp', NAVY, '', 1, 11.5) +
+      lb(274, 151, 'hoặc hai lần nảy', DIM, '', 0, 10.5) +
+      lb(200, 200, 'Mất bóng thì đổi quyền giao, hoặc đối thủ được điểm', DIM, 'middle', 0, 12)),
+
+    /* ---------- ăn điểm trực tiếp ---------- */
+    'pb-diem-tt': svg('Ăn điểm trực tiếp: bên nào thắng pha bóng bên đó được một điểm, dù đang giao hay đang nhận',
+      '<rect x="18" y="40" width="158" height="92" rx="14" fill="' + PBC + '"/>' +
+      lb(97, 76, 'ĐỘI A', '#fff', 'middle', 1, 17) +
+      lb(97, 100, 'đang giao', '#fff', 'middle', 0, 12.5) +
+      card(224, 40, 158, 92) +
+      lb(303, 76, 'ĐỘI B', NAVY, 'middle', 1, 17) +
+      lb(303, 100, 'đang nhận', DIM, 'middle', 0, 12.5) +
+      arrow('M182 68 h30', DIM, 2.4) + head(218, 68, DIM, 0) +
+      arrow('M218 106 h-30', DIM, 2.4) + head(182, 106, DIM, 180) +
+      pill(97, 160, '+1 điểm', OK, '#e1f2e7') +
+      pill(303, 160, '+1 điểm', OK, '#e1f2e7') +
+      lb(200, 200, 'Thắng pha bóng nào được điểm pha đó — chạm 11 là thắng', NAVY, 'middle', 1, 12.5) +
+      lb(200, 216, 'Áp dụng ở vòng loại', DIM, 'middle', 0, 11.5)),
+
+    /* ---------- ăn điểm theo lượt giao ---------- */
+    'pb-diem-lg': svg('Tính điểm theo lượt giao: chỉ đội đang giao mới ghi điểm, đội nhận thắng pha chỉ giành lại lượt giao',
+      '<rect x="18" y="40" width="158" height="92" rx="14" fill="' + PBC + '"/>' +
+      lb(97, 74, 'ĐANG GIAO', '#fff', 'middle', 1, 15) +
+      lb(97, 98, 'thắng pha', '#fff', 'middle', 0, 12.5) +
+      lb(97, 116, 'được 1 điểm', '#fff', 'middle', 0, 12.5) +
+      card(224, 40, 158, 92) +
+      lb(303, 74, 'ĐANG NHẬN', NAVY, 'middle', 1, 15) +
+      lb(303, 98, 'thắng pha', DIM, 'middle', 0, 12.5) +
+      lb(303, 116, 'chỉ giành lượt giao', DIM, 'middle', 0, 12.5) +
+      tick(97, 158, true) + tick(303, 158, false) +
+      lb(97, 190, 'có điểm', OK, 'middle', 1, 12.5) +
+      lb(303, 190, 'không có điểm', BAD, 'middle', 1, 12.5) +
+      lb(200, 214, 'Mỗi đội 2 lượt giao; đội giao đầu trận chỉ có 1 lượt', DIM, 'middle', 0, 12)),
+
+    /* ---------- sân cầu lông đôi ---------- */
+    'cl-san': svg('Sơ đồ sân cầu lông đôi: ô nhận giao tô vàng ở phía chéo sân',
+      '<rect x="16" y="30" width="368" height="160" fill="' + CLC + '"/>' +
+      '<rect x="230" y="48" width="132" height="62" fill="' + AMB + '"/>' +
+      '<rect x="16" y="30" width="368" height="160" fill="none" stroke="#fff" stroke-width="3"/>' +
+      ln(16, 48, 384, 48, 2.4) + ln(16, 172, 384, 172, 2.4) +
+      ln(38, 30, 38, 190, 2.4) + ln(362, 30, 362, 190, 2.4) +
+      ln(170, 30, 170, 190) + ln(230, 30, 230, 190) +
+      ln(38, 110, 170, 110, 2.4) + ln(230, 110, 362, 110, 2.4) +
+      arrow('M112 150 C170 138 230 108 272 94', '#fff', 3) + head(276, 92, '#fff', -20) +
+      lb(300, 72, 'Ô nhận giao', NAVY, 'middle', 1, 12.5) +
+      lb(104, 166, 'Người giao (ô phải)', '#fff', 'middle', 1, 12.5) +
+      '<line x1="200" y1="20" x2="200" y2="200" stroke="' + NAVY + '" stroke-width="5"/>' +
+      lb(200, 14, 'LƯỚI', NAVY, 'middle', 1) +
+      lb(200, 212, 'Sân đôi 13,40 × 6,10 m — vạch giao ngắn cách lưới 1,98 m', DIM, 'middle', 0, 12)),
+
+    /* ---------- giao cầu ---------- */
+    'cl-giao': svg('Giao cầu: điểm chạm cầu thấp hơn 1,15 mét, vung từ dưới lên, đầu vợt chúc xuống',
+      '<rect x="10" y="122" width="380" height="54" rx="6" fill="#fbe7b9"/>' +
+      '<rect x="10" y="176" width="380" height="28" rx="8" fill="' + FLOOR + '"/>' +
+      '<line x1="10" y1="122" x2="390" y2="122" stroke="' + BAD + '" stroke-width="2.6" stroke-dasharray="9 6"/>' +
+      lb(18, 115, '1,15 m', BAD, '', 1, 12.5) +
+      lb(200, 26, 'Chạm cầu dưới 1,15 m, vung từ dưới lên', NAVY, 'middle', 1) +
+      man(104, 50, NAVY) +
+      '<path d="M104 78 L144 108" stroke="' + NAVY + '" stroke-width="7" stroke-linecap="round"/>' +
+      '<ellipse cx="162" cy="130" rx="14" ry="19" fill="' + CLC + '" stroke="' + NAVY + '" stroke-width="2.6"/>' +
+      '<path d="M196 140 l-9-12 18 0z" fill="#fff" stroke="' + NAVY + '" stroke-width="2"/>' +
+      '<circle cx="196" cy="146" r="6" fill="' + NAVY + '"/>' +
+      arrow('M210 140 C256 128 302 96 340 68', CLC, 3) + head(344, 65, CLC, -34) +
+      tick(228, 166, true) +
+      lb(382, 138, 'điểm chạm cầu hợp lệ', NAVY, 'end', 1, 12.5) +
+      lb(200, 218, 'Hai chân chạm sân, không giẫm vạch, giao chéo sân', DIM, 'middle', 0, 12)),
+
+    /* ---------- tính điểm cầu lông ---------- */
+    'cl-diem': svg('Tính điểm cầu lông: chạm 21 điểm là thắng, hòa 20 đều phải hơn hai điểm, trần 30',
+      '<rect x="24" y="78" width="352" height="34" rx="17" fill="' + AMB + '"/>' +
+      '<path d="M41 78h231v34H41a17 17 0 0 1 0-34z" fill="' + CLC + '"/>' +
+      '<rect x="24" y="78" width="352" height="34" rx="17" fill="none" stroke="#fff" stroke-width="2.4"/>' +
+      ln(272, 72, 272, 118, 3) +
+      lb(26, 66, '0', DIM, '', 1, 12) +
+      lb(272, 66, '21', CLC, 'middle', 1) +
+      lb(376, 66, '30', BAD, 'end', 1) +
+      lb(148, 101, 'chạm 21 trước là thắng', '#fff', 'middle', 1, 12.5) +
+      lb(324, 101, 'trần 30', NAVY, 'middle', 1, 12.5) +
+      lb(200, 38, 'Mỗi trận 1 hiệp (BO1), đánh đến 21 điểm', NAVY, 'middle', 1) +
+      lb(200, 148, 'Hòa 20 đều: phải hơn đối thủ 2 điểm mới thắng', NAVY, 'middle', 1, 12.5) +
+      lb(200, 170, 'Hòa 29 đều: ai chạm 30 trước là thắng', NAVY, 'middle', 1, 12.5) +
+      lb(200, 198, 'Thắng pha cầu được 1 điểm và giành quyền giao quả sau', DIM, 'middle', 0, 12)),
+
+    /* ---------- lỗi cầu lông ---------- */
+    'cl-loi': svg('Ba lỗi hay gặp: cầu rơi ngoài sân, người hoặc vợt chạm lưới, cầu chạm người',
+      card(10, 26, 122, 130) + card(139, 26, 122, 130) + card(268, 26, 122, 130) +
+      /* cầu ngoài sân */
+      '<rect x="30" y="46" width="62" height="54" fill="' + CLC + '"/>' +
+      '<rect x="30" y="46" width="62" height="54" fill="none" stroke="#fff" stroke-width="2"/>' +
+      '<circle cx="104" cy="112" r="8" fill="none" stroke="' + BAD + '" stroke-width="2.6"/>' +
+      lb(71, 136, 'Cầu ngoài sân', NAVY, 'middle', 1, 12) +
+      lb(71, 151, 'chạm vạch là trong', DIM, 'middle', 0, 11) +
+      /* chạm lưới */
+      '<line x1="200" y1="42" x2="200" y2="108" stroke="' + NAVY + '" stroke-width="4"/>' +
+      man(176, 58, NAVY, .52) +
+      '<path d="M178 76 L196 68" stroke="' + NAVY + '" stroke-width="4" stroke-linecap="round"/>' +
+      tick(214, 92, false) +
+      lb(200, 136, 'Chạm lưới', NAVY, 'middle', 1, 12) +
+      lb(200, 151, 'người hoặc vợt', DIM, 'middle', 0, 11) +
+      /* cầu chạm người */
+      man(320, 58, NAVY, .62) +
+      '<circle cx="348" cy="88" r="8" fill="' + AMB + '" stroke="' + NAVY + '" stroke-width="2"/>' +
+      '<path d="M360 70 l-9 12" stroke="' + BAD + '" stroke-width="2.6" stroke-linecap="round"/>' +
+      lb(329, 136, 'Cầu chạm người', NAVY, 'middle', 1, 12) +
+      lb(329, 151, 'hoặc quần áo', DIM, 'middle', 0, 11) +
+      lb(200, 180, 'Còn: đánh khi cầu chưa sang sân mình,', DIM, 'middle', 0, 12) +
+      lb(200, 198, 'một đội chạm cầu hai lần liên tiếp', DIM, 'middle', 0, 12)),
+
+    /* ---------- nhảy dây ---------- */
+    'jr-nhay': svg('Nhảy dây: mỗi lần dây qua trọn vẹn dưới hai chân tính một lần, mỗi người một lượt 60 giây',
+      '<rect x="10" y="158" width="380" height="28" rx="8" fill="' + FLOOR + '"/>' +
+      '<ellipse cx="112" cy="102" rx="72" ry="60" fill="none" stroke="' + A_JR +
+        '" stroke-width="3.4" stroke-dasharray="11 7"/>' +
+      man(112, 80, NAVY, 1.7) +
+      '<circle cx="40" cy="102" r="6.5" fill="' + A_JR + '"/>' +
+      '<circle cx="184" cy="102" r="6.5" fill="' + A_JR + '"/>' +
+      lb(112, 202, 'Dây qua dưới hai chân = 1 lần', A_JR, 'middle', 1, 12.5) +
+      '<rect x="232" y="44" width="150" height="64" rx="14" fill="' + AMB + '"/>' +
+      lb(307, 80, '60 giây', NAVY, 'middle', 1, 23) +
+      lb(307, 98, 'mỗi người một lượt', NAVY, 'middle', 0, 11.5) +
+      '<rect x="232" y="120" width="150" height="56" rx="14" fill="#fae9ea"/>' +
+      lb(307, 145, 'Vấp dây là dừng', BAD, 'middle', 1, 12.5) +
+      lb(307, 163, 'không tính tiếp', DIM, 'middle', 0, 11.5))
   };
 
-  /* Luật trình bày thành slide. Trước đây đổ hết sơ đồ, mọi khối luật và
+  /* Luật trình bày thành sách lật. Trước đây đổ hết sơ đồ, mọi khối luật và
      các bảng ví dụ nối đuôi nhau nên mục này dài gấp ba mục khác, đọc mệt.
-     Giờ mỗi trang một ý; các trang xếp chồng trong cùng một ô lưới nên
-     khung giữ đúng chiều cao trang cao nhất, lật qua lại không giật. */
+     Giờ mỗi trang một ý kèm một hình; các trang xếp chồng trong cùng một ô
+     lưới nên khung giữ đúng chiều cao trang cao nhất, lật qua lại không giật. */
   var rdIdx = 0;
 
-  function ruleSlides(g, key) {
-    var out = [];
+  /* Một Ô NỘI DUNG: hình ở trên, chữ ở dưới. Hai ô này đứng cạnh nhau
+     thành một trang, nên mỗi trang có HAI hình — trước đây mỗi trang một
+     hình thì cột chữ ngắn để hở nửa trang giấy trắng. */
+  function ruleItem(label, art, body, wide) {
+    return {
+      label: label,
+      wide: !!wide,
+      html: '<div class="fp-it">' +
+        (art && RULE_ART[art] ? '<div class="fp-art">' + RULE_ART[art] + '</div>' : '') +
+        '<div class="fp-txt">' + body + '</div>' +
+      '</div>'
+    };
+  }
 
-    if (g.court && COURT_SVG[key]) {
-      out.push({
-        label: 'Sân thi đấu',
-        html: '<figure class="diag">' + COURT_SVG[key] +
-              '<figcaption><b>' + esc(g.court.size) + '.</b> ' + esc(g.court.detail) +
-              ' Mũi tên vàng là hướng giao.</figcaption></figure>'
-      });
+  /* Ghép hai ô một trang. Bảng ví dụ cuộn ngang được nên chiếm trọn trang,
+     không ghép với ai. */
+  function pairPages(items) {
+    var out = [], i = 0;
+    while (i < items.length) {
+      var a = items[i], b = items[i + 1];
+      if (a.wide || !b || b.wide) {
+        out.push({ label: a.label, html: a.html, solo: true });
+        i += 1;
+      } else {
+        out.push({ label: a.label + ' · ' + b.label, html: a.html + b.html, solo: false });
+        i += 2;
+      }
+    }
+    return out;
+  }
+
+  function ruleSlides(g, key) {
+    var items = [];
+
+    if (g.court && RULE_ART[key === 'pickleball' ? 'pb-san' : 'cl-san']) {
+      items.push(ruleItem('Sân thi đấu', key === 'pickleball' ? 'pb-san' : 'cl-san',
+        '<h4>Sân thi đấu</h4><ul><li>' + esc(g.court.size) + '.</li><li>' +
+        esc(g.court.detail) + '</li><li>Đường nét đứt trong hình là hướng giao chéo.</li></ul>'));
     }
 
-    /* hai khối luật một trang: đủ ngắn để đọc hết mà không phải lật nhiều */
-    for (var i = 0; i < g.blocks.length; i += 2) {
-      var pair = g.blocks.slice(i, i + 2);
-      out.push({
-        label: pair.map(function (b) { return b.title; }).join(' · '),
-        html: '<div class="rule-cols">' + pair.map(function (b) {
-          return '<div class="rblock"><h4>' + esc(b.title) + '</h4><ul>' +
-                 b.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
-                 '</ul></div>';
-        }).join('') + '</div>'
-      });
+    g.blocks.forEach(function (b) {
+      items.push(ruleItem(b.title, b.art,
+        '<h4>' + esc(b.title) + '</h4><ul>' +
+        b.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') +
+        '</ul>'));
+    });
+
+    /* Nhảy dây trong data.js chỉ có đúng một khối luật. Thêm một ô lấy
+       thẳng từ D.jumpRope — chỗ thi, giờ bắt đầu, độ dài mỗi lượt. CỐ TÌNH
+       KHÔNG ĐƯA SỐ NGƯỜI: ba nguồn đang ghi 33 / 24 / 30, BTC chưa chốt. */
+    if (key === 'nhayday' && D.jumpRope) {
+      var jr = D.jumpRope, heats = 0;
+      (jr.groups || []).forEach(function (x) { heats += x.heats || 0; });
+      items.push(ruleItem('Thi ở đâu, lúc nào', null,
+        '<h4>Thi ở đâu, lúc nào</h4><ul>' +
+        '<li>Khu thi: ' + esc(jr.station) + '.</li>' +
+        '<li>Bắt đầu lúc ' + esc(jr.start) + '.</li>' +
+        '<li>Mỗi lượt gói trong ' + jr.heatMinutes + ' phút, tất cả ' + heats + ' lượt.</li>' +
+        '<li>' + esc(jr.rule) + '</li>' +
+        '</ul>'));
     }
 
     (g.examples || []).forEach(function (ex) {
-      out.push({
-        label: ex.title,
-        html: '<div class="tblwrap"><table class="ex">' +
-          '<thead><tr>' + ex.head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead>' +
-          '<tbody>' + ex.rows.map(function (r) {
-            return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>';
-          }).join('') + '</tbody></table></div>'
-      });
+      items.push(ruleItem(ex.title, null,
+        '<h4>' + esc(ex.title) + '</h4>' +
+        '<div class="tblwrap"><table class="ex">' +
+        '<thead><tr>' + ex.head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead>' +
+        '<tbody>' + ex.rows.map(function (r) {
+          return '<tr>' + r.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>', true));
     });
 
-    return out;
+    var pages = pairPages(items);
+
+    /* "Mẹo nhớ" KHÔNG còn là một trang riêng: nó chỉ có hai dòng chữ nên
+       trang đó gần như trắng trơn. Đưa xuống chân trang cuối, chữ vẫn còn
+       nguyên, bớt được một trang. */
+    if (g.tip && pages.length) {
+      pages[pages.length - 1].html +=
+        '<p class="fp-tipbar"><b>Mẹo nhớ</b>' + esc(g.tip) + '</p>';
+    }
+    return pages;
   }
 
   function renderRulePane(key) {
@@ -1924,47 +2426,66 @@
 
     var nav = sl.length < 2 ? '' :
       '<div class="rdeck-nav">' +
-        '<button class="rd-b" type="button" data-d="-1" aria-label="Trang luật trước">' +
-          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        '</button>' +
         '<div class="rd-dots">' + sl.map(function (x, i) {
           return '<button type="button" data-i="' + i + '" class="' + (i ? '' : 'on') +
                  '" aria-label="' + esc(x.label) + '"></button>';
         }).join('') + '</div>' +
-        '<button class="rd-b" type="button" data-d="1" aria-label="Trang luật sau">' +
-          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        '</button>' +
+        '<p class="rd-hint">Bấm vào nửa phải của trang để lật sang, nửa trái để quay lại</p>' +
       '</div>';
 
     $('#rule-pane').innerHTML =
       '<div class="pane" data-accent="' + esc(g.accent) + '">' +
         '<div class="rdeck">' +
           '<div class="rd-head"><b class="rd-label">' + esc(sl[0] ? sl[0].label : '') + '</b>' +
-            '<span class="rd-count">1 / ' + sl.length + '</span></div>' +
+            /* Nhảy dây chỉ có một trang; in "1 / 1" thì người đọc tưởng còn
+               trang nữa mà bấm mãi không sang. */
+            (sl.length < 2 ? '' : '<span class="rd-count">1 / ' + sl.length + '</span>') + '</div>' +
           '<div class="rdeck-track" aria-live="polite">' + sl.map(function (x, i) {
-            return '<section class="rslide' + (i ? '' : ' on') + '" aria-hidden="' + (i ? 'true' : 'false') +
-                   '" aria-label="' + esc(x.label) + '">' + x.html + '</section>';
+            /* Trang trước nằm TRÊN trang sau, đúng như sách: lật trang đang
+               xem đi là lộ ngay trang kế bên dưới, không phải chờ nó bay vào. */
+            return '<section class="rslide' + (i ? ' turned' : ' on') + (x.solo ? ' solo' : '') +
+                   '" style="z-index:' + (sl.length - i) +
+                   '" aria-hidden="' + (i ? 'true' : 'false') +
+                   '" aria-label="' + esc(x.label) + '">' + x.html +
+                   '<span class="fp-no" aria-hidden="true">' + (i + 1) + '</span></section>';
           }).join('') + '</div>' +
           nav +
         '</div>' +
       '</div>';
+
   }
+
+  /* KHÔNG CÒN ĐO CHIỀU CAO KHUNG BẰNG JAVASCRIPT.
+     Bản cũ đo trang đang xem rồi đặt height cố định cho khung. Cách đó sai
+     ở hai chỗ, và cả hai đều để trang luật ĐÈ LÊN mục Lịch bên dưới:
+       — phép đo hụt chừng 31px (cộng thiếu lề của khối cuối trong trang);
+       — mỗi lần đổi bề ngang cửa sổ là số dòng đổi theo, mà con số cũ vẫn
+         nằm nguyên trong thuộc tính style cho tới khi đo lại xong.
+     Giờ các trang CHƯA XEM nằm position:absolute nên không chiếm chỗ, chỉ
+     trang đang xem (.on) nằm trong dòng chảy. Khung tự cao đúng bằng trang
+     đang xem, mọi lúc, không cần đo. Không thể đè lên nhau nữa. */
 
   function rdShow(n) {
     var sl = $$('#rule-pane .rslide');
     if (!sl.length) return;
-    rdIdx = (n + sl.length) % sl.length;
+    rdIdx = n < 0 ? 0 : (n > sl.length - 1 ? sl.length - 1 : n);
     sl.forEach(function (el, i) {
-      var on = i === rdIdx;
-      el.classList.toggle('on', on);
-      el.setAttribute('aria-hidden', on ? 'false' : 'true');
+      /* Mọi trang trước trang đang xem đều ở trạng thái ĐÃ LẬT (quay quanh
+         mép trái); trang đang xem và các trang sau nằm phẳng. Nhờ vậy nhảy
+         thẳng từ trang 1 sang trang 7 bằng chấm tròn vẫn ra đúng một cú lật,
+         không phải lật qua năm trang giữa. */
+      var turned = i < rdIdx;
+      el.classList.toggle('turned', turned);
+      /* chỉ trang đang xem mới chiếm chỗ; xem CSS mục 14 */
+      el.classList.toggle('on', i === rdIdx);
+      el.setAttribute('aria-hidden', i === rdIdx ? 'false' : 'true');
     });
     $$('#rule-pane .rd-dots button').forEach(function (b, i) {
       b.classList.toggle('on', i === rdIdx);
       b.setAttribute('aria-current', i === rdIdx ? 'true' : 'false');
     });
-    var lb = $('#rule-pane .rd-label'), ct = $('#rule-pane .rd-count');
-    if (lb) lb.textContent = sl[rdIdx].getAttribute('aria-label') || '';
+    var lb2 = $('#rule-pane .rd-label'), ct = $('#rule-pane .rd-count');
+    if (lb2) lb2.textContent = sl[rdIdx].getAttribute('aria-label') || '';
     if (ct) ct.textContent = (rdIdx + 1) + ' / ' + sl.length;
   }
 
@@ -1980,7 +2501,7 @@
     el.innerHTML = items.map(function (it, i) {
       return '<button role="tab" aria-controls="' + panelId + '" aria-selected="' + (i === 0) +
              '" tabindex="' + (i === 0 ? 0 : -1) + '" data-k="' + esc(it.id) + '">' +
-             (it.icon ? '<svg width="15" height="15" aria-hidden="true"><use href="#' +
+             (it.icon ? '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><use href="#' +
                         it.icon + '"/></svg>' : '') +
              esc(it.label) + '</button>';
     }).join('');
@@ -2271,10 +2792,11 @@
   /* =====================================================================
      VẼ LẠI PHẦN PHỤ THUỘC KẾT QUẢ
      ===================================================================== */
-  var cur = { bracket: null, team: null };
+  var cur = { bracket: null, team: null, award: null };
 
   function refreshResults() {
     if (cur.bracket) renderBracketPane(cur.bracket);
+    renderAwards();
     renderCourtBoard();
     if (typeof renderLive === 'function') renderLive(true);
   }
@@ -2362,40 +2884,6 @@
     if (pv) pv.addEventListener('click', function () { lsShow(lsIdx - 1); lsAuto(); });
     if (nx) nx.addEventListener('click', function () { lsShow(lsIdx + 1); lsAuto(); });
 
-    /* --- ba ảnh phần Văn hóa: bấm hoặc Enter để phóng to --- */
-    var shots = $('#pillar-shots');
-    if (shots) {
-      shots.addEventListener('click', function (e) {
-        var f = e.target.closest('.pshot');
-        if (f) { lastFocus = f; openShot(f.dataset.k); }
-      });
-      shots.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
-        var f = e.target.closest('.pshot');
-        if (!f) return;
-        e.preventDefault();
-        lastFocus = f;
-        openShot(f.dataset.k);
-      });
-    }
-    var lb = $('#lbox'), lbx = $('#lbox-x');
-    function closeLbox() {
-      if (!lb.classList.contains('on')) return;
-      lb.classList.remove('on');
-      lockBehind(adm.classList.contains('on') || proj.classList.contains('on'));
-      restoreFocus();
-    }
-    if (lb) {
-      lb.addEventListener('click', function (e) {
-        /* bấm ra ngoài khung ảnh là đóng */
-        if (e.target === lb) closeLbox();
-      });
-      if (lbx) lbx.addEventListener('click', closeLbox);
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeLbox();
-      });
-    }
-
     /* --- thẻ mở đầu chạy slide: bấm chấm để chuyển, rê chuột thì dừng --- */
     var card = $('.hero-card');
     if (card) {
@@ -2432,7 +2920,6 @@
 
     /* khóa phần trang phía sau để phím Tab không chạy ra ngoài lớp phủ */
     var behind = [$('main'), $('.foot'), $('.rail'), $('#totop'), $('#nowbar')].filter(Boolean);
-    lockShot = function (on) { lockBehind(on); };
     function lockBehind(on) {
       behind.forEach(function (el) {
         if (on) { el.setAttribute('inert', ''); el.setAttribute('aria-hidden', 'true'); }
@@ -2514,8 +3001,18 @@
 
     /* lật trang luật */
     $('#rule-pane').addEventListener('click', function (e) {
-      var b = e.target.closest('.rd-b');
-      if (b) { rdShow(rdIdx + Number(b.dataset.d)); return; }
+      /* Bấm thẳng vào trang: nửa phải sang trang sau, nửa trái quay lại.
+         Bỏ qua khi đang bấm vào bảng ví dụ (bảng đó cuộn ngang được) và khi
+         người đọc đang bôi đen chữ — hai thứ đó không phải ý muốn lật. */
+      var pg = e.target.closest('.rslide');
+      if (pg && !e.target.closest('.tblwrap')) {
+        var sel = window.getSelection && window.getSelection();
+        if (!(sel && String(sel).length > 1)) {
+          var r = pg.getBoundingClientRect();
+          rdShow(rdIdx + (e.clientX - r.left > r.width * 0.38 ? 1 : -1));
+          return;
+        }
+      }
       var d = e.target.closest('.rd-dots button');
       if (d) rdShow(Number(d.dataset.i));
     });
@@ -2658,7 +3155,6 @@
     renderMiniGame();
     renderQr();
     renderSport();
-    renderJump();
 
     /* Nút "Chi tiết từng trận": mở từng ô sân ra thành danh sách đủ các
        trận của sân đó, ngay tại chỗ. */
@@ -2681,10 +3177,17 @@
       if (!courtOpen) setCourtOpen(true);
     });
 
+    /* Nhãn lấy e.name chứ không e.short: "PB" và "CL" là chữ viết tắt nội bộ
+       của BTC, người đi xem không biết đó là Pickleball hay Cầu lông. Icon
+       dùng chung bảng với mục Giải thưởng để mỗi nội dung một hình riêng. */
     buildTabs('#bracket-tabs', D.events.map(function (e) {
-      return { id: e.id, label: e.short, icon: sportIcon(e.id) };
+      return { id: e.id, label: e.name, icon: AWARD_ICON[e.id] || sportIcon(e.id) };
     }), function (k) {
       cur.bracket = k; renderBracketPane(k); revealScan();
+    });
+
+    buildTabs('#award-tabs', awardItems(), function (k) {
+      cur.award = k; renderAwardPane(k); revealScan();
     });
 
     buildTabs('#rule-tabs', D.rules.groups.map(function (g) {

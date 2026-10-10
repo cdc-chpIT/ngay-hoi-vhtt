@@ -43,8 +43,8 @@ var VHTT_DATA = {
       name: 'Truyền thống',
       role: 'là nền tảng',
       /* đổi ảnh thì sửa đúng hai dòng này; focus là vị trí cắt */
-      photo: 'assets/img/truyen-thong.jpg',
-      focus: '50% 62%',
+      photo: 'assets/img/825280383_29193734396879583_2870068215736296640_n.jpg',
+      focus: '52% 50%',
       short: 'Chúng ta đứng trên nền móng nào',
       body: 'Những gì CHP đang có hôm nay không tự nhiên mà có. ' +
             'Trước khi nói về công nghệ và tương lai, hãy nhớ chúng ta đứng trên nền móng nào.'
@@ -54,7 +54,7 @@ var VHTT_DATA = {
       name: 'Tự lực',
       role: 'là mục tiêu',
       photo: 'assets/img/tu-luc.jpg',
-      focus: '46% 52%',
+      focus: '45% 44%',
       short: 'Tự quyết và chịu trách nhiệm đến cùng',
       body: 'Tự lực không phải là khẩu hiệu trên slide, mà là điều diễn ra hằng ngày ở công trường: ' +
             'tự quyết, tự xoay xở và chịu trách nhiệm đến cùng.'
@@ -63,8 +63,8 @@ var VHTT_DATA = {
       key: 'thichung',
       name: 'Thích ứng',
       role: 'là phương thức',
-      photo: 'assets/img/thich-ung.jpg',
-      focus: '40% 66%',
+      photo: 'assets/img/626282701_26421842687402115_6888782736098463247_n.jpg',
+      focus: '50% 54%',
       short: 'Học nhanh hơn tốc độ thay đổi',
       body: 'Thích ứng không phải là chạy theo công nghệ, mà là giữ được khả năng học nhanh hơn ' +
             'tốc độ thay đổi. AI là công cụ để người CHP làm chủ, không phải thứ thay thế con người.'
@@ -80,8 +80,8 @@ var VHTT_DATA = {
       pillar: 'truyenthong',
       name: 'Văn hóa truyền thống CHP',
       altTitle: 'Mười lăm năm một chữ TIN',
-      speaker: 'Đại diện Bộ phận Hành chính Tổng hợp',
-      speakerNote: 'BTC đang chốt người trình bày',
+      speaker: 'Lê Thị Ngọc, Nguyễn Thị Hồng Ngọc',
+      speakerRole: 'Bộ phận Hành chính Tổng hợp',
       minutes: 20,
       qa: 5,
       teaser: 'Hơn một thập kỷ đồng hành: HPEC 15 năm, CKJVN 11 năm. ' +
@@ -93,7 +93,7 @@ var VHTT_DATA = {
       pillar: 'tuluc',
       name: 'Văn hóa tự lực',
       altTitle: 'Tự lực – chuyện kể từ công trường Đại Ngãi',
-      speaker: 'Ô. Nguyễn Hậu Cần và Ô. Nguyễn Khắc Cường',
+      speaker: 'Nguyễn Hậu Cần, Nguyễn Khắc Cường',
       speakerRole: 'Bộ phận Quản lý dự án (PMD)',
       speakerNote: 'Vừa hoàn thành nhiệm vụ tại công trường cầu Đại Ngãi và về trình bày trực tiếp',
       minutes: 20,
@@ -106,7 +106,7 @@ var VHTT_DATA = {
       pillar: 'thichung',
       name: 'Văn hóa thích ứng: Thời đại AI',
       altTitle: 'Thích ứng để làm chủ: người CHP trong thời đại AI',
-      speaker: 'Ô. Nguyễn Trường Lâm',
+      speaker: 'Nguyễn Trường Lâm',
       speakerRole: 'Giám đốc Trung tâm Quản trị Dữ liệu (CDC)',
       minutes: 20,
       qa: 5,
@@ -294,9 +294,10 @@ var VHTT_DATA = {
       ],
       roundOrder: [
         ['cl-nam', 'VL'],
-        ['cl-mix', 'R1'],
+        ['cl-mix', 'TK'],
         ['cl-nam', 'VV'],
         ['cl-nam', 'TK'],
+        ['cl-mix', 'BK'],
         ['cl-nam', 'BK'],
         ['cl-nam', 'TB'],
         ['cl-mix', 'CK'],
@@ -426,24 +427,35 @@ var VHTT_DATA = {
       short: 'CL nam nữ',
       sport: 'cầu lông',
       venueId: 'cl',
-      format: 'r6diff',
-      teamCount: 6,
+      format: 'ko8',
+      teamCount: 8,
+      thirdPlace: false,
       targetScore: 21,
       durations: { mac_dinh: 15 },
       scoring: 'Đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
-      drawRule: 'Sáu đội đấu 3 trận vòng đầu. Hai đội thắng có hiệu số cao nhất ' +
-                'vào chung kết, đội thắng còn lại nhận hạng ba.',
+      drawRule: 'Tám đội vào thẳng tứ kết theo bảng ghép cặp của BTC.',
       status: 'ok',
+      /* CẦN BTC XÁC NHẬN: Trần Thị Xuyến đang đứng tên ở CẢ đội 3 lẫn đội 8
+         của cùng nội dung này. Nếu cả hai đội cùng thắng tứ kết thì bán kết
+         không xếp được, và bộ xếp lịch cũng phải tránh cho hai trận đó trùng
+         giờ. Trang vẫn dựng đúng theo bảng BTC gửi, nhưng đây là lỗi dữ liệu
+         thật, không phải lỗi hiển thị. */
+      statusNote: 'Trần Thị Xuyến đang có tên ở hai đội (đội 3 và đội 8); ' +
+                  'đội 7 chưa có bộ phận của Nguyễn Bảo Châu. BTC cần chốt lại.',
       teams: [
         { id: 1, p1: 'Lê Thị Ngọc', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
         { id: 2, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Sách Hưng', dept: 'FIN · PMD' },
         { id: 3, p1: 'Trần Thị Xuyến', p2: 'Nguyễn Thanh Bình', dept: 'FIN · TED' },
         { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Mai Xuân Hòa', dept: 'ADM · SRI' },
         { id: 5, p1: 'Trương Xuân Phương', p2: 'Trần Đức Thái', dept: 'CDC · TED' },
-        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Sơn Tùng', dept: 'HPTC · PMD' }
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Sơn Tùng', dept: 'HPTC · PMD' },
+        /* Hai đội BTC bổ sung ngày 10/10. Bộ phận của Nguyễn Bảo Châu chưa
+           có trong bảng nào nên để trống, KHÔNG đoán. */
+        { id: 7, p1: 'Phạm Trung Đức', p2: 'Nguyễn Bảo Châu' },
+        { id: 8, p1: 'Trần Thị Xuyến', p2: 'Ngô Trung Phương', dept: 'FIN · UHRI' }
       ],
       seeds: [
-        1, 2, 3, 4, 5, 6
+        1, 2, 3, 4, 5, 6, 7, 8
       ]
     }
   ],
@@ -522,6 +534,17 @@ var VHTT_DATA = {
       { rank: 2, label: 'Giải Nhì',  count: 1, note: 'Đội thua chung kết' },
       { rank: 3, label: 'Giải Ba',   count: 2, note: 'Hai đội thua bán kết đồng giải ba' }
     ],
+    /* ================== TIỀN THƯỞNG TỪNG HẠNG ==================
+       ĐỂ TRỐNG thì mục Giải thưởng hiện TÊN GIẢI (Giải nhất / Giải nhì /
+       Đồng giải ba) ở cột bên phải, KHÔNG hiện con số nào. Cơ cấu giải ở
+       dưới còn ghi "ở mức đề xuất", mà trang này ai có link cũng xem được,
+       nên không được đưa số chưa chốt lên.
+       BTC chốt rồi thì điền, ví dụ:
+         prize: { all: { 1: 2000000, 2: 1000000, 3: 500000 } }
+       Khoá 'all' áp cho mọi nội dung; muốn riêng từng nội dung thì dùng
+       đúng id của nó, ví dụ 'pb-nam', và nó sẽ đè lên 'all'.           */
+    prize: {},
+
     lines: [
       'Bốn nội dung đôi: mỗi nội dung 1 Nhất, 1 Nhì, 2 Ba — tổng 32 huy chương.',
       'Nhảy dây xếp hạng riêng nam và nữ.',
@@ -552,32 +575,32 @@ var VHTT_DATA = {
           detail: 'Bếp (vùng cấm vô lê) rộng 2,13 m mỗi bên lưới. Giao bóng chéo sân.'
         },
         blocks: [
-          { title: 'Giao bóng', items: [
+          { title: 'Giao bóng', art: 'pb-giao', items: [
               'Giao bóng dưới tay, điểm chạm bóng thấp hơn thắt lưng.',
               'Đứng sau vạch cuối sân, giao chéo sân.',
               'Bóng giao rơi vào bếp hoặc chạm vạch bếp là lỗi.',
               'Mỗi lần giao chỉ được 1 quả.',
               'Bóng chạm vạch biên, vạch cuối sân vẫn tính trong sân.' ] },
-          { title: 'Luật hai lần nảy', items: [
+          { title: 'Luật hai lần nảy', art: 'pb-hai-nay', items: [
               'Bóng giao sang: bên nhận phải để bóng nảy 1 lần rồi mới đánh.',
               'Bóng trả về: bên giao cũng phải để bóng nảy 1 lần.',
               'Từ quả thứ ba mới được vô lê (đánh bóng chưa nảy).' ] },
-          { title: 'Luật vùng bếp', items: [
+          { title: 'Luật vùng bếp', art: 'pb-bep', items: [
               'Không vô lê khi đứng trong bếp hoặc giẫm vạch bếp.',
               'Vô lê xong bị đà kéo vào bếp cũng là lỗi.',
               'Được vào bếp để đánh bóng đã nảy trong bếp.' ] },
-          { title: 'Mất bóng khi', items: [
+          { title: 'Mất bóng khi', art: 'pb-loi', items: [
               'Đánh ra ngoài sân.',
               'Bóng không qua lưới.',
               'Bóng nảy 2 lần bên sân mình.',
               'Phạm luật hai lần nảy hoặc luật vùng bếp.' ] },
-          { title: 'Tính điểm — vòng loại, vòng vớt, tứ kết (ăn điểm trực tiếp)', items: [
+          { title: 'Tính điểm — vòng loại, vòng vớt, tứ kết (ăn điểm trực tiếp)', art: 'pb-diem-tt', items: [
               'Thắng pha bóng nào được 1 điểm pha đó, dù đang giao hay nhận.',
               'Đội giao thua pha bóng thì đổi quyền giao.',
               'Điểm đội giao chẵn: giao từ ô phải. Lẻ: giao từ ô trái.',
               'Mỗi trận 1 hiệp, chạm 11 điểm và hơn đối thủ 2 điểm là thắng.',
               'Mỗi trận gói trong 10 phút.' ] },
-          { title: 'Tính điểm — bán kết và chung kết (theo lượt giao)', items: [
+          { title: 'Tính điểm — bán kết và chung kết (theo lượt giao)', art: 'pb-diem-lg', items: [
               'Chỉ đội đang giao bóng mới được ghi điểm.',
               'Đội nhận thắng pha bóng: không có điểm, chỉ giành lượt giao.',
               'Mỗi đội có 2 lượt giao (mỗi người 1 lượt); đội giao đầu trận chỉ có 1 lượt.',
@@ -616,13 +639,13 @@ var VHTT_DATA = {
           detail: 'Vạch giao cầu ngắn cách lưới 1,98 m. Giao cầu chéo sân.'
         },
         blocks: [
-          { title: 'Giao cầu', items: [
+          { title: 'Giao cầu', art: 'cl-giao', items: [
               'Giao cầu chéo sân, từ dưới lên, điểm chạm cầu thấp hơn 1,15 m.',
               'Hai chân chạm sân, không giẫm vạch khi giao.',
               'Điểm đội giao chẵn: giao từ ô phải. Lẻ: giao từ ô trái.',
               'Chỉ người đứng ô chéo được đỡ quả giao.',
               'Sau quả giao, hai người đánh tự do, không cần luân phiên.' ] },
-          { title: 'Tính điểm', items: [
+          { title: 'Tính điểm', art: 'cl-diem', items: [
               'Mỗi trận 1 hiệp 21 điểm, hơn đối thủ 2 điểm mới thắng.',
               'Hòa 29–29 thì ai chạm 30 trước là thắng.',
               'Mỗi trận gói trong 15 phút.',
@@ -630,7 +653,7 @@ var VHTT_DATA = {
               'Đội thắng pha cầu được giao quả tiếp theo.',
               'Đội đang giao ghi điểm: người giao đổi ô và giao tiếp.',
               'Đội nhận không đổi vị trí.' ] },
-          { title: 'Các lỗi thường gặp', items: [
+          { title: 'Các lỗi thường gặp', art: 'cl-loi', items: [
               'Cầu rơi ngoài sân (chạm vạch là trong sân).',
               'Cầu mắc lưới hoặc không qua lưới.',
               'Người hoặc vợt chạm lưới khi cầu còn trong cuộc.',
@@ -656,7 +679,7 @@ var VHTT_DATA = {
         label: 'Nhảy dây',
         accent: 'jr',
         blocks: [
-          { title: 'Cách thi', items: [
+          { title: 'Cách thi', art: 'jr-nhay', items: [
               'Mỗi người nhảy 1 lượt, 60 giây, tính từ hiệu lệnh trọng tài.',
               'Mỗi lần dây qua dưới hai chân trọn vẹn tính 1 lần.',
               'Vấp dây: dừng, không tính điểm nữa.',
@@ -682,8 +705,8 @@ var VHTT_DATA = {
     { q: 'Trận của tôi đánh mấy hiệp?',
       a: 'Tất cả các trận đánh 1 hiệp (BO1). Pickleball chạm 11 điểm, cầu lông chạm 21 điểm.' },
     { q: 'Thua một trận là bị loại luôn?',
-      a: 'Với các nội dung loại trực tiếp thì đúng. Riêng cầu lông đôi nam nữ, ba đội thắng ' +
-         'vòng đầu được xếp hạng theo hiệu số điểm.' },
+      a: 'Đúng. Cả bốn nội dung đôi đều loại trực tiếp: thua là dừng. Riêng pickleball ' +
+         'đôi nam và cầu lông đôi nam còn có nhánh thua ở vòng loại.' },
     { q: 'Kết quả trận đấu xem ở đâu?',
       a: 'Ngay trên trang này, mục Lịch thi đấu và Nhánh đấu. Thư ký sân cập nhật sau mỗi trận.' }
   ]

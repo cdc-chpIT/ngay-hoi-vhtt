@@ -612,9 +612,19 @@ main { padding-inline-start: var(--rail-w); }
    Trong nửa khổ thì các lưới con phải về một cột, không thì bẹp dí. */
 .duo { display: grid; gap: 0; }
 @media (min-width: 1040px) {
-  .duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .duo .mg { grid-template-columns: minmax(0, 1fr); }
+  .duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
   .duo > .section { padding-left: 0; padding-right: 0; }
+  /* Hai ô phải cao bằng nhau. Mặc định mỗi cột cao theo nội dung của nó nên
+     ô nào ít bước hơn sẽ hụt xuống; kéo cả chuỗi section > wrap > khung
+     cùng giãn thì đáy hai khung mới trùng nhau. */
+  .duo > .section { display: flex; flex-direction: column; }
+  /* Mục Mini game là .section:last-of-type trong .duo nên bị ăn
+     padding-bottom 56px thay vì 20px — hai cột cao bằng nhau mà đáy khung
+     lại lệch đúng 36px. Trả về bằng nhau. */
+  .duo > .section:last-of-type { padding-bottom: 20px; }
+  .duo > .section > .wrap { display: flex; flex-direction: column; flex: 1; }
+  .duo #mg-body { display: flex; flex-direction: column; flex: 1; }
+  .duo .qa-card { flex: 1; align-content: flex-start; }
   /* Mục thứ hai bình thường thụt lên 22px vì luật ".section + .section".
      Xếp cạnh nhau thì hai tiêu đề phải ngang nhau, nên trả lại cho bằng. */
   .duo > .section + .section { padding-top: 92px; }
@@ -802,6 +812,10 @@ main { padding-inline-start: var(--rail-w); }
 
 /* các sân trong cùng khu nằm sát nhau, chỉ cách bằng một vạch mảnh */
 .crt-grid { display: grid; gap: 3px; }
+/* Lúc mở "Chi tiết từng trận" mỗi sân có số trận khác nhau, mà ô lưới mặc
+   định kéo cao bằng nhau nên sân ít trận hở ra một mảng sân trống to đùng
+   trước thanh tiến độ. Mở ra thì để mỗi sân cao theo đúng nội dung. */
+.courts.open .crt-grid { align-items: start; }
 .crt-zone[data-sport="pb"] .crt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .crt-zone[data-sport="cl"] .crt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
@@ -839,12 +853,11 @@ main { padding-inline-start: var(--rail-w); }
   white-space: nowrap;      /* "PB 1" không được gãy thành hai dòng */
 }
 
-/* Ba tên class ở đây trùng với chỗ khác trong trang và bị đè ngược:
+/* Hai tên class ở đây trùng với chỗ khác trong trang và bị đè ngược:
    .live là khối "đang diễn ra" (một tấm thẻ có đệm 22px, viền, bóng đổ),
-   .win là danh sách người đạt giải (một lưới), .pl là viên thuốc trắng
-   trong danh sách người đăng ký. Cả ba đều nằm sau trong file nên thắng
-   nếu chỉ viết một tên class. Vì vậy mọi luật bên dưới đều có .court
-   đứng trước, và phần thừa phải xoá bằng tay.
+   .pl là viên thuốc trắng trong danh sách người đăng ký. Cả hai đều nằm
+   sau trong file nên thắng nếu chỉ viết một tên class. Vì vậy mọi luật
+   bên dưới đều có .court đứng trước, và phần thừa phải xoá bằng tay.
    Lỗi này chỉ lòi ra đúng lúc có sân đang đánh — tức là đúng ngày hội. */
 .court .crt-tag {
   display: inline-flex; align-items: center; gap: 5px; flex: none;
@@ -928,7 +941,13 @@ main { padding-inline-start: var(--rail-w); }
 /* --- danh sách đủ các trận của một sân, hiện khi bấm "Chi tiết từng
    trận". Vẫn là bảng tên trắng trên mặt sân như thẻ gọn, chỉ dồn mỗi đội
    vào một dòng để 44 trận không kéo trang dài vô tận.                 --- */
-.court .crt-all { position: relative; z-index: 1; display: grid; gap: 5px; }
+/* grid-auto-rows:1fr cho mọi ô trận trong cùng một sân cao bằng nhau,
+   lấy theo ô cao nhất. Không đặt số px cố định vì chiều cao đổi theo bề
+   ngang màn hình, và không cắt tên vì tên sai/mất chữ là hỏng việc thật. */
+.court .crt-all {
+  position: relative; z-index: 1;
+  display: grid; gap: 5px; grid-auto-rows: 1fr;
+}
 .court .crm {
   padding: 8px 10px; border-radius: var(--r-xs);
   background: #fff;
@@ -953,10 +972,15 @@ main { padding-inline-start: var(--rail-w); }
 }
 .court .crm-s { display: flex; align-items: baseline; gap: 8px; }
 .court .crm-s + .crm-s { margin-top: 3px; }
+/* Mỗi vận động viên một dòng, và mỗi bên luôn giữ chỗ đúng hai dòng — kể
+   cả khi chỗ đó mới là "Thắng VL 2". Nhờ vậy mọi ô trận cao bằng nhau,
+   hàng của các sân cạnh nhau thẳng hàng thay vì so le theo độ dài tên. */
 .court .crm-n {
   flex: 1; min-width: 0;
   font-size: .82rem; font-weight: 650; line-height: 1.35; color: var(--text);
+  min-height: 2.7em;
 }
+.court .crm-p { display: block; }
 .court .crm-s b {
   flex: none; min-width: 22px; text-align: right;
   font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums;
@@ -965,18 +989,6 @@ main { padding-inline-start: var(--rail-w); }
 .court .crm-s.win .crm-n, .court .crm-s.win b { color: var(--san); }
 
 /* --- nhảy dây, khối cuối mục Thể thao --- */
-.jump-block { margin-top: 26px; }
-.jb-h {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
-  margin-bottom: 8px;
-}
-.jb-h b {
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: 1.05rem; font-weight: 800; letter-spacing: .02em; color: var(--jr);
-}
-.jb-h span { font-size: .84rem; color: var(--muted); }
-.jb-rule { font-size: .92rem; color: var(--muted); margin-bottom: 16px; max-width: 70ch; }
-.jb-note { font-size: .86rem; color: var(--muted-2); margin-top: 10px; }
 
 @media (max-width: 999px) {
   .crt-zone[data-sport="pb"] .crt-grid,
@@ -1050,7 +1062,7 @@ main { padding-inline-start: var(--rail-w); }
   font-size: .93rem;
   padding: 1px 0;
 }
-.m .ln .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m .ln .nm { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .m .ln.pend .nm { color: var(--muted-2); font-style: italic; }
 .m .ln.win .nm { font-weight: 700; }
 .m .ln.win::after { content: '✓'; color: var(--pb); font-size: .82rem; font-weight: 800; }
@@ -1238,9 +1250,11 @@ main { padding-inline-start: var(--rail-w); }
   font-size: .83rem;
   font-weight: 600;
   line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* TÊN NGƯỜI KHÔNG BAO GIỜ ĐƯỢC CẮT. Trước đây cắt bằng ellipsis nên
+     "Nguyễn Thị Thanh Hoa" in ra thành "Nguyễn Thị Thanh …" — đứng giữa
+     nhà thi đấu mà tra tên mình thì đó là hỏng việc. Cho xuống dòng. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .bkm .sd.pend .nm {
@@ -1343,167 +1357,6 @@ main { padding-inline-start: var(--rail-w); }
 .dtab tr.q1 td { color: var(--gold); }
 .dtab .pend { color: var(--muted-2); font-style: italic; }
 
-/* ==================== BẢNG VINH DANH GIẢI THƯỞNG ==================== */
-.podium-shell {
-  margin-top: 28px;
-  background: #ffffff;
-  border: 1px solid var(--line, #e2e8f0);
-  border-radius: 18px;
-  padding: 20px 22px;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, .04), 0 1px 3px rgba(0, 0, 0, .02);
-}
-.podium-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 14px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, .06);
-}
-.podium-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-.podium-title svg {
-  color: #d97706;
-}
-.podium-sub {
-  font-size: .8rem;
-  font-weight: 600;
-  color: var(--muted-2, #64748b);
-  background: #f1f5f9;
-  padding: 3px 10px;
-  border-radius: 99px;
-}
-.podium-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-@media (max-width: 820px) {
-  .podium-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-}
-.pod-card {
-  border-radius: 14px;
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border: 1.5px solid transparent;
-  background: #f8fafc;
-  transition: transform .2s var(--ease), box-shadow .2s;
-  box-sizing: border-box;
-}
-.pod-card:hover {
-  transform: translateY(-2px);
-}
-.pod-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.pod-badge {
-  font-size: .78rem;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.pod-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .1));
-}
-.pod-body {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-height: 38px;
-  justify-content: center;
-}
-.pod-winner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: .95rem;
-  font-weight: 750;
-  color: #0f172a;
-  line-height: 1.35;
-}
-.pod-winner .pod-star {
-  font-size: .8rem;
-}
-.pod-winner.pend {
-  font-size: .86rem;
-  font-weight: 500;
-  color: #94a3b8;
-}
-.pod-winner.pend .pod-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #cbd5e1;
-  flex: none;
-}
-/* Giải Nhất - Gold */
-.pod-card.gold {
-  background: linear-gradient(180deg, #fffdf2 0%, #ffffff 100%);
-  border-color: #f59e0b;
-  box-shadow: 0 4px 16px -2px rgba(245, 158, 11, .18), 0 1px 3px rgba(0, 0, 0, .02);
-}
-.pod-card.gold .pod-badge {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #92400e;
-  border: 1px solid #fcd34d;
-}
-.pod-card.gold .pod-star {
-  color: #d97706;
-}
-.pod-card.gold.has-winner {
-  box-shadow: 0 8px 24px -2px rgba(245, 158, 11, .28);
-}
-/* Giải Nhì - Silver */
-.pod-card.silver {
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
-}
-.pod-card.silver .pod-badge {
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #e2e8f0;
-}
-.pod-card.silver .pod-star {
-  color: #64748b;
-}
-/* Đồng Giải Ba - Bronze */
-.pod-card.bronze {
-  background: linear-gradient(180deg, #fffbf7 0%, #ffffff 100%);
-  border-color: #fdba74;
-  box-shadow: 0 2px 10px rgba(234, 88, 12, .06);
-}
-.pod-card.bronze .pod-badge {
-  background: #ffedd5;
-  color: #9a3412;
-  border: 1px solid #fed7aa;
-}
-.pod-card.bronze .pod-star {
-  color: #ea580c;
-}
-
 /* ------------------------------ 13. ĐỘI & NGƯỜI ------------------------------ */
 .teams { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); }
 .team {
@@ -1533,7 +1386,7 @@ main { padding-inline-start: var(--rail-w); }
   font-size: .89rem;
 }
 .pl .i { font-size: .72rem; color: var(--muted-2); min-width: 18px; font-variant-numeric: tabular-nums; }
-.pl .n { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl .n { flex: 1 1 auto; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .pl .d {
   font-size: .7rem; color: var(--muted-2);
   border: 1px solid var(--line); border-radius: 5px; padding: 0 5px;
@@ -1542,27 +1395,14 @@ main { padding-inline-start: var(--rail-w); }
 }
 
 /* nhảy dây */
-.heat { margin-bottom: 14px; }
-.heat .hh { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: .9rem; }
-.heat .hh b { font-variant-numeric: tabular-nums; color: var(--jr); }
-.bibs { display: flex; flex-wrap: wrap; gap: 7px; }
-.bib {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 11px; border-radius: 9px;
-  border: 1px solid #f2cdd6; background: #fdeef1;
-  font-size: .87rem;
-}
-.bib i {
-  font-style: normal; font-size: .7rem; font-weight: 800; color: var(--jr);
-  font-variant-numeric: tabular-nums;
-}
 
 /* ------------------------------ 14. LUẬT ------------------------------ */
-.rule-cols { display: grid; gap: 13px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
-
-/* ---- Luật trình bày thành slide ----
-   Các trang xếp chồng trong cùng ô lưới nên khung luôn cao bằng trang cao
-   nhất; lật qua lại chỉ đổi mờ/rõ, không co giãn chiều cao. */
+/* ---- Luật trình bày thành SÁCH LẬT TRANG ----
+   Các trang xếp chồng đúng một ô lưới nên khung luôn cao bằng trang cao
+   nhất, lật qua lại không co giãn. Trang trước nằm TRÊN trang sau (z-index
+   đặt ngược theo thứ tự), nên lật là trang đang xem quay quanh mép trái đi
+   mất và lộ ngay trang kế bên dưới — đúng như lật sách thật, không có
+   trang nào phải bay vào. */
 .rdeck { position: relative; }
 .rd-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
 .rd-head .rd-label { font-family: var(--ff-d); font-stretch: 112%; font-size: 1rem; font-weight: 800; }
@@ -1571,31 +1411,115 @@ main { padding-inline-start: var(--rail-w); }
   font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums;
 }
 
-/* Sơ đồ sân vẽ theo tỉ lệ 420x200, trải hết khổ thì cao gần 500px và kéo
-   cả khung slide cao theo. Hãm bề ngang lại là đủ nhìn. */
-.rdeck .diag { max-width: 620px; margin: 0 auto; }
-
-.rdeck-track { display: grid; align-items: start; }
-.rslide {
-  grid-area: 1 / 1; min-width: 0;
-  opacity: 0; visibility: hidden; transform: translateY(10px);
-  transition: opacity .35s var(--ease), transform .35s var(--ease), visibility 0s linear .35s;
+/* Khung sách cao đúng bằng TRANG ĐANG XEM, không cần JavaScript đo đạc.
+   Trang chưa xem nằm absolute nên không chiếm chỗ; chỉ trang .on nằm trong
+   dòng chảy và quyết định chiều cao khung. Bản cũ đặt height cố định bằng
+   JS: phép đo hụt chừng 31px, và cứ đổi bề ngang cửa sổ là con số cũ thành
+   sai ngay — trang luật tràn xuống ĐÈ LÊN mục Lịch. */
+.rdeck-track {
+  position: relative;
+  perspective: 2200px;
+  /* CẮT ĐÚNG MÉP KHUNG. Khung chỉ cao bằng trang đang xem, mà các trang
+     CHƯA LẬT vẫn nằm nguyên khổ ở dưới — trang nào dài hơn là thò ra ngoài
+     và đè lên mục Lịch bên dưới. Đây chính là lỗi "đè lên nhau". Cắt ở đây
+     thì dù trang sau dài tới đâu cũng không lòi ra được. */
+  overflow: hidden;
 }
-.rslide.on {
-  opacity: 1; visibility: visible; transform: none;
-  transition: opacity .35s var(--ease), transform .35s var(--ease), visibility 0s;
+
+.rslide {
+  position: absolute; top: 0; left: 0; right: 0;
+  min-width: 0;
+  display: grid; gap: 18px; align-content: start;
+  padding: 20px 22px 40px;
+  border: 1px solid var(--line);
+  /* mép trái vuông như chỗ đóng gáy, mép ngoài bo tròn */
+  border-radius: 4px 16px 16px 4px;
+  background-color: var(--panel);
+  /* vệt tối sát gáy cho ra cảm giác giấy cong vào trong */
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, 0) 26px);
+  box-shadow: 0 16px 32px -26px rgba(0, 0, 0, .5);
+  transform-origin: left center;
+  /* quay quá 90° là nhìn thấy mặt sau chữ bị lộn ngược — ẩn hẳn đi */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform .62s var(--e-expo), opacity .42s var(--ease);
+}
+/* trang đang xem nằm trong dòng chảy — nó là cái quyết định chiều cao khung */
+.rslide.on { position: relative; }
+/* trang đã lật: quay khuất quanh gáy. Không đụng tới chiều cao nên khung
+   đứng yên, chỉ transform và opacity nên chạy trên lớp hợp thành. */
+.rslide.turned { transform: rotateY(-124deg); opacity: 0; pointer-events: none; }
+
+/* Trang là chỗ bấm, không phải nút mũi tên: nửa phải sang trang, nửa trái
+   quay lại. Góc dưới bên phải gấp lên khi rê chuột để thấy ngay là bấm được. */
+.rslide { cursor: pointer; }
+/* bóng đổ chạy theo cú lật: giấy nghiêng đi thì mặt giấy tối dần từ gáy ra */
+.rslide::before {
+  content: ''; position: absolute; inset: 0; z-index: 3;
+  border-radius: inherit; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .34), rgba(0, 0, 0, .04) 58%, rgba(0, 0, 0, 0));
+  opacity: 0;
+  transition: opacity .62s var(--e-expo);
+}
+.rslide.turned::before { opacity: 1; }
+/* mép giấy gấp ở góc ngoài */
+.rslide::after {
+  content: ''; position: absolute; right: 0; bottom: 0; z-index: 2;
+  width: 24px; height: 24px; border-radius: 0 0 16px 0; pointer-events: none;
+  background: linear-gradient(315deg, var(--panel-2) 0 46%, rgba(0, 0, 0, .16) 49%, rgba(0, 0, 0, 0) 52%);
+  transition: width .3s var(--ease), height .3s var(--ease);
+}
+.rslide:hover::after { width: 48px; height: 48px; }
+
+/* Mỗi trang HAI ô nội dung đứng cạnh nhau, nên mỗi trang có hai hình.
+   Trang lẻ (.solo) chỉ có một ô: ô đó tự tách hình trái, chữ phải để
+   không phình hình to gấp đôi các trang khác. */
+@media (min-width: 880px) {
+  .rslide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; }
+  .rslide.solo { grid-template-columns: minmax(0, 1fr); }
+  .rslide.solo .fp-it { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+}
+.fp-it { min-width: 0; display: grid; gap: 14px; align-content: start; }
+.fp-art { min-width: 0; align-self: start; }
+.fp-art svg { display: block; width: 100%; height: auto; }
+.fp-txt { min-width: 0; }
+
+/* "Mẹo nhớ" chạy suốt chân trang cuối, không chiếm riêng một trang */
+.fp-tipbar {
+  grid-column: 1 / -1;
+  margin: 2px 0 0; padding-top: 14px;
+  border-top: 1px dashed var(--line-2);
+  font-size: .9rem; color: var(--muted); line-height: 1.6;
+}
+.fp-tipbar b {
+  display: block; margin-bottom: 3px;
+  font-family: var(--ff-d); font-stretch: 112%;
+  font-size: .72rem; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--accent, var(--ink));
+}
+
+.fp-txt h4 { font-size: 1rem; margin-bottom: 11px; }
+.fp-txt ul { display: flex; flex-direction: column; gap: 7px; }
+.fp-txt li { display: flex; gap: 9px; font-size: .9rem; color: var(--muted); line-height: 1.55; }
+.fp-txt li::before {
+  content: ''; flex: none; width: 6px; height: 6px; border-radius: 2px;
+  margin-top: .52em; background: var(--accent); opacity: .7;
+}
+.fp-tip { font-size: .93rem; color: var(--muted); line-height: 1.62; max-width: 70ch; }
+
+/* số trang ở góc dưới, như sách */
+.fp-no {
+  /* trên cả mép giấy gấp, nếu không rê chuột vào là số trang bị khuất */
+  position: absolute; right: 18px; bottom: 13px; z-index: 4;
+  font-family: var(--ff-d); font-stretch: 112%;
+  font-size: .78rem; font-weight: 800; color: var(--line-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .rdeck-nav { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
-.rd-b {
-  width: 38px; height: 38px; flex: none;
-  display: grid; place-items: center;
-  border-radius: 50%; border: 1px solid var(--line-2);
-  background: var(--panel); color: var(--text);
-  transition: background .2s, border-color .2s, transform .2s var(--ease);
-}
-.rd-b:hover { background: var(--panel-2); transform: translateY(-1px); }
-.rd-dots { display: flex; gap: 6px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+.rdeck-nav { flex-direction: column; gap: 9px; }
+.rd-hint { margin: 0; font-size: .78rem; color: var(--muted-2); text-align: center; }
+.rd-dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .rd-dots button {
   width: 8px; height: 8px; padding: 0; border-radius: 50%;
   background: var(--line-2);
@@ -1605,17 +1529,18 @@ main { padding-inline-start: var(--rail-w); }
 .rd-dots button.on { width: 26px; border-radius: 999px; background: var(--accent, var(--ink)); }
 
 @media (max-width: 620px) {
-  .rd-b { width: 34px; height: 34px; }
   .rd-head .rd-label { font-size: .92rem; }
+  .rslide::after { width: 20px; height: 20px; }
+  .rslide { padding: 16px 15px 36px; gap: 14px; }
 }
-.rblock { padding: 16px 17px; border-radius: var(--r); border: 1px solid var(--line); background: var(--panel); }
-.rblock h4 { font-size: .95rem; margin-bottom: 10px; }
-.rblock ul { display: flex; flex-direction: column; gap: 7px; }
-.rblock li { display: flex; gap: 9px; font-size: .9rem; color: var(--muted); line-height: 1.55; }
-.rblock li::before {
-  content: ''; flex: none; width: 6px; height: 6px; border-radius: 2px;
-  margin-top: .52em; background: var(--accent); opacity: .65;
+
+@media (prefers-reduced-motion: reduce) {
+  /* Bỏ cú lật nhưng PHẢI giấu hẳn trang đã lật: trang trước có z-index cao
+     hơn trang sau, không giấu thì nó nằm đè lên trang đang xem. */
+  .rdeck-track, .rslide, .rslide::before, .rslide::after { transition: none !important; }
+  .rslide.turned { transform: none !important; visibility: hidden; }
 }
+
 [data-accent="pb"] { --accent: var(--pb); }
 [data-accent="cl"] { --accent: var(--cl); }
 [data-accent="jr"] { --accent: var(--jr); }
@@ -1742,7 +1667,7 @@ summary { list-style: none; }
 .arow .sl + .sl { margin-top: 5px; }
 .arow .sl b {
   min-width: 0; font-size: .84rem; font-weight: 600;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  white-space: normal; overflow-wrap: anywhere; line-height: 1.35;
 }
 .arow input {
   width: 52px; padding: 9px 4px; text-align: center;
@@ -1944,73 +1869,6 @@ summary { list-style: none; }
 .preview-note .btn { margin-left: auto; }
 
 /* ============================================================
-   24. MINI GAME
-   ============================================================ */
-.mg { display: grid; gap: 14px; }
-.mg { grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 900px) { .mg { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
-
-/* --- ô giải thưởng --- */
-.prize { border-color: #e6d4a8; background: linear-gradient(170deg, var(--gold-s), var(--panel) 46%); }
-.prize-top { display: flex; gap: 14px; align-items: center; }
-.prize-top .tro { font-size: 2rem; line-height: 1; flex: none; }
-.prize-top h3 { font-size: 1.05rem; margin-bottom: 2px; }
-.prize-rate { font-size: .95rem; color: var(--muted); }
-.prize-rate b {
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: 1.15rem; font-weight: 800; color: var(--gold);
-}
-
-.prize-list { margin-top: 18px; padding-top: 16px; border-top: 1px solid #e6d4a8; }
-.prize-h {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-  margin-bottom: 12px;
-}
-.prize-h b {
-  font-size: .72rem; font-weight: 800; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--muted);
-}
-.prize-h .chip { margin-left: auto; }
-.win-empty { color: var(--muted); font-size: .9rem; }
-
-.win { display: grid; gap: 7px; counter-reset: w; }
-.win li {
-  counter-increment: w;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
-  padding: 11px 14px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--line);
-  background: var(--panel);
-  font-size: .92rem;
-}
-.win li::before {
-  content: counter(w);
-  width: 24px; height: 24px; border-radius: 50%; flex: none;
-  display: grid; place-items: center;
-  background: var(--panel-2); color: var(--muted);
-  font-size: .74rem; font-weight: 800;
-}
-.win li:nth-child(1)::before { background: var(--gold); color: #fff; }
-.win li:nth-child(2)::before { background: #c4ccd6; color: #39414c; }
-.win li:nth-child(3)::before { background: #d9a583; color: #4a2b17; }
-.win .wn { font-weight: 650; }
-.win .wd {
-  font-size: .72rem; font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--muted-2);
-}
-.win .wc { font-size: .84rem; color: var(--muted); }
-.win .wm {
-  margin-left: auto;
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-weight: 800; color: var(--brand);
-  font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 520px) {
-  .win .wm { margin-left: 0; }
-}
-
-/* ============================================================
    26. VIỀN TRANG TRÍ GIỮA CÁC MỤC
    ============================================================ */
 .section + .section::before {
@@ -2135,9 +1993,9 @@ summary { list-style: none; }
   .section { padding: 16px 0; break-inside: avoid; }
   .sec-head h2 { font-size: 1.5rem; }
 
-  .card, .m, .bkm, .team, .pl, .rblock,
-  .court, .pod, .awc, .gen .it, .bib, .note, .tip,
-  .live, .lc, .pw, .ev, .prize, .win li {
+  .card, .m, .bkm, .team, .pl, .rslide,
+  .court, .pod, .awc, .gen .it, .note, .tip,
+  .live, .lc, .pw, .ev {
     background: #fff !important;
     border-color: var(--line) !important;
     box-shadow: none !important;
@@ -2159,7 +2017,7 @@ summary { list-style: none; }
   .court .crt-bar { background: var(--panel-2) !important; }
   .court .crt-bar i { background: var(--muted-2) !important; }
 
-  .m-group, .heat, .teams, .plist, .people { break-inside: avoid; }
+  .m-group, .teams, .plist, .people { break-inside: avoid; }
   .reveal { opacity: 1 !important; transform: none !important; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .8em; color: var(--muted-2); }
 }
@@ -2275,7 +2133,7 @@ summary { list-style: none; }
    Khung đã trải hết màn hình, nhưng một dòng chữ dài 1800px thì
    mắt không bắt được đầu dòng tiếp theo. Các khối chữ dài phải tự hãm lại.
    ============================================================ */
-.ag-b p, .faq p, .faq .a, .rblock li, .card > p {
+.ag-b p, .faq p, .faq .a, .fp-txt li, .fp-tip, .card > p {
   max-width: 78ch;
 }
 .sec-head p { max-width: 72ch; }
@@ -2379,20 +2237,39 @@ summary { list-style: none; }
   margin: 0 calc(var(--gut) * -1);
   padding: 2px var(--gut) 86px;
   -webkit-overflow-scrolling: touch;
-  /* Đường chân trời thành phố chạy phía sau: một mảng trời nhạt dần xuống
-     và một dải nhà vẽ bằng SVG nhúng thẳng vào CSS — không thêm tấm ảnh
-     nào, vì phần lớn người xem mở bằng 4G ngay tại nhà thi đấu.
-     Hình lặp theo chiều ngang nên dài bao nhiêu cũng đủ. Nhà và cần cẩu
-     để màu rất nhạt, chỉ là nền, không được tranh với chữ trên thẻ. */
+  /* ĐOÀN TÀU CHẠY PHÍA SAU DẢI LỊCH.
+     Cả mục này vốn đã là ẩn dụ tuyến tàu — đường ray màu theo buổi, chấm
+     ga, "đang dừng ở ga". Nền cũ là đường chân trời thành phố, giờ thay
+     bằng đoàn tàu chạy thật trên ray.
+
+     KHÔNG DÙNG FILE GIF: GIF 256 màu viền sẽ răng cưa, không co giãn theo
+     màn, và phần lớn người xem mở bằng 4G ngay tại nhà thi đấu. Đây là
+     hai hoạ tiết SVG nhúng thẳng vào CSS, lặp ngang nên dài bao nhiêu
+     cũng đủ, chỉ dịch background-position nên chạy trên lớp hợp thành.
+
+     Ngoại lệ có chủ ý so với luật "mỗi hiệu ứng chạy một lần rồi đứng
+     yên": đoàn tàu phải chạy liên tục mới ra đoàn tàu. Bù lại màu rất
+     nhạt để không tranh với chữ, và tắt hẳn khi người dùng xin giảm
+     chuyển động. */
   background-image:
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 56'><rect x='4' y='10' width='140' height='30' rx='5' fill='%23b4c4d4'/><rect x='8' y='5' width='132' height='7' rx='3.5' fill='%239bafc2'/><rect x='16' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='48' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='80' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='112' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='150' y='26' width='12' height='5' rx='2' fill='%239bafc2'/><circle cx='32' cy='45' r='7' fill='%239bafc2'/><circle cx='32' cy='45' r='2.6' fill='%23e8eef4'/><circle cx='116' cy='45' r='7' fill='%239bafc2'/><circle cx='116' cy='45' r='2.6' fill='%23e8eef4'/><rect x='154' y='10' width='140' height='30' rx='5' fill='%23b4c4d4'/><rect x='158' y='5' width='132' height='7' rx='3.5' fill='%239bafc2'/><rect x='166' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='198' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='230' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='262' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='300' y='26' width='12' height='5' rx='2' fill='%239bafc2'/><circle cx='182' cy='45' r='7' fill='%239bafc2'/><circle cx='182' cy='45' r='2.6' fill='%23e8eef4'/><circle cx='266' cy='45' r='7' fill='%239bafc2'/><circle cx='266' cy='45' r='2.6' fill='%23e8eef4'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 16'><rect x='6' y='3' width='6' height='10' rx='1.5' fill='%23c3cedb'/><rect x='26' y='3' width='6' height='10' rx='1.5' fill='%23c3cedb'/><rect x='0' y='0' width='40' height='3.4' fill='%239bafc2'/><rect x='0' y='13' width='40' height='2.4' fill='%23c3cedb'/></svg>"),
     linear-gradient(180deg, rgba(144, 182, 212, .05) 0%,
-      rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .15) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 120' preserveAspectRatio='none'%3E%3Cpath fill='%23b4c4d4' d='M0 120V58H34V34H60V64H82V42H112V28H130V56H156V38H176V66H210V30H226V50H248V62H274V36H304V44H322V60H350V32H372V54H398V40H418V64H442V26H468V48H500V58H520V38H548V66H572V44H602V58H640V120Z'/%3E%3Cg stroke='%239bafc2' stroke-width='4.2' fill='none' stroke-linecap='round'%3E%3Cpath d='M143 30V8M114 12H186M168 12V25'/%3E%3Cpath d='M336 44V22M309 26H379M358 26V38'/%3E%3C/g%3E%3Cg fill='%23a3b5c6'%3E%3Crect x='66' y='60' width='4' height='6'/%3E%3Crect x='90' y='46' width='4' height='6'/%3E%3Crect x='232' y='42' width='4' height='6'/%3E%3Crect x='282' y='56' width='4' height='6'/%3E%3Crect x='404' y='40' width='4' height='6'/%3E%3Crect x='528' y='44' width='4' height='6'/%3E%3Crect x='580' y='58' width='4' height='6'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: no-repeat, repeat-x;
-  background-size: 100% 100%, 640px 76px;
-  background-position: 0 0, 0 calc(100% - 10px);
+      rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .16) 100%);
+  background-repeat: repeat-x, repeat-x, no-repeat;
+  background-size: 300px 56px, 40px 16px, 100% 100%;
+  background-position: 0 calc(100% - 23px), 0 calc(100% - 12px), 0 0;
+  animation: chayTau 15s linear infinite;
 }
-/* thanh cuộn mảnh, nằm dưới đường chân trời */
+@keyframes chayTau {
+  from { background-position: 0 calc(100% - 23px), 0 calc(100% - 12px), 0 0; }
+  to   { background-position: -300px calc(100% - 23px), 0 calc(100% - 12px), 0 0; }
+}
+@keyframes chayTauNho {
+  from { background-position: 0 calc(100% - 19px), 0 calc(100% - 10px), 0 0; }
+  to   { background-position: -236px calc(100% - 19px), 0 calc(100% - 10px), 0 0; }
+}
+/* thanh cuộn mảnh, nằm dưới đường ray */
 .tl-scroll::-webkit-scrollbar { height: 8px; }
 .tl-scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 999px; }
 .tl-scroll.drag { cursor: grabbing; scroll-behavior: auto; }
@@ -2416,6 +2293,17 @@ summary { list-style: none; }
 .tl-part[data-part="evening"]   { --bu: var(--gold); }
 .tl-part:first-of-type { padding-left: 0; }
 .tl-part:last-of-type { padding-right: 0; }
+/* HAI BUỔI PHẢI RỜI NHAU. Trước đây các buổi dính liền nên ray xanh của
+   buổi sáng nối thẳng vào ray cam của buổi trưa, nhìn ra một tuyến duy
+   nhất đổi màu giữa chừng. Giờ chừa khoảng trống và có vạch đứt ngăn,
+   đúng kiểu hai tuyến khác nhau. */
+.tl-part + .tl-part { margin-left: 46px; }
+.tlp-h { position: relative; }
+.tl-part + .tl-part > .tlp-h::before {
+  content: ''; position: absolute; left: -24px; top: 4px;
+  width: 2px; height: 96px;
+  background: repeating-linear-gradient(180deg, var(--line-2) 0 5px, transparent 5px 11px);
+}
 .tl-part::before, .tl-part::after {
   content: ''; position: absolute; z-index: 0;
   top: 56px; height: 6px; border-radius: 999px;
@@ -2503,13 +2391,8 @@ summary { list-style: none; }
   100% { opacity: 0;  transform: scale(2.2); }
 }
 
-.tl-hint {
-  margin-top: 4px;
-  font-size: .78rem; color: var(--muted-2);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .tl-scroll { scroll-behavior: auto; }
+  .tl-scroll { scroll-behavior: auto; animation: none !important; }
   .tl-part::after { transition: none !important; }
   .mt-dot, .mt-st.now .mt-dot { transition: none !important; }
   .mt-st.now .mt-dot::after { animation: none !important; display: none; }
@@ -2547,13 +2430,23 @@ summary { list-style: none; }
 
 @media (max-width: 620px) {
   .tl-part { padding: 0 8px; }
+  .tl-part + .tl-part { margin-left: 32px; }
+  .tl-part + .tl-part > .tlp-h::before { left: -17px; height: 88px; }
   .mt-st { width: 150px; padding-right: 10px; }
   .mt-when b { font-size: .94rem; }
   .mt-st h3 { font-size: .9rem; }
   .tlp-in { padding: 3px 11px; }
   .tlp-in > b { font-size: .66rem; letter-spacing: .1em; }
   .tlp-in > span { font-size: .67rem; }
-  .tl-scroll { padding-bottom: 66px; background-size: 100% 100%, 480px 56px; }
+  /* Toa nhỏ lại ở màn hẹp, nên quãng chạy của một vòng cũng phải đổi
+     theo — vẫn dịch 300px mà toa chỉ rộng 236px thì mỗi vòng tàu giật
+     một cái. */
+  .tl-scroll {
+    padding-bottom: 72px;
+    background-size: 236px 44px, 34px 14px, 100% 100%;
+    background-position: 0 calc(100% - 19px), 0 calc(100% - 10px), 0 0;
+    animation-name: chayTauNho;
+  }
   .ag-b p { font-size: .78rem; -webkit-line-clamp: 3; }
 }
 
@@ -2793,9 +2686,16 @@ summary { list-style: none; }
    Bấm vào ảnh nào thì mở ô phóng to xem chi tiết.
    ============================================================ */
 .pshow {
-  display: flex; align-items: center; justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
   padding: 6px 0 20px;
 }
+
+/* Ba thẻ thẳng hàng, bằng nhau, không nghiêng không chồng lên nhau.
+   Ảnh để nguyên màu thật: không làm mờ, không hạ sáng — ba ảnh giờ đều
+   là ảnh chính chứ không còn ảnh phụ như kiểu xếp album trước đây. */
 .pshot {
   position: relative;
   min-width: 0; margin: 0;
@@ -2803,107 +2703,78 @@ summary { list-style: none; }
   overflow: hidden;
   border: 1px solid var(--line);
   background: var(--panel-2);
-  cursor: zoom-in;
-  transition: flex-basis .55s var(--ease), transform .55s var(--ease), box-shadow var(--t);
+  box-shadow: 0 14px 34px -24px rgba(0, 0, 0, .4);
+  transition: box-shadow var(--t), transform var(--t);
+}
+.pshot:hover { transform: translateY(-3px); box-shadow: 0 20px 44px -24px rgba(0, 0, 0, .45); }
+
+/* bài ĐANG trình bày: viền nhấn. Dùng .now chứ không dùng .on — .on chỉ
+   đánh dấu thẻ được chọn, lúc chưa tới giờ mà đã viền xanh thì người xem
+   tưởng bài đó đang diễn ra. */
+.pshot.now {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-s), 0 16px 38px -24px rgba(0, 0, 0, .42);
 }
 
-/* Xếp kiểu album: ảnh đang trình bày nằm giữa và nổi lên trên,
-   hai ảnh kia nghiêng sang hai bên, luồn một phần xuống dưới. */
-.pshot[data-pos="mid"] {
-  order: 2; flex: 0 0 40%; z-index: 3;
-  box-shadow: 0 22px 50px -24px rgba(0, 0, 0, .45);
-}
-.pshot[data-pos="left"] {
-  order: 1; flex: 0 0 31%; z-index: 1;
-  transform: rotate(-3deg) translateX(8%) scale(.93);
-  box-shadow: 0 14px 34px -22px rgba(0, 0, 0, .4);
-}
-.pshot[data-pos="right"] {
-  order: 3; flex: 0 0 31%; z-index: 1;
-  transform: rotate(3deg) translateX(-8%) scale(.93);
-  box-shadow: 0 14px 34px -22px rgba(0, 0, 0, .4);
-}
-.pshot[data-pos="mid"]:hover   { transform: translateY(-4px); }
-.pshot[data-pos="left"]:hover  { transform: rotate(-3deg) translateX(8%) scale(.97); z-index: 4; }
-.pshot[data-pos="right"]:hover { transform: rotate(3deg) translateX(-8%) scale(.97); z-index: 4; }
-.pshot:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; z-index: 5; }
-
-/* Hai ảnh hai bên là ảnh phụ nên làm mờ nhẹ, ảnh đang trình bày ở giữa
-   giữ nguyên độ nét. Rê chuột vào thì ảnh phụ nét lại để xem được. */
-.pshot[data-pos="left"] .pshot-img > *,
-.pshot[data-pos="right"] .pshot-img > * {
-  filter: blur(2px) saturate(.85) brightness(.88);
-  transition: filter .5s var(--ease);
-}
-.pshot[data-pos="left"]:hover .pshot-img > *,
-.pshot[data-pos="right"]:hover .pshot-img > *,
-.pshot[data-pos="left"]:focus-visible .pshot-img > *,
-.pshot[data-pos="right"]:focus-visible .pshot-img > * { filter: none; }
-
-/* Dải ảnh nằm ngang: cao cố định cho thấp xuống, bề ngang trải hết khổ.
-   Chốt chiều cao thay vì tỉ lệ, nếu không ảnh càng rộng càng cao theo. */
-.pshot-img { height: 184px; }
-.pshot[data-pos="mid"] .pshot-img { height: 232px; }
+/* Ảnh gốc tỉ lệ ~1.72, nên khung phải cao hơn mức đó mới cắt bớt trần và
+   sàn; để bẹt hơn thì object-fit chỉ cắt hai bên, giữ trọn chiều cao và
+   mặt người hoá bé tí. 397/248 = 1.60 < 1.72 nên cắt trên dưới. */
+.pshot-img { height: 248px; }
 .pshot-img svg, .pshot-img img {
   width: 100%; height: 100%; display: block; object-fit: cover;
 }
 
-/* --- lớp chữ đè lên ảnh --- */
-/* Chữ đè lên ảnh: thay vì phủ đen cả mảng, làm nhoè đúng phần ảnh nằm
-   dưới chữ rồi cho vết nhoè tan dần lên trên. Ảnh vẫn nhìn rõ mà chữ
-   không còn phải đọ với chi tiết phía sau. */
+/* --- lớp chữ đè lên ảnh ---
+   Chữ trắng trên ảnh nên phải có nền che, nhưng chỉ che đúng dải dưới
+   cùng để phần ảnh còn lại giữ nguyên độ sáng. */
 .pshot figcaption {
   position: absolute; inset: auto 0 0 0;
   isolation: isolate;
-  padding: 15px 17px 16px;
+  padding: 14px 16px 15px;
   color: #fff;
 }
 .pshot figcaption::before {
-  content: ''; position: absolute; inset: -46px 0 0; z-index: -1;
-  backdrop-filter: blur(13px) saturate(.9);
-  -webkit-backdrop-filter: blur(13px) saturate(.9);
-  -webkit-mask-image: linear-gradient(to top, #000 0 56%, transparent 100%);
-  mask-image: linear-gradient(to top, #000 0 56%, transparent 100%);
+  content: ''; position: absolute; inset: -30px 0 0; z-index: -1;
+  backdrop-filter: blur(10px) saturate(.95);
+  -webkit-backdrop-filter: blur(10px) saturate(.95);
+  -webkit-mask-image: linear-gradient(to top, #000 0 62%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 0 62%, transparent 100%);
+  /* trình duyệt không có backdrop-filter thì chỉ còn dải này, nên một mình
+     nó cũng phải đủ tối để chữ trắng đọc được */
+  /* Đo bằng tools/contrast.py: chữ trắng đặc cần lớp phủ từ .54 trở lên mới
+     đạt 4.5:1 trên vùng ảnh sáng nhất. Các mốc dưới đây cho .58 ngay tại
+     dòng "Bài N" — dòng cao nhất, ít được che nhất. */
   background: linear-gradient(180deg,
-    rgba(18, 16, 14, 0) 0%,
-    rgba(18, 16, 14, .42) 42%,
-    rgba(18, 16, 14, .86) 100%);
+    rgba(16, 14, 12, 0) 0%,
+    rgba(16, 14, 12, .42) 18%,
+    rgba(16, 14, 12, .68) 40%,
+    rgba(16, 14, 12, .90) 100%);
 }
+
+/* nhãn "Bài 1" */
+.pshot-role {
+  display: block; margin-bottom: 4px;
+  font-size: .68rem; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: #fff;
+}
+/* tên bài: giữ chữ thường hoa đầu câu — viết hoa toàn phần thì dấu chồng
+   của Ế, Ứ nhô lên khỏi dòng và dễ bị cắt */
 .pshot figcaption b {
   display: block;
   font-family: var(--ff-d); font-stretch: 118%;
-  font-size: clamp(1rem, 1.9vw, 1.5rem); font-weight: 800;
-  line-height: 1.12; color: #fff;
+  font-size: clamp(1rem, 1.7vw, 1.32rem); font-weight: 800;
+  line-height: 1.18; color: #fff;
 }
-.pshot-role {
-  display: block; margin-top: 3px;
-  font-size: .68rem; font-weight: 800; letter-spacing: .14em;
-  text-transform: uppercase; color: rgba(255, 255, 255, .78);
+.pshot-sp {
+  display: block; margin-top: 7px; padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, .24);
+  font-size: .84rem; font-weight: 600; line-height: 1.35;
+  color: #fff;
 }
-/* Đoạn dài để dành cho ô phóng to. Nếu in cả lên thẻ thì khối chữ chiếm
-   gần hết ảnh, dải ảnh không thể thấp xuống được. Ấn vào thẻ là đọc đủ. */
-.pshot figcaption p { display: none; }
-.pshot-short {
-  display: none;
-  margin-top: 10px; padding-top: 9px;
-  border-top: 1px solid rgba(255, 255, 255, .22);
-  font-size: .86rem; font-weight: 650; color: #fff;
-}
-.pshot.on .pshot-short { display: block; }
-
-/* số thứ tự ở góc trên */
-.pshot-no {
-  position: absolute; top: 16px; right: 18px;
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: 1.5rem; font-weight: 800;
-  color: rgba(255, 255, 255, .34);
-  text-shadow: 0 1px 10px rgba(0, 0, 0, .3);
-}
-.pshot.on .pshot-no { font-size: 2.2rem; }
 
 /* nhãn bài đang trình bày */
 .pshot-live {
-  position: absolute; top: 16px; left: 18px;
+  position: absolute; top: 14px; left: 15px;
   font-style: normal;
   padding: 5px 12px; border-radius: 999px;
   font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
@@ -2912,63 +2783,12 @@ summary { list-style: none; }
 }
 
 @media (max-width: 720px) {
-  /* màn hẹp vẫn giữ kiểu album, nhưng hai ảnh bên chỉ còn là ảnh —
-     không đủ chỗ cho chữ, nhét vào sẽ bị bóp không đọc được */
-  .pshot[data-pos="mid"]   { flex: 0 0 56%; }
-  .pshot[data-pos="left"]  { flex: 0 0 25%; transform: rotate(-4deg) translateX(9%) scale(.92); }
-  .pshot[data-pos="right"] { flex: 0 0 25%; transform: rotate(4deg) translateX(-9%) scale(.92); }
-  .pshot-img { height: 150px; }
-  .pshot[data-pos="mid"] .pshot-img { height: 188px; }
-  .pshot[data-pos="left"] figcaption b,
-  .pshot[data-pos="right"] figcaption b,
-  .pshot[data-pos="left"] .pshot-role,
-  .pshot[data-pos="right"] .pshot-role { display: none; }
-  .pshot[data-pos="left"] .pshot-no,
-  .pshot[data-pos="right"] .pshot-no { font-size: 1rem; top: 8px; right: 9px; }
-  .pshot figcaption { padding: 13px; }
-  .pshot-live { font-size: .58rem; padding: 4px 9px; top: 10px; left: 11px; }
-}
-
-/* ============================================================
-   30. Ô PHÓNG TO ẢNH
-   ============================================================ */
-.lbox {
-  position: fixed; inset: 0; z-index: 210;
-  display: none; place-items: center;
-  padding: 24px;
-  background: rgba(10, 14, 18, .88);
-  backdrop-filter: blur(6px);
-  overflow: auto; overscroll-behavior: contain;
-}
-.lbox.on { display: grid; }
-.lbox .x { position: fixed; top: 18px; right: 18px; }
-.lbox figure {
-  margin: 0; width: min(100%, 980px);
-  display: flex; flex-direction: column; gap: 18px;
-}
-.lbox-img {
-  border-radius: var(--r-lg); overflow: hidden;
-  background: var(--panel-2);
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .9);
-}
-.lbox-img svg, .lbox-img img { width: 100%; height: auto; display: block; }
-.lbox figcaption { color: rgba(255, 255, 255, .78); }
-.lbox figcaption b {
-  display: block;
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: clamp(1.4rem, 3.4vw, 2.1rem); font-weight: 800; color: #fff;
-}
-.lbox figcaption span {
-  display: block; margin-top: 2px;
-  font-size: .74rem; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--gold-hi);
-}
-.lbox figcaption p { margin: 12px 0 0; max-width: 72ch; font-size: .95rem; }
-
-@media (max-width: 620px) {
-  .lbox { padding: 16px; }
-  .lbox .x { top: 12px; right: 12px; }
-  .lbox figure { gap: 14px; }
+  /* màn hẹp: xếp dọc, mỗi bài một thẻ đủ rộng để đọc được tên diễn giả */
+  .pshow { grid-template-columns: 1fr; gap: 12px; }
+  .pshot-img { height: 228px; }   /* 358/228 = 1.57, cũng cắt trên dưới */
+  .pshot figcaption { padding: 13px 14px 14px; }
+  .pshot figcaption b { font-size: 1.08rem; }
+  .pshot-live { font-size: .6rem; padding: 4px 10px; top: 11px; left: 12px; }
 }
 
 /* ============================================================
@@ -3152,7 +2972,11 @@ summary { list-style: none; }
 
 @media (max-width: 760px) {
   /* bỏ parallax và băng chữ chạy theo tốc độ cuộn, giữ reveal đơn giản */
-  .img-rv .px-layer { position: static; inset: auto; transform: none !important; }
+  /* Tắt parallax ở màn hẹp, nhưng vẫn phải giữ position:absolute + inset:0.
+     Để static thì lớp này cao tự động, ảnh con height:100% không phân giải
+     được nên tụt về chiều cao gốc — object-fit:cover mất tác dụng và thẻ hở
+     một dải trắng dưới ảnh. */
+  .img-rv .px-layer { inset: 0; transform: none !important; }
   .mq { padding: 18px 0; }
 }
 
@@ -3492,25 +3316,508 @@ summary { list-style: none; }
 }
 
 
-/* ===== 5. LUẬT THI ĐẤU — neon hồng tím, viền màu lệch hai bên =====
-   Hai bản sao màu lệch sang hai phía, lúc hiện ra lệch xa rồi thu về
-   sát chữ. Dùng drop-shadow cùng một dạng ở hai đầu nên trình duyệt
-   nội suy được, đổi dạng giữa chừng là nó nhảy bậc.                    */
-.sec-head h2[data-fx="blur"] {
-  --c1: #c21b74; --c2: #6d28d9; --ang: 96deg; --spd: 7s;
-  opacity: 0;
-  filter: drop-shadow(9px 0 0 rgba(74, 227, 255, .5))
-          drop-shadow(-9px 0 0 rgba(255, 79, 163, .42));
-  transition: filter .9s cubic-bezier(.22, 1, .36, 1), opacity .45s var(--ease);
+/* ===== 5. LUẬT THI ĐẤU — CON DẤU CAO SU =====
+   Khung chữ nhật đỏ, nghiêng một chút, mực sờn vài vệt như dấu đóng tay.
+   Chữ để MÀU ĐẶC, không dùng nền cắt theo nét như năm kiểu kia: con dấu
+   thật không có chuyển màu, mà bỏ background-clip đi cũng tránh luôn cái
+   bẫy mất dấu thanh của Ậ và Ấ trong "LUẬT THI ĐẤU".
+   Đỏ #b3161f trên nền trang #f1f1f1 đo được 6.09:1 — dư nhiều, nên kể cả
+   chỗ bị vệt sờn làm nhạt mực xuống 55% vẫn còn 3.7:1, mà phần lớn nét
+   chữ thì vẫn nguyên 6.09:1.                                            */
+.sec-head h2[data-fx="stamp"] {
+  --dau: #b3161f;
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  padding: .16em .44em .22em;
+  color: var(--dau);
+  background-image: none;
+  -webkit-text-fill-color: currentColor;
+  border: .11em solid var(--dau);
+  border-radius: 5px;
+  font-weight: 900; font-stretch: 118%;
+  letter-spacing: .035em;
+  /* 1.16 chứ không sát hơn: dấu nặng của Ậ thò xuống dưới đường chân chữ,
+     sát quá là chạm vào cạnh dưới khung dấu. */
+  line-height: 1.16;
+  transform: rotate(-5.5deg);
+  animation: none;             /* gỡ fxRun vô hạn của khối dùng chung */
+  /* Vệt sờn: MỘT lớp mặt nạ duy nhất, chín vạch mảnh đặt ở chín chỗ lệch
+     nhau. Một lớp thôi vì nhiều lớp mặt nạ mặc định hợp nhất kiểu "add" —
+     vạch trong suốt của lớp này bị lớp kia lấp lại, thành ra không sờn chỗ
+     nào. Và KHÔNG dùng repeating-: lặp đều thì mắt bắt được nhịp ngay, nhìn
+     ra vân kẻ chứ không ra mực sờn. Mốc tính bằng %, nên co giãn theo con
+     dấu chứ không lệch khi đổi cỡ chữ.
+     Vạch mờ nhất để .52, tức mực còn 52% — chỗ đó đo được 3.7:1, mà vạch
+     chỉ rộng chừng một điểm ảnh còn thân nét vẫn nguyên 6.09:1.
+     Trình duyệt không hiểu mask thì bỏ cả dòng và ra con dấu sạch bong. */
+  -webkit-mask-image: linear-gradient(96deg,
+    #000 0 6%,       rgba(0, 0, 0, .6)  6% 6.9%,
+    #000 6.9% 17%,   rgba(0, 0, 0, .55) 17% 17.8%,
+    #000 17.8% 24%,  rgba(0, 0, 0, .66) 24% 25.2%,
+    #000 25.2% 39%,  rgba(0, 0, 0, .52) 39% 39.8%,
+    #000 39.8% 47%,  rgba(0, 0, 0, .62) 47% 48.3%,
+    #000 48.3% 61%,  rgba(0, 0, 0, .58) 61% 61.7%,
+    #000 61.7% 73%,  rgba(0, 0, 0, .64) 73% 74.4%,
+    #000 74.4% 85%,  rgba(0, 0, 0, .54) 85% 85.8%,
+    #000 85.8% 100%);
+          mask-image: linear-gradient(96deg,
+    #000 0 6%,       rgba(0, 0, 0, .6)  6% 6.9%,
+    #000 6.9% 17%,   rgba(0, 0, 0, .55) 17% 17.8%,
+    #000 17.8% 24%,  rgba(0, 0, 0, .66) 24% 25.2%,
+    #000 25.2% 39%,  rgba(0, 0, 0, .52) 39% 39.8%,
+    #000 39.8% 47%,  rgba(0, 0, 0, .62) 47% 48.3%,
+    #000 48.3% 61%,  rgba(0, 0, 0, .58) 61% 61.7%,
+    #000 61.7% 73%,  rgba(0, 0, 0, .64) 73% 74.4%,
+    #000 74.4% 85%,  rgba(0, 0, 0, .54) 85% 85.8%,
+    #000 85.8% 100%);
 }
-.sec-head h2[data-fx="blur"].sp-go {
-  opacity: 1;
-  filter: drop-shadow(2px 0 0 rgba(74, 227, 255, .5))
-          drop-shadow(-2px 0 0 rgba(255, 79, 163, .42));
+/* con dấu không cần gạch dưới, đã có khung rồi */
+.sec-head.mid h2[data-fx="stamp"]::after { display: none; }
+/* cả con dấu là một khối: tắt cú trượt từng dòng của motion.js */
+.sec-head h2[data-fx="stamp"] .sp-mask { overflow: visible; }
+.sec-head h2[data-fx="stamp"] .sp-line-in { transform: none; transition: none; }
+
+/* Trạng thái ẩn nấp sau .mo — dấu motion.js gắn lên thẻ html khi nó thật
+   sự chạy. Đặt opacity:0 thẳng trong CSS thì tắt JS là mất hẳn tên mục,
+   mà mất chữ thì không có thông báo lỗi nào báo cho biết. */
+.mo .sec-head h2[data-fx="stamp"] { opacity: 0; transform: rotate(-13deg) scale(1.2); }
+.mo .sec-head h2[data-fx="stamp"].sp-go { animation: dongDau .55s var(--e-power3) both; }
+/* Đóng xuống quá đà một nhịp rồi nảy về — đúng động tác dập dấu xuống giấy.
+   Chỉ đụng transform và opacity nên chạy trên lớp hợp thành.
+   PHÓNG TO CHỈ 1.2 THÔI, đừng tham. Bản đầu để 1.75: ở màn 430px con dấu
+   lúc nghỉ đã rộng 325px trong khung 398px, phóng 1.75 là thành 569px —
+   trang mọc thanh cuộn ngang suốt nửa giây đầu. Góc nghiêng mới là thứ
+   tạo ra cảm giác dập xuống, không phải cỡ. */
+@keyframes dongDau {
+  0%   { opacity: 0; transform: rotate(-13deg) scale(1.2); }
+  50%  { opacity: 1; transform: rotate(-3.4deg) scale(.95); }
+  74%  { opacity: 1; transform: rotate(-6.8deg) scale(1.03); }
+  100% { opacity: 1; transform: rotate(-5.5deg) scale(1); }
 }
-.sec-head.mid h2[data-fx="blur"]::after {
-  --rule-w: 112px; height: 2px;
-  box-shadow: 0 0 9px rgba(194, 27, 116, .6);
+
+
+/* ===== 6. GIẢI THƯỞNG — BỤI SAO: chữ khắc vàng, ánh sáng tới sau =====
+   Năm kiểu trên đều ép trang trí sát vào chữ: dấu hỏi kẹp hai bên, bóng đổ
+   cứng, mặt sân cỏ, dải tối neon, viền màu lệch. Kiểu này làm ngược lại:
+   chữ đứng im và KHÔNG trang trí nào được chạm vào lòng chữ; ánh sáng nằm
+   trong hai dải trời — một trên, một dưới — rồi bắt sáng khi cuộn tới.
+
+   VÌ SAO KHÔNG NHÉT GALAXY VÀO TRONG LÒNG CHỮ (đã cân rồi bỏ).
+   Nền trang là #f1f1f1 nên muốn đủ 4.5:1 thì chữ buộc phải TỐI. Đo thật:
+   vàng sáng nhất còn đạt 4.5:1 trên #f1f1f1 là #8c6812 (4.53:1) — chỉ hơn
+   #83620f đúng một nấc độ sáng. Nghĩa là trong lòng chữ KHÔNG CÒN CHỖ cho
+   một hạt sao nào sáng hơn nét chữ: nhét vào thì hoặc tối bằng chữ (không ai
+   thấy), hoặc sáng hơn và trượt tương phản. Đó là lý do kỹ thuật, không phải
+   sở thích: sao phải nằm NGOÀI nét chữ.
+
+   VÌ SAO KHÔNG LÀM DẢI TỐI. Mục Nhánh đấu ngay trên đã là dải tối #140f1e.
+   Và cả trang này là nền sáng: giữa nhà thi đấu, trời sáng, chữ đậm trên nền
+   sáng đọc chắc hơn chữ nhạt trên nền tối trên mặt kính bóng mồ hôi.
+
+   BẤT BIẾN DUY NHẤT PHẢI GIỮ: sau nét chữ luôn chỉ có #f1f1f1, không bao
+   giờ có hạt sao nào. Giữ bằng --sd-clear: một ô bầu dục màu đúng bằng nền
+   trang, đặt TRÊN mọi lớp sao. Xem ghi chú ở --sd-clear.                   */
+
+.sec-head.stardust {
+  /* Dạng kênh để pha được alpha. Đây chính là --gold #83620f của dự án và
+     --bg #f1f1f1, viết rời ra vì rgba() không nhận biến màu dạng hex.
+     ĐỔI --sd-ink thì phải đổi cả fill='%2383620f' trong hai data-URI sao bên
+     dưới — var() không chui vào trong data-URI được, sửa một chỗ là lệch
+     tông mà không báo lỗi gì. */
+  --sd-ink: 131, 98, 15;
+  --sd-bg:  241, 241, 241;
+
+  /* TRÊN VÀ DƯỚI PHẢI BẰNG NHAU, đừng tiếc chỗ mà bóp một bên: ô trống quanh
+     chữ ở dưới là một hình bầu dục đặt ở 50% chiều cao khối, nên hễ hai lề
+     lệch nhau là dòng chữ tụt ra khỏi tâm hình bầu dục và nửa dưới của chữ
+     có sao chạy sau lưng — mất tương phản mà không một phép đo nào bắt được. */
+  --sd-sky-h: clamp(20px, 2.7vw, 40px);
+  --sd-pad: clamp(6px, 1.6vw, 52px);
+  /* Chỗ vệt sáng đậu lại sau khi quét xong, cũng là trạng thái tĩnh khi tắt
+     JS hoặc khi người dùng chọn giảm chuyển động. Một con số để chỉnh. */
+  --sd-rest: 22%;
+
+  /* Ô TRỐNG QUANH DÒNG CHỮ. Lớp nền màu trang này đặt TRÊN CÙNG mọi lớp sao
+     nên nó xoá sạch sao trong vùng chữ — vẽ trên nền cùng màu trang nên
+     không ai thấy cái ô, chỉ thấy sao thưa dần rồi hết.
+     Đây là thứ giữ bất biến "sau nét chữ luôn chỉ có #f1f1f1", và nó chắc
+     hơn cách canh khoảng hở bằng hình học: không phụ thuộc chữ dài bao
+     nhiêu, màn rộng bao nhiêu, hay ai đó có đổi cỡ chữ về sau không.
+     Đo ở 1440px: lõi đặc phủ 0.80 × 44% = 35.2% bề ngang mỗi bên = 430px,
+     trong khi nửa dòng chữ chỉ 354px — dư 76px trống trước hạt sao đầu tiên.
+     Chiều dọc dư 32px. Chỗ hẹp nhất của cả dải bề ngang là quanh 790px:
+     dư 46px ngang và 16px dọc. Mấy con số dư này là thứ phải soi bằng mắt,
+     số đo không bắt được — một hạt sao đè lên nét chữ là mất tương phản
+     đúng chỗ đó mà không có lỗi console nào. */
+  /* Tâm đặt ở 46% chứ không 50%: gạch dưới tiêu đề nằm trong chính thẻ h2
+     nên hộp h2 thấp hơn dòng chữ, mà .sec-head căn giữa theo HỘP — dòng chữ
+     vì thế nhô lên trên tâm khối chừng 4% chiều cao. Để tâm ở 50% là ô trống
+     tụt xuống dưới chữ và mép trên của chữ hụt mất chỗ. */
+  --sd-clear: radial-gradient(34% 48% at 50% 46%,
+    rgb(var(--sd-bg)) 0 80%, rgba(var(--sd-bg), 0) 100%);
+  /* Hai mép trái phải tan dần vào nền trang. Thiếu lớp này thì trời sao cắt
+     ngang đột ngột ở hai đầu và cả khối đọc ra một tấm thảm viền hoa văn,
+     không ra bầu trời — đã dựng thử đúng kiểu đó rồi mới thêm. */
+  --sd-fade: linear-gradient(90deg,
+    rgb(var(--sd-bg)) 0, rgba(var(--sd-bg), 0) 8%,
+    rgba(var(--sd-bg), 0) 92%, rgb(var(--sd-bg)) 100%);
+  /* Mép trên dưới cũng phải tan: tấm sao cao 240px mà khối chỉ cao 137px ở
+     màn 790, nên overflow cắt ngang GIỮA tấm — dựng thử thì được một hàng
+     ngôi sao bị xén đôi nằm bẹt trên mép dưới, nhìn như dãy núi nhỏ. */
+  --sd-fade-v: linear-gradient(180deg,
+    rgb(var(--sd-bg)) 0, rgba(var(--sd-bg), 0) 15%,
+    rgba(var(--sd-bg), 0) 85%, rgb(var(--sd-bg)) 100%);
+
+  position: relative;                   /* mốc định vị cho .sd-sky */
+  width: 100%;
+  padding: var(--sd-sky-h) var(--sd-pad);
+  /* CỐ TÌNH KHÔNG CÓ overflow: hidden Ở ĐÂY. Đặt vào thì khi người dùng phóng
+     cỡ chữ hệ thống (Chrome Android kéo được tới 200%), chữ dài ra và bị cắt
+     cụt thành "ẢI THƯỞN" — mà document.scrollWidth vẫn bằng innerWidth nên
+     phép thử "không tràn ngang" vẫn báo qua, không một dòng báo lỗi nào.
+     Cũng không kẹp white-space: nowrap: quá khổ thì cho xuống dòng, motion.js
+     vốn tách theo DÒNG nên hai dòng vẫn chạy bình thường. */
+  container-type: inline-size;
+}
+
+/* ---- trời: mây bụi tĩnh, vẽ một lần rồi thôi ---- */
+.sd-sky {
+  position: absolute;
+  /* Viết rời bốn mép chứ không dùng inset: WebView dưới Chrome 87 bỏ cả dòng
+     inset, lớp co về 0 và mất sạch trời sao (chữ thì vẫn nguyên). */
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: 0; pointer-events: none;
+  overflow: hidden;
+  /* KHÔNG CÓ MÂY BỤI. Đã dựng thử hai lớp radial-gradient làm dải Ngân Hà
+     ở alpha .17 rồi .10: trên nền sáng #f1f1f1 nó không đọc ra dải Ngân Hà,
+     chỉ ra một mảng kem mờ hình bầu dục nằm sau tiêu đề, nhìn như trang bị
+     ố. Bỏ hẳn, để trời sao chỉ gồm các ĐIỂM — đó mới là thứ lấp lánh. */
+  background-image: var(--sd-clear), var(--sd-fade), var(--sd-fade-v);
+  background-size: 100% 100%;
+}
+
+/* ---- sao: hai lớp lệch nhịp nhau ---- */
+/* VÌ SAO KHÔNG DÙNG radial-gradient LẶP Ô. Bản đầu rải sao bằng
+   radial-gradient + background-repeat, tức mọi hạt nằm đúng trên một lưới
+   chữ nhật đều tăm tắp. Dựng ra rồi chụp lại thì nó đọc ra hoa văn chấm bi,
+   không ra bầu trời — mắt bắt được nhịp lặp ngay. Bầu trời phải LỆCH NHỊP,
+   nên mỗi lớp là một tấm SVG 480×240 có sao rải sẵn ở toạ độ không đều
+   (chia ô rồi đẩy lệch trong ô), lát ngang với bước 480px. Hai lớp dùng hai
+   tấm khác nhau và lệch mốc nên chỗ nối của tấm này rơi vào giữa tấm kia.
+
+   KÍCH THƯỚC TẤM TÍNH BẰNG PX, KHÔNG BẰNG EM. Đo bằng em thì ở 390px cỡ chữ
+   còn 25px, nhân sao teo xuống dưới một điểm ảnh CSS và "lấp lánh" biến
+   thành một vệt mịn trơn — đúng trên cái máy mà phần lớn người xem dùng. */
+/* BA lớp sao chứ không hai: mỗi lớp một nhịp nháy riêng nên mắt thấy hạt
+   này sáng lúc hạt kia tối — đó mới ra "blink blink". Hai lớp thì cả mảng
+   trời lên xuống cùng nhau, nhìn ra một cái đèn mờ tỏ chứ không ra sao nháy.
+   Lớp thứ ba mượn ::before của chính .sec-head vì .sd-sky đã hết chỗ: nó
+   chỉ có hai pseudo-element, mà bản thân .sd-sky phải giữ ô trống + mép tan
+   đứng yên — cho nó nháy theo là ô trống cũng nhấp nháy và sao hiện sau chữ. */
+.sec-head.stardust::before,
+.sd-sky::before,
+.sd-sky::after {
+  content: ''; position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat-x;
+  /* .9 là mức NGHỈ, cũng là mức khi tắt JS hoặc khi giảm chuyển động */
+  opacity: .9;
+}
+.sec-head.stardust::before {
+  z-index: 0;
+  background-image: var(--sd-clear), var(--sd-fade), var(--sd-fade-v), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='240' viewBox='0 0 480 240'><g fill='%2383620f'><circle cx='225.6' cy='194.9' r='0.60' fill-opacity='0.33'/><circle cx='115.6' cy='67.3' r='1.08' fill-opacity='0.28'/><circle cx='416.0' cy='219.2' r='0.92' fill-opacity='0.35'/><circle cx='247.2' cy='181.8' r='0.96' fill-opacity='0.41'/><circle cx='311.6' cy='128.3' r='0.93' fill-opacity='0.30'/><circle cx='404.7' cy='88.4' r='0.88' fill-opacity='0.54'/><circle cx='376.4' cy='16.6' r='0.72' fill-opacity='0.46'/><circle cx='165.8' cy='59.8' r='0.75' fill-opacity='0.37'/><circle cx='25.5' cy='170.9' r='0.84' fill-opacity='0.51'/><circle cx='363.5' cy='62.2' r='0.63' fill-opacity='0.36'/><circle cx='11.7' cy='12.6' r='1.04' fill-opacity='0.30'/><circle cx='205.6' cy='128.3' r='0.64' fill-opacity='0.53'/><circle cx='376.6' cy='108.2' r='0.63' fill-opacity='0.44'/><circle cx='319.9' cy='89.1' r='0.64' fill-opacity='0.42'/><circle cx='328.2' cy='182.8' r='0.95' fill-opacity='0.30'/><circle cx='366.7' cy='227.8' r='1.06' fill-opacity='0.53'/><circle cx='170.8' cy='185.4' r='0.64' fill-opacity='0.52'/><circle cx='132.2' cy='133.9' r='0.85' fill-opacity='0.53'/><circle cx='58.1' cy='193.7' r='0.69' fill-opacity='0.56'/><circle cx='37.3' cy='231.9' r='0.90' fill-opacity='0.26'/><circle cx='231.9' cy='220.6' r='0.68' fill-opacity='0.50'/><circle cx='203.6' cy='15.4' r='0.76' fill-opacity='0.53'/><circle cx='317.2' cy='54.0' r='0.98' fill-opacity='0.54'/><circle cx='307.7' cy='219.6' r='0.81' fill-opacity='0.33'/><circle cx='442.3' cy='114.7' r='1.01' fill-opacity='0.30'/><circle cx='472.0' cy='28.4' r='1.03' fill-opacity='0.31'/><circle cx='70.5' cy='56.8' r='0.78' fill-opacity='0.30'/><circle cx='65.4' cy='16.8' r='0.87' fill-opacity='0.51'/><circle cx='174.2' cy='91.8' r='0.64' fill-opacity='0.47'/><circle cx='449.2' cy='144.3' r='0.62' fill-opacity='0.37'/><circle cx='260.1' cy='89.3' r='1.06' fill-opacity='0.56'/><circle cx='153.5' cy='226.9' r='0.56' fill-opacity='0.49'/><circle cx='68.6' cy='133.0' r='0.58' fill-opacity='0.59'/><circle cx='301.7' cy='33.6' r='0.60' fill-opacity='0.51'/><path d='M25.7 11.9 C26.9 16.0 26.9 16.0 31.0 17.1 C26.9 18.3 26.9 18.3 25.7 22.4 C24.6 18.3 24.6 18.3 20.5 17.1 C24.6 16.0 24.6 16.0 25.7 11.9Z' fill-opacity='0.90'/><path d='M186.5 55.5 C187.7 59.5 187.7 59.5 191.7 60.7 C187.7 61.8 187.7 61.8 186.5 65.8 C185.4 61.8 185.4 61.8 181.4 60.7 C185.4 59.5 185.4 59.5 186.5 55.5Z' fill-opacity='0.85'/><path d='M176.7 81.2 C178.0 85.6 178.0 85.6 182.4 86.8 C178.0 88.1 178.0 88.1 176.7 92.5 C175.5 88.1 175.5 88.1 171.1 86.8 C175.5 85.6 175.5 85.6 176.7 81.2Z' fill-opacity='0.88'/><path d='M118.0 12.0 C119.0 15.6 119.0 15.6 122.6 16.6 C119.0 17.6 119.0 17.6 118.0 21.2 C117.0 17.6 117.0 17.6 113.4 16.6 C117.0 15.6 117.0 15.6 118.0 12.0Z' fill-opacity='0.82'/><path d='M250.3 85.6 C251.3 89.1 251.3 89.1 254.7 90.1 C251.3 91.0 251.3 91.0 250.3 94.5 C249.3 91.0 249.3 91.0 245.9 90.1 C249.3 89.1 249.3 89.1 250.3 85.6Z' fill-opacity='0.94'/><path d='M410.6 140.1 C411.9 144.6 411.9 144.6 416.3 145.9 C411.9 147.2 411.9 147.2 410.6 151.6 C409.3 147.2 409.3 147.2 404.9 145.9 C409.3 144.6 409.3 144.6 410.6 140.1Z' fill-opacity='0.75'/></g></svg>");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 480px 240px;
+  background-position: 50% 50%, 50% 50%, 50% 50%, 311px 50%;
+}
+.sd-sky::before {
+  background-image: var(--sd-clear), var(--sd-fade), var(--sd-fade-v), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='240' viewBox='0 0 480 240'><g fill='%2383620f'><circle cx='347.0' cy='170.7' r='2.39' fill-opacity='0.95'/><circle cx='325.1' cy='171.2' r='1.39' fill-opacity='0.82'/><circle cx='255.8' cy='74.0' r='1.99' fill-opacity='0.65'/><circle cx='442.7' cy='25.7' r='1.07' fill-opacity='0.77'/><circle cx='168.8' cy='65.4' r='1.31' fill-opacity='0.57'/><circle cx='420.9' cy='128.1' r='2.19' fill-opacity='0.90'/><circle cx='76.5' cy='150.6' r='1.85' fill-opacity='0.57'/><circle cx='423.9' cy='27.9' r='1.18' fill-opacity='0.77'/><circle cx='13.7' cy='185.4' r='1.92' fill-opacity='0.98'/><circle cx='202.8' cy='102.4' r='1.35' fill-opacity='0.58'/><circle cx='300.4' cy='87.8' r='1.79' fill-opacity='0.60'/><circle cx='324.0' cy='32.6' r='1.24' fill-opacity='0.99'/><circle cx='36.8' cy='210.8' r='1.65' fill-opacity='0.70'/><circle cx='29.1' cy='23.3' r='2.28' fill-opacity='0.99'/><circle cx='297.4' cy='205.2' r='2.28' fill-opacity='0.60'/><circle cx='245.8' cy='179.6' r='2.30' fill-opacity='0.72'/><circle cx='353.5' cy='225.8' r='1.19' fill-opacity='0.71'/><circle cx='265.1' cy='11.5' r='1.48' fill-opacity='0.99'/><circle cx='303.0' cy='125.8' r='1.38' fill-opacity='0.72'/><circle cx='305.6' cy='61.1' r='1.14' fill-opacity='0.64'/><circle cx='175.0' cy='217.5' r='1.51' fill-opacity='0.65'/><circle cx='105.6' cy='230.5' r='2.32' fill-opacity='0.89'/><circle cx='249.4' cy='87.6' r='1.53' fill-opacity='0.77'/><circle cx='158.5' cy='171.3' r='1.38' fill-opacity='0.75'/><circle cx='391.5' cy='190.4' r='2.29' fill-opacity='0.73'/><circle cx='365.6' cy='66.5' r='2.29' fill-opacity='0.84'/><circle cx='458.6' cy='125.4' r='2.39' fill-opacity='0.74'/><circle cx='172.0' cy='9.5' r='2.05' fill-opacity='0.95'/><circle cx='67.6' cy='34.8' r='1.73' fill-opacity='0.56'/><circle cx='18.5' cy='91.0' r='1.21' fill-opacity='0.56'/><circle cx='376.1' cy='111.8' r='2.09' fill-opacity='0.57'/><circle cx='220.4' cy='150.4' r='1.61' fill-opacity='0.81'/><circle cx='358.4' cy='149.9' r='2.00' fill-opacity='0.67'/><circle cx='57.3' cy='52.1' r='1.08' fill-opacity='0.84'/><circle cx='271.0' cy='137.1' r='1.18' fill-opacity='0.76'/><circle cx='173.0' cy='114.6' r='2.04' fill-opacity='0.59'/><circle cx='31.4' cy='64.5' r='2.04' fill-opacity='0.89'/><circle cx='117.9' cy='144.8' r='1.68' fill-opacity='0.58'/><path d='M199.5 68.1 C201.0 73.4 201.0 73.4 206.3 74.9 C201.0 76.4 201.0 76.4 199.5 81.7 C198.0 76.4 198.0 76.4 192.7 74.9 C198.0 73.4 198.0 73.4 199.5 68.1Z' fill-opacity='0.84'/><path d='M56.8 189.8 C58.8 196.7 58.8 196.7 65.7 198.7 C58.8 200.7 58.8 200.7 56.8 207.6 C54.9 200.7 54.9 200.7 47.9 198.7 C54.9 196.7 54.9 196.7 56.8 189.8Z' fill-opacity='0.72'/><path d='M50.6 97.4 C52.6 104.4 52.6 104.4 59.6 106.4 C52.6 108.4 52.6 108.4 50.6 115.5 C48.6 108.4 48.6 108.4 41.5 106.4 C48.6 104.4 48.6 104.4 50.6 97.4Z' fill-opacity='0.98'/><path d='M203.5 125.7 C205.7 133.4 205.7 133.4 213.4 135.6 C205.7 137.8 205.7 137.8 203.5 145.5 C201.4 137.8 201.4 137.8 193.6 135.6 C201.4 133.4 201.4 133.4 203.5 125.7Z' fill-opacity='0.99'/><path d='M300.1 139.4 C301.9 145.6 301.9 145.6 308.1 147.4 C301.9 149.1 301.9 149.1 300.1 155.3 C298.4 149.1 298.4 149.1 292.2 147.4 C298.4 145.6 298.4 145.6 300.1 139.4Z' fill-opacity='0.89'/><path d='M165.5 174.4 C167.5 181.5 167.5 181.5 174.5 183.5 C167.5 185.5 167.5 185.5 165.5 192.6 C163.5 185.5 163.5 185.5 156.4 183.5 C163.5 181.5 163.5 181.5 165.5 174.4Z' fill-opacity='0.79'/><path d='M429.4 58.7 C430.8 63.7 430.8 63.7 435.9 65.2 C430.8 66.6 430.8 66.6 429.4 71.7 C428.0 66.6 428.0 66.6 422.9 65.2 C428.0 63.7 428.0 63.7 429.4 58.7Z' fill-opacity='0.83'/><path d='M209.3 168.0 C211.5 175.9 211.5 175.9 219.4 178.2 C211.5 180.4 211.5 180.4 209.3 188.3 C207.1 180.4 207.1 180.4 199.2 178.2 C207.1 175.9 207.1 175.9 209.3 168.0Z' fill-opacity='0.87'/><path d='M355.8 63.5 C358.1 71.4 358.1 71.4 366.0 73.6 C358.1 75.9 358.1 75.9 355.8 83.8 C353.6 75.9 353.6 75.9 345.7 73.6 C353.6 71.4 353.6 71.4 355.8 63.5Z' fill-opacity='0.76'/></g></svg>");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 480px 240px;
+  background-position: 50% 50%, 50% 50%, 50% 50%, 0 50%;
+}
+.sd-sky::after {
+  background-image: var(--sd-clear), var(--sd-fade), var(--sd-fade-v), url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='240' viewBox='0 0 480 240'><g fill='%2383620f'><circle cx='66.3' cy='53.5' r='1.13' fill-opacity='0.36'/><circle cx='36.5' cy='108.4' r='1.20' fill-opacity='0.36'/><circle cx='23.1' cy='226.6' r='0.76' fill-opacity='0.41'/><circle cx='266.1' cy='9.5' r='1.05' fill-opacity='0.68'/><circle cx='106.1' cy='98.2' r='0.98' fill-opacity='0.56'/><circle cx='203.5' cy='231.8' r='0.64' fill-opacity='0.64'/><circle cx='74.5' cy='142.5' r='1.05' fill-opacity='0.52'/><circle cx='322.5' cy='112.1' r='0.60' fill-opacity='0.64'/><circle cx='266.8' cy='150.6' r='1.35' fill-opacity='0.52'/><circle cx='471.6' cy='190.3' r='0.80' fill-opacity='0.32'/><circle cx='410.6' cy='233.2' r='1.40' fill-opacity='0.39'/><circle cx='55.1' cy='11.3' r='0.73' fill-opacity='0.66'/><circle cx='80.8' cy='174.9' r='0.98' fill-opacity='0.51'/><circle cx='344.8' cy='150.9' r='0.60' fill-opacity='0.51'/><circle cx='389.9' cy='59.7' r='1.24' fill-opacity='0.41'/><circle cx='136.8' cy='68.4' r='0.77' fill-opacity='0.56'/><circle cx='468.6' cy='15.6' r='0.79' fill-opacity='0.46'/><circle cx='176.8' cy='136.9' r='0.97' fill-opacity='0.56'/><circle cx='199.1' cy='173.7' r='1.37' fill-opacity='0.33'/><circle cx='228.8' cy='129.9' r='1.19' fill-opacity='0.43'/><circle cx='349.9' cy='16.3' r='0.62' fill-opacity='0.56'/><circle cx='104.6' cy='20.7' r='0.70' fill-opacity='0.58'/><circle cx='115.7' cy='167.0' r='0.66' fill-opacity='0.61'/><circle cx='71.7' cy='212.6' r='1.11' fill-opacity='0.47'/><circle cx='252.0' cy='92.4' r='0.72' fill-opacity='0.61'/><circle cx='157.3' cy='92.6' r='1.19' fill-opacity='0.45'/><circle cx='394.9' cy='24.0' r='0.72' fill-opacity='0.59'/><circle cx='343.3' cy='182.5' r='1.36' fill-opacity='0.64'/><circle cx='323.8' cy='182.0' r='0.86' fill-opacity='0.53'/><circle cx='391.5' cy='194.5' r='0.71' fill-opacity='0.69'/><circle cx='31.4' cy='11.2' r='1.03' fill-opacity='0.64'/><circle cx='38.9' cy='186.3' r='1.23' fill-opacity='0.49'/><circle cx='439.3' cy='46.7' r='1.01' fill-opacity='0.55'/><circle cx='205.6' cy='109.0' r='0.72' fill-opacity='0.68'/><circle cx='364.0' cy='111.5' r='1.24' fill-opacity='0.68'/><circle cx='316.4' cy='63.6' r='0.74' fill-opacity='0.47'/><circle cx='15.5' cy='74.4' r='1.25' fill-opacity='0.55'/><circle cx='229.5' cy='32.5' r='0.96' fill-opacity='0.40'/><circle cx='453.5' cy='231.8' r='1.05' fill-opacity='0.38'/><circle cx='175.5' cy='167.4' r='1.33' fill-opacity='0.48'/><circle cx='261.0' cy='217.6' r='0.88' fill-opacity='0.59'/><circle cx='172.6' cy='44.8' r='0.98' fill-opacity='0.52'/><circle cx='365.4' cy='46.8' r='0.91' fill-opacity='0.46'/><circle cx='410.3' cy='86.0' r='1.00' fill-opacity='0.45'/><path d='M349.4 174.5 C350.5 178.2 350.5 178.2 354.2 179.2 C350.5 180.3 350.5 180.3 349.4 184.0 C348.4 180.3 348.4 180.3 344.7 179.2 C348.4 178.2 348.4 178.2 349.4 174.5Z' fill-opacity='1.00'/><path d='M192.2 135.7 C193.3 139.7 193.3 139.7 197.2 140.8 C193.3 141.9 193.3 141.9 192.2 145.8 C191.0 141.9 191.0 141.9 187.1 140.8 C191.0 139.7 191.0 139.7 192.2 135.7Z' fill-opacity='0.95'/><path d='M243.3 44.4 C244.8 49.8 244.8 49.8 250.2 51.3 C244.8 52.8 244.8 52.8 243.3 58.2 C241.8 52.8 241.8 52.8 236.4 51.3 C241.8 49.8 241.8 49.8 243.3 44.4Z' fill-opacity='0.83'/><path d='M170.2 206.8 C172.0 212.9 172.0 212.9 178.1 214.7 C172.0 216.4 172.0 216.4 170.2 222.5 C168.5 216.4 168.5 216.4 162.4 214.7 C168.5 212.9 168.5 212.9 170.2 206.8Z' fill-opacity='0.82'/><path d='M340.7 17.0 C342.5 23.1 342.5 23.1 348.6 24.8 C342.5 26.5 342.5 26.5 340.7 32.7 C339.0 26.5 339.0 26.5 332.9 24.8 C339.0 23.1 339.0 23.1 340.7 17.0Z' fill-opacity='0.92'/><path d='M138.7 104.9 C139.8 108.8 139.8 108.8 143.7 109.9 C139.8 111.0 139.8 111.0 138.7 115.0 C137.5 111.0 137.5 111.0 133.6 109.9 C137.5 108.8 137.5 108.8 138.7 104.9Z' fill-opacity='0.88'/><path d='M427.7 72.8 C429.1 77.9 429.1 77.9 434.2 79.3 C429.1 80.7 429.1 80.7 427.7 85.8 C426.2 80.7 426.2 80.7 421.1 79.3 C426.2 77.9 426.2 77.9 427.7 72.8Z' fill-opacity='0.87'/></g></svg>");
+  background-size: 100% 100%, 100% 100%, 100% 100%, 480px 240px;
+  /* lệch mốc 173px: chỗ nối của tấm này rơi vào giữa tấm kia */
+  background-position: 50% 50%, 50% 50%, 50% 50%, 173px 50%;
+}
+
+/* Một lượt rồi đứng yên, đúng luật của dự án — nhưng một lượt dài 9.5s nên
+   vẫn kịp nháy sáu nhịp, không ai nhìn một tiêu đề lâu hơn thế. Chốt 100% ở
+   .88 để sau khi xong là đứng ở mức nghỉ, không tắt phụt. Chỉ đụng opacity
+   nên chạy trên lớp hợp thành, hết 9.5s là CPU về không — rẻ hơn hẳn bản
+   hiện tại, vì fxRun đang animate background-position VÔ HẠN trên mặt nạ
+   cắt theo nét chữ, tức vẽ lại cả tiêu đề mỗi khung hình, mãi mãi. */
+@keyframes sdNhay {
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  12%  { opacity: .14; }
+  18%  { opacity: 1; }
+  26%  { opacity: .22; }
+  33%  { opacity: .98; }
+  41%  { opacity: .16; }
+  48%  { opacity: 1; }
+  56%  { opacity: .28; }
+  63%  { opacity: .96; }
+  71%  { opacity: .18; }
+  78%  { opacity: 1; }
+  86%  { opacity: .34; }
+  93%  { opacity: 1; }
+  100% { opacity: .9; }
+}
+
+/* Trạng thái ẩn nấp sau .mo — dấu motion.js gắn lên <html> khi nó thật sự
+   chạy. Đặt thẳng opacity:0 là tắt JS thì mất sạch trời sao mà không ai biết.
+   Dùng anh-em-liền-kề h2.sp-go + .sd-sky chứ không dùng :has(): WebView trong
+   Zalo chưa chắc có :has(), còn anh-em-liền-kề thì đời nào cũng có. Vì vậy
+   .sd-sky phải đứng SAU thẻ h2 trong index.html. */
+.mo .sd-sky::before,
+.mo .sd-sky::after { opacity: 0; }
+/* Lớp thứ ba phải bắt theo :has() vì nó là ::before của chính .sec-head,
+   không có anh em nào để bắt. Nên trạng thái ẩn của riêng nó cũng phải nấp
+   sau @supports selector(:has(*)): WebView cũ không hiểu :has() thì luật
+   animation bên dưới bị bỏ, mà nếu để opacity:0 trần thì lớp đó nằm ẩn
+   vĩnh viễn — mất đứt một phần ba số sao, lại không báo lỗi gì. */
+@supports selector(:has(*)) {
+  .mo .sec-head.stardust::before { opacity: 0; }
+}
+/* Ba thời lượng LỆCH NHAU VÀ KHÔNG CHIA HẾT CHO NHAU (17 / 21,5 / 26,5 giây)
+   nên trong suốt lượt chạy ba lớp không bao giờ trùng nhịp lần thứ hai.
+   Mỗi lớp 14 nhịp, nhịp xuống tới .14–.34 chứ không phải .5 như bản trước:
+   xuống nông thì mắt đọc ra "mờ dần", xuống sâu mới đọc ra "tắt rồi sáng".
+   Vẫn là CHẠY MỘT LƯỢT rồi đứng yên ở mức nghỉ, đúng luật của dự án — hết
+   lượt là CPU về không, không có khung hình nào được vẽ nữa. */
+.mo .sec-head.stardust:has(h2.sp-go)::before {
+  animation: sdNhay 17s linear both;
+}
+.mo .sec-head.stardust h2.sp-go + .sd-sky::before {
+  animation: sdNhay 21.5s linear both;
+}
+.mo .sec-head.stardust h2.sp-go + .sd-sky::after {
+  animation: sdNhay 26.5s linear .6s both;
+}
+
+/* ---- RÊ CHUỘT VÀO THÌ SÁNG LẠI ----
+   Lượt nháy khi cuộn tới chỉ chạy MỘT LẦN rồi đứng yên (luật của dự án, và
+   để CPU về không). Nhưng người xem mở lại trang, cuộn qua cuộn lại thì
+   không thấy gì nữa. Rê chuột vào là cho nháy lại, lần này lặp — chừng nào
+   con trỏ còn nằm trong khối. Rời chuột ra là dừng, mọi lớp về mức nghỉ.
+
+   PHẢI ĐỔI TÊN KEYFRAME (sdLapLanh chứ không sdNhay). Dùng lại đúng tên cũ
+   thì trình duyệt coi là vẫn animation đó đang chạy và KHÔNG khởi động lại —
+   lượt kia đã kết thúc ở 100% nên sẽ không thấy gì xảy ra cả.
+
+   Mỗi luật viết hai bộ chọn: một bộ có .mo cho trường hợp JS chạy (phải
+   đặc hiệu hơn ba luật ở trên mới đè được), một bộ không .mo cho trường hợp
+   tắt JS — lúc đó sao đứng yên ở .9 và rê chuột vẫn phải nháy được.
+
+   Ba thời lượng lại lệch nhau (2.3 / 2.9 / 3.7 giây) để ba lớp không bao
+   giờ cùng tối một lúc. Chỉ đụng opacity nên chạy trên lớp hợp thành. */
+@keyframes sdLapLanh {
+  0%, 100% { opacity: .9; }
+  11% { opacity: .12; }
+  23% { opacity: 1; }
+  37% { opacity: .2; }
+  50% { opacity: 1; }
+  63% { opacity: .15; }
+  76% { opacity: 1; }
+  89% { opacity: .26; }
+}
+/* Vệt sáng đi tới rồi quay lại (alternate) chứ không chạy vòng: dải chữ
+   không tuần hoàn nên lặp một chiều sẽ giật một nhịp ở mỗi vòng. */
+@keyframes sdQuetHover {
+  from { background-position: 76% 0; }
+  to   { background-position: 4% 0; }
+}
+
+.sec-head.stardust:hover::before,
+.mo .sec-head.stardust:hover:has(h2.sp-go)::before {
+  animation: sdLapLanh 2.3s linear infinite;
+}
+.sec-head.stardust:hover .sd-sky::before,
+.mo .sec-head.stardust:hover h2.sp-go + .sd-sky::before {
+  animation: sdLapLanh 2.9s linear infinite;
+}
+.sec-head.stardust:hover .sd-sky::after,
+.mo .sec-head.stardust:hover h2.sp-go + .sd-sky::after {
+  animation: sdLapLanh 3.7s linear infinite;
+}
+.sec-head.stardust:hover h2[data-fx="gold"],
+.mo .sec-head.stardust:hover h2[data-fx="gold"].sp-go {
+  animation: sdQuetHover 2.6s ease-in-out infinite alternate;
+}
+
+/* ---- chữ ---- */
+.sec-head.stardust h2[data-fx="gold"] {
+  --c1: #4a3607;   /* 10.20:1 trên #f1f1f1 */
+  --c2: #83620f;   /* = --gold, 5.00:1 — đáy thật của cả dải */
+  position: relative; z-index: 1;
+
+  /* .26em chứ không .2em như mặc định. "GIẢI THƯỞNG" có Ả (hỏi), Ư và Ơ
+     (sừng), Ở (hỏi chồng trên sừng); nền cắt theo nét chữ chỉ được vẽ TRONG
+     khung thẻ nên phần dấu nhô cao hơn khung sẽ mất sạch, in ra thành
+     "GIAI THƯONG". Nới khung bằng padding rồi kéo lại bằng margin âm — luật
+     ở khối dùng chung đã lo phần padding/margin, đây chỉ đổi con số. */
+  --ink-pad: .26em;
+
+  /* Dòng trên là ĐƯỜNG LUI cho WebView chưa biết cqw (trước Chrome 105);
+     dòng dưới mới là số thật. Đo theo bề ngang HỘP NỘI DUNG của tấm trời,
+     KHÔNG theo bề ngang màn hình: cột biểu tượng bên trái rộng 110px và biến
+     mất ở mốc 999px (style.css:2008), nên cùng một con số vw sẽ nhảy cỡ ở hai
+     bên mốc đó. Phép tính: chuỗi "GIẢI THƯỞNG" rộng 8.985em ở font-stretch
+     122% / letter-spacing .02em, muốn chiếm 60% hộp thì 0.60/8.985 = 6.68cqw.
+     Cái kẹp 8.2cqw ngoài cùng là chốt an toàn: nếu người dùng phóng cỡ chữ hệ
+     thống làm rem phình thì sàn 1.55rem bị kẹp lại, chữ vẫn gọn trong hộp. */
+  font-size: clamp(1.35rem, 4.2vw, 3.5rem);
+  font-size: min(clamp(1.4rem, 5.4cqw, 5.2rem), 7cqw);
+  font-weight: 900; font-stretch: 122%;
+  letter-spacing: .02em;
+  /* 1.14 chứ không sát hơn: dưới 1.1 là cắt dấu chữ hoa tiếng Việt, đã dính
+     ở .94 và 1.02 rồi. Đỉnh nét của Ở nằm thấp hơn mép khung chữ .005em, nên
+     1.14 cộng --ink-pad .26em cho dư 0.265em — tính bằng metric của Archivo. */
+  line-height: 1.14;
+
+  /* Cả dải chỉ nội suy giữa --c1 và --c2 nên MỌI điểm trên dải đều nằm giữa
+     10.20:1 và 5.00:1, bất kể background-position đứng ở đâu. Đó là lý do
+     chọn dạng hai màu lặp lại thay vì thêm màu thứ ba vào giữa: vệt sáng
+     quét qua thì không thể tạo ra một điểm nào chưa được đo. */
+  background-image: linear-gradient(100deg,
+    var(--c1) 0%, var(--c2) 40%, var(--c1) 72%, var(--c2) 100%);
+  background-size: 220% 100%;
+  background-position: var(--sd-rest) 0;
+  /* Gỡ fxRun vô hạn của khối dùng chung. Kiểu này chỉ sáng một lượt. */
+  animation: none;
+  /* Bỏ hẳn drop-shadow gờ trắng của tấm biển cũ: nền sáng thì gờ trắng gần
+     như vô hình, mà filter trên thẻ có mặt nạ cắt theo nét chữ là chỗ vẽ đắt
+     nhất trang — phải dựng lại filter trên mặt nạ chữ mỗi khung hình. */
+  filter: none;
+}
+
+/* Trạng thái trước khi hiện, nấp sau .mo: vẫn là chữ vàng ĐỌC ĐƯỢC, chỉ khác
+   chỗ vệt sáng đang đậu. Nhờ vậy nếu IntersectionObserver không chạy, hoặc
+   khung xem thử ngắt vẽ, thì hỏng nhất cũng chỉ là mất cú quét — không bao
+   giờ mất chữ. Và không có cú nhảy bậc ở khung hình đầu vì trạng thái ẩn đã
+   trùng đúng điểm bắt đầu của sdQuet. */
+.mo .sec-head.stardust h2[data-fx="gold"] { background-position: 78% 0; }
+.mo .sec-head.stardust h2[data-fx="gold"].sp-go {
+  animation: sdQuet 1.6s var(--e-expo) both;
+}
+/* p giảm thì ảnh nền dịch sang phải, nên vệt sáng chạy theo chiều đọc.
+   Chặng 100% để trống có chủ ý: thiếu nó thì trình duyệt tự lấy giá trị tĩnh
+   (--sd-rest) làm đích, nên nếu var() trong keyframe không được hiểu thì
+   hiệu ứng vẫn về đúng chỗ đậu chứ không nhảy lung tung. */
+@keyframes sdQuet {
+  from { background-position: 78% 0; }
+  to   { background-position: var(--sd-rest) 0; }
+}
+
+/* Nhích lên một nhịp khi rê chuột, cho thấy rõ là cả khối cùng phản hồi
+   chứ không phải mấy hạt sao tự nháy. Phép biến hình đặt trên CHÍNH thẻ h2
+   — thẻ đang giữ nền cắt theo nét chữ; đặt xuống thẻ con là thẻ con tạo lớp
+   vẽ riêng và chữ mất trắng. 2px thôi: hơn nữa là chữ to nhoè một nhịp. */
+.sec-head.stardust h2[data-fx="gold"] {
+  transition: transform .45s var(--e-expo);
+}
+.sec-head.stardust:hover h2[data-fx="gold"] { transform: translateY(-2px); }
+
+/* Cả tấm là một khối: tắt cú trượt từng dòng của motion.js. Phải ghi cả
+   transform:none và transition:none, nếu không translateY(115%) của luật
+   .sp-line-in còn treo lơ lửng. */
+.sec-head.stardust h2[data-fx="gold"] .sp-mask { overflow: visible; }
+.sec-head.stardust h2[data-fx="gold"] .sp-line-in { transform: none; transition: none; }
+
+/* Gạch dưới đo theo bề ngang CHÍNH DÒNG CHỮ (h2 là flex item căn giữa nên nó
+   co đúng bằng chữ), không đo bằng px cố định: 160px nằm dưới dòng chữ 934px
+   ở màn 1920 trông như một vết bẩn, còn ở 360px lại dài gần bằng cả chữ.
+   margin-bottom: 0 vì .sd-sky đứng sau h2 nên h2 không còn là :last-child,
+   và luật .sec-head.mid h2:not(:last-child)::after sẽ cộng thêm 16px làm
+   lệch phép tính khoảng hở của dải trời dưới. */
+.sec-head.stardust h2[data-fx]::after {
+  --rule-w: 38%;
+  height: 2px;
+  margin-top: clamp(12px, 1.1vw, 18px);
+  margin-bottom: 0;
+  background: linear-gradient(90deg,
+    rgba(var(--sd-ink), 0), var(--gold) 26%, var(--gold) 74%, rgba(var(--sd-ink), 0));
+}
+
+/* Màn hẹp: khối thấp lại nên tấm sao chỉ lộ ra dải giữa, mà bước lát 480px
+   thì ở 358px bề ngang chưa hết một tấm — thưa quá. Thu bước lát lại cho mật
+   độ hạt giống trên máy tính; chiều cao giữ 240px để hạt không méo thành bầu
+   dục. Đây chính là cái máy mà chủ nhà sẽ mở ra xem đầu tiên. */
+@media (max-width: 620px) {
+  .sd-sky::before { background-size: 100% 100%, 100% 100%, 290px 240px; }
+  .sd-sky::after  { background-size: 100% 100%, 100% 100%, 290px 240px; }
+  /* Ô trống phải NỞ RA theo cả hai chiều ở màn hẹp: chữ chiếm tới 64% bề
+     ngang (sàn clamp chặn, không cho bé hơn nữa) và khối thì thấp, nên cùng
+     một tỉ lệ phần trăm cho ra ít điểm ảnh dư hơn hẳn so với máy tính. */
+  .sec-head.stardust {
+    /* Màn hẹp: dòng chữ chiếm tới 64–70% bề ngang (sàn clamp chặn, không cho
+       bé hơn nữa) nên ô trống phải RỘNG hơn theo chiều ngang; đổi lại khối
+       thấp, phải DẸT hơn theo chiều dọc, nếu không nó nuốt sạch trời sao và
+       hiệu ứng lấp lánh biến mất đúng trên cái máy chủ nhà mở đầu tiên —
+       đã dựng đúng kiểu đó rồi mới sửa. */
+    --sd-clear: radial-gradient(44% 46% at 50% 46%,
+      rgb(var(--sd-bg)) 0 80%, rgba(var(--sd-bg), 0) 100%);
+    --sd-fade: linear-gradient(90deg,
+      rgb(var(--sd-bg)) 0, rgba(var(--sd-bg), 0) 4%,
+      rgba(var(--sd-bg), 0) 96%, rgb(var(--sd-bg)) 100%);
+  }
+}
+
+/* PHẢI LẶP LẠI KHỐI NÀY TẠI CHỖ, đừng thấy trùng rồi xoá: khối @supports not
+   dùng chung nằm ở style.css:3005 — TRƯỚC khối này — nên nó không gỡ nổi
+   background-image mà khối này vừa đặt.
+   Dòng background-color: transparent là dòng dễ quên nhất và là dòng nguy
+   nhất: khi trình duyệt không hiểu background-clip:text thì thuộc tính đó rơi
+   về border-box, nên BẤT KỲ màu nền nào còn sót lại sẽ tô kín cả hộp h2 và
+   biến tiêu đề thành một thanh đặc không đọc được chữ nào. */
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .sec-head.stardust h2[data-fx="gold"] {
+    background-image: none;
+    background-color: transparent;
+    color: #4a3607;
+    -webkit-text-fill-color: currentColor;
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Khối dùng chung ở cuối mục 35 ép background-position: 0 0 !important cho
+     .sec-head h2[data-fx]. Ở 0 0 chữ vẫn đọc được (vẫn trên dải đã đo), chỉ
+     là vệt sáng đậu lệch hẳn sang một bên. Kéo về chỗ đậu cho đúng ý đồ —
+     (0,3,2) + !important thắng (0,2,1) + !important, thắng bằng độ đặc hiệu
+     nên không phụ thuộc thứ tự dòng. */
+  .sec-head.stardust h2[data-fx="gold"] { background-position: var(--sd-rest) 0 !important; }
+  /* Cùng khối đó có .sec-head h2[data-fx] .sp-line-in { letter-spacing: normal
+     !important } — luật viết cho kiểu split nhưng ăn vào MỌI data-fx, làm
+     chuỗi hẹp đi 2% và lệch phép tính bề ngang. Thực tế chỉ cắn khi người
+     dùng BẬT giảm chuyển động SAU khi trang đã tải (lúc tải thì motion.js
+     return ngay nên chưa có thẻ .sp-line-in nào). Trả lại cho đúng. */
+  .sec-head.stardust h2[data-fx="gold"] .sp-line-in { letter-spacing: inherit !important; }
+  /* Giảm chuyển động thì motion.js return ngay, không gắn .mo cũng không gắn
+     .sp-go, nên trời sao đứng ở mức nghỉ .88 — đã hiện, đọc được, không cần
+     cứu. Hai dòng này là chốt phòng khi người dùng bật giữa phiên. */
+  .sec-head.stardust::before,
+  .sd-sky::before,
+  .sd-sky::after { animation: none !important; opacity: .9 !important; }
+}
+
+/* Cả sáu tiêu đề [data-fx] của trang đều để -webkit-text-fill-color
+   transparent và chỉ dựa vào nền-cắt-theo-nét để hiện, nên in ra giấy mà
+   trình duyệt bỏ nền là tiêu đề trắng trơn. Đây là lỗi SẴN CÓ của cả sáu,
+   vá được chỗ nào thì vá. CHƯA KIỂM ĐƯỢC BẰNG MẮT — khung xem thử không cho
+   xem bản in, nên đây là nghi ngờ có căn cứ, không phải kết luận. */
+@media print {
+  .sec-head.stardust h2[data-fx="gold"] {
+    background-image: none !important;
+    background-color: transparent !important;
+    color: #4a3607 !important;
+    -webkit-text-fill-color: currentColor !important;
+    animation: none !important;
+  }
+  .sd-sky, .sec-head.stardust::before { display: none !important; }
+  .sec-head.stardust { padding: 0 !important; }
 }
 
 
@@ -3535,10 +3842,9 @@ summary { list-style: none; }
     animation: none !important; background-position: 0 0 !important;
     opacity: 1 !important; transform: none !important;
   }
-  .sec-head h2[data-fx="blur"] {
-    filter: drop-shadow(2px 0 0 rgba(74, 227, 255, .5))
-            drop-shadow(-2px 0 0 rgba(255, 79, 163, .42)) !important;
-  }
+  /* Luật thi đấu là con dấu: luật chung ở trên ép transform:none, mà bỏ
+     góc nghiêng đi thì nó hết ra con dấu. Trả lại đúng góc nghỉ. */
+  .sec-head h2[data-fx="stamp"] { transform: rotate(-5.5deg) !important; }
   /* mọi kiểu đều phải chốt về trạng thái đã hiện, không thì mất tiêu đề */
   .sec-head h2[data-fx] .sp-line-in {
     transform: none !important; opacity: 1 !important;
@@ -3552,3 +3858,335 @@ summary { list-style: none; }
    Trước nằm trong footer, footer gỡ rồi nên cho nổi cạnh mũi tên.
    ============================================================ */
 .btn-adm-float { position: fixed; right: 16px; bottom: 70px; z-index: 60; }
+
+/* ============================================================
+   37. GIẢI THƯỞNG
+   Chia theo TAB từng hạng mục (dùng chung bộ .tabs với Nhánh đấu và Luật).
+   Mỗi tab: ba thẻ lớn cho hạng nhất nhì ba, rồi tới bảng xếp hạng.
+
+   Ba thẻ lớn là chỗ DUY NHẤT trong trang đảo tông sang nền tối, và đó là
+   chủ ý: cả mục còn lại là nền sáng, nên ba cái thẻ đen vàng đọc ra ngay
+   "đây là bục trao giải" mà không cần thêm chữ nào. Khác dải tối của mục
+   Nhánh đấu ở chỗ đây là BA THẺ RỜI chứ không phải một dải chạy suốt trang.
+
+   Mọi cặp màu trong khối đã đo: chữ trắng trên thẻ tối 15.06:1, nhãn mờ
+   5.62:1, chữ trên huy hiệu hạng 4.65–10.26:1, dòng "chờ kết quả" 4.89:1.
+   ============================================================ */
+.awards { margin-top: 4px; }
+
+/* ---------------- thanh tab hạng mục ----------------
+   Một dải xám đậm bo tròn, thẻ đang chọn là viên đen nằm trong dải — khác
+   hẳn kiểu viên trắng viền mảnh của Nhánh đấu và Luật, và hợp với ba thẻ
+   bục trao giải bên dưới vốn đã là nền tối.
+   Chữ trắng trên #555 đo được 7.46:1; các màu icon đều trên 3.5:1 so với
+   dải xám (ngưỡng 3:1 của WCAG cho phần phi văn bản). */
+#award-tabs {
+  /* width: max-content để dải xám co đúng bằng các tab rồi margin auto đẩy
+     ra giữa; max-width: 100% để màn hẹp vẫn kéo ngang được chứ không tràn. */
+  width: max-content; max-width: 100%;
+  margin: 0 auto 18px;
+  padding: 5px; gap: 2px;
+  border-radius: 999px;
+  background: #555;
+  /* Dòng trên là đường lui: trình duyệt không hiểu "safe" thì bỏ cả dòng
+     sau và vẫn còn center. Có "safe" thì khi tab tràn ra ngoài, nội dung
+     neo về mép trái thay vì bị cụt mất mấy tab đầu không kéo tới được. */
+  justify-content: center;
+  justify-content: safe center;
+}
+#award-tabs button {
+  padding: 9px 16px;
+  color: #fff; background: transparent; border-color: transparent;
+}
+#award-tabs button:hover { color: #fff; background: rgba(255, 255, 255, .14); }
+#award-tabs button[aria-selected="true"] { color: #fff; background: var(--ink); }
+#award-tabs button svg { width: 16px; height: 16px; }
+
+/* Thanh tab Giải thưởng nền tối cả lúc chọn lẫn lúc không, nên luôn lấy
+   bản SÁNG của màu. Bảng màu nằm ở khối dùng chung bên dưới. */
+#award-tabs button svg { color: var(--ic-lite, #fff); }
+
+@media (max-width: 620px) {
+  #award-tabs { padding: 4px; border-radius: 22px; }
+  #award-tabs button { padding: 8px 13px; font-size: .83rem; }
+}
+
+.aw-h {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.aw-h h3 {
+  flex: 1 1 12ch; min-width: 0; margin: 0;
+  font-family: var(--ff-d); font-stretch: 112%;
+  font-size: 1.12rem; font-weight: 800; line-height: 1.3;
+}
+.aw-tag {
+  flex: none;
+  padding: 4px 11px; border-radius: 999px;
+  background: var(--panel-2); color: var(--muted);
+  font-size: .74rem; font-weight: 700; white-space: nowrap;
+}
+/* chỉ hiện khi hạng mục đã có người thắng — #28763a trên #e6f3e9 = 4.91:1 */
+.aw-tag.done { background: var(--brand-s); color: var(--brand); }
+
+/* Nhảy dây có hai bảng (nam và nữ). Xếp SONG SONG hai cột: hai bảng
+   độc lập nhau, không ai hơn ai, nên để chồng dọc là bắt người xem cuộn
+   qua hết nhóm nam mới thấy nhóm nữ. */
+.aw-two { display: grid; gap: 26px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 1080px) { .aw-two { grid-template-columns: 1fr; gap: 22px; } }
+/* trong cột hẹp thì bục xếp dọc, ba thẻ cạnh nhau sẽ không còn chỗ cho tên */
+.aw-two .aw-top { grid-template-columns: 1fr; }
+.aw-two .aw-col.c1, .aw-two .aw-col.c2, .aw-two .aw-col.c3 { order: 0; }
+.aw-two .aw-big, .aw-two .aw-big.lg, .aw-two .aw-big.g2, .aw-two .aw-big.sm { min-height: 0; }
+
+.aw-sub {
+  margin: 26px 0 10px;
+  font-size: .76rem; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.aw-sub:first-child { margin-top: 0; }
+
+/* ---------------- ba thẻ lớn ---------------- */
+/* ---- bục trao giải: bạc trái, vàng giữa, đồng phải ----
+   Vàng đứng đầu trong HTML (đúng thứ hạng khi đọc), ba cột xếp lại bằng
+   order. Trình duyệt không hiểu grid thì rơi về một cột theo đúng thứ tự
+   1-2-3, vẫn đọc được — chỉ mất dáng bục. */
+.aw-top {
+  display: grid; gap: 14px; align-items: center;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  margin-bottom: 18px;
+}
+.aw-col { min-width: 0; display: grid; gap: 10px; align-content: center; }
+.aw-col.c1 { order: 2; }
+.aw-col.c2 { order: 1; }
+.aw-col.c3 { order: 3; }
+@media (max-width: 900px) {
+  .aw-top { grid-template-columns: 1fr; gap: 10px; }
+  /* màn hẹp xếp dọc thì bục không còn ý nghĩa: trả về đúng nhất, nhì, ba */
+  .aw-col.c1, .aw-col.c2, .aw-col.c3 { order: 0; }
+}
+
+.aw-big {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 9px;
+  min-height: 158px;
+  padding: 16px 18px 18px;
+  /* chiều cao ba bậc: vàng cao nhất, bạc vừa, đồng thấp */
+  border-radius: var(--r-sm);
+  color: #fff;
+  background-color: #1b1813;
+  /* vân chéo mảnh cho mặt thẻ đỡ phẳng, vẽ bằng gradient nên không tốn ảnh */
+  background-image:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, .04) 0 2px, transparent 2px 10px),
+    radial-gradient(130% 130% at 88% 8%, rgba(216, 171, 82, .18), transparent 62%);
+}
+.aw-big.g2 { background-image:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, .04) 0 2px, transparent 2px 10px),
+    radial-gradient(130% 130% at 88% 8%, rgba(214, 219, 226, .16), transparent 62%); }
+.aw-big.g3 { background-image:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, .04) 0 2px, transparent 2px 10px),
+    radial-gradient(130% 130% at 88% 8%, rgba(201, 131, 79, .18), transparent 62%); }
+
+/* huy hiệu hạng, nằm đúng góc trên bên phải như bảng xếp hạng thể thao */
+.aw-pos {
+  position: absolute; top: 0; right: 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 5px 15px 7px;
+  border-radius: 0 var(--r-sm) 0 14px;
+  color: #1b1813;
+  background: linear-gradient(135deg, #e3e6ea, #bcc1c7);
+}
+.aw-pos i {
+  font-style: normal; font-size: .56rem; font-weight: 800;
+  letter-spacing: .16em; text-transform: uppercase;
+}
+.aw-pos b {
+  font-family: var(--ff-d); font-stretch: 118%;
+  font-size: 1.22rem; font-weight: 900; line-height: 1;
+}
+.aw-big.g1 .aw-pos { background: linear-gradient(135deg, #e7c070, #c99a3f); }
+.aw-big.g3 .aw-pos { background: linear-gradient(135deg, #dba171, #b87240); }
+
+/* Cả ba khối chữ đều chừa chỗ bên phải: trên là huy hiệu hạng, dưới là
+   biểu tượng môn thi. Không chừa thì tên đôi dài chui thẳng vào sau chúng. */
+.aw-kind, .aw-big h4, .aw-sts { padding-right: 92px; }
+.aw-kind {
+  font-size: .64rem; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; color: #a79d8a;
+}
+.aw-big h4 {
+  position: relative; z-index: 1;
+  margin: 0; flex: 1 1 auto;
+  font-family: var(--ff-d); font-stretch: 112%;
+  font-size: clamp(1.02rem, 1.9vw, 1.35rem);
+  font-weight: 800; line-height: 1.22;
+  /* 1.22 chứ không sát hơn: tên người Việt có dấu chồng, dưới 1.1 là cắt */
+}
+.aw-big h4 span { display: block; }
+/* Ô Đồng giải ba có HAI đội. Không có vạch ngăn thì bốn cái tên dính thành
+   một khối, đọc ra như một đội bốn người. */
+.aw-big h4 span + span {
+  margin-top: 5px; padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+}
+.aw-big h4 .pend {
+  font-family: var(--ff); font-size: .9rem; font-weight: 500;
+  font-style: italic; color: #9a9284;
+}
+
+.aw-sts {
+  position: relative; z-index: 1;
+  display: flex; gap: 26px; flex-wrap: wrap;
+}
+.aw-sts i {
+  display: block; font-style: normal;
+  font-size: .6rem; font-weight: 800; letter-spacing: .14em;
+  text-transform: uppercase; color: #a79d8a;
+  margin-bottom: 3px;
+}
+.aw-sts b {
+  font-family: var(--ff-d); font-stretch: 112%;
+  font-size: 1.02rem; font-weight: 800; color: #f0ead9;
+}
+
+/* Biểu tượng môn thi nằm bên phải, thay cho logo câu lạc bộ trong các bảng
+   xếp hạng thể thao. Để rõ hẳn chứ không chìm — nhưng phải nằm NGOÀI vùng
+   chữ (xem padding-right ở trên), vì nó sáng hơn nền thẻ nên chữ trắng đè
+   lên là mất tương phản ngay. */
+.aw-wm {
+  position: absolute; z-index: 0;
+  right: 12px; top: 50%; transform: translateY(-50%);
+  width: 78px; height: 78px;
+  color: #d8ab52; opacity: .5;
+  pointer-events: none;
+}
+.aw-big.g2 .aw-wm { color: #c8ccd2; }
+.aw-big.g3 .aw-wm { color: #c9834f; }
+
+/* ---- ba bậc cao thấp ---- */
+.aw-big.lg { min-height: 236px; padding: 18px 22px 20px; }
+/* bạc: khoảng giữa vàng và đồng, đọc ra ngay bậc hai */
+.aw-big.g2 { min-height: 188px; padding: 17px 20px 19px; }
+.aw-big.sm { min-height: 88px; gap: 5px; padding: 11px 14px 12px; }
+.aw-big.lg h4 { font-size: clamp(1.18rem, 2.4vw, 1.62rem); }
+.aw-big.g2 h4 { font-size: clamp(1.08rem, 2.1vw, 1.38rem); }
+.aw-big.sm h4 { font-size: .9rem; }
+.aw-big.sm .aw-kind { font-size: .55rem; padding-right: 66px; }
+.aw-big.sm .aw-sts { gap: 14px; }
+.aw-big.sm .aw-sts i { font-size: .54rem; margin-bottom: 1px; }
+.aw-big.sm .aw-sts b { font-size: .82rem; }
+.aw-big.sm .aw-wm { width: 60px; height: 60px; right: -8px; bottom: -8px; }
+.aw-big.sm .aw-pos { padding: 3px 10px 4px; }
+.aw-big.sm .aw-pos i { font-size: .5rem; }
+.aw-big.sm .aw-pos b { font-size: .92rem; }
+
+/* huy chương vàng: vật thật trên thẻ, không phải hoa văn chìm như .aw-wm */
+.aw-medal {
+  display: block; flex: none;
+  width: 46px; height: 62px;
+  margin-bottom: -2px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, .45));
+}
+/* có huy chương rồi thì thôi icon môn chìm, hai thứ chồng nhau là rối */
+.aw-big.g1 .aw-wm { display: none; }
+
+/* ---------------- bảng xếp hạng ---------------- */
+.aw-tab {
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  overflow: hidden; background: var(--panel);
+}
+.aw-th, .aw-row {
+  display: grid; grid-template-columns: 62px minmax(0, 1fr) auto;
+  gap: 14px; align-items: center;
+  padding: 11px 16px;
+}
+.aw-th {
+  background: var(--ink); color: #fff;
+  font-size: .66rem; font-weight: 800;
+  letter-spacing: .13em; text-transform: uppercase;
+}
+.aw-th span:last-child { text-align: right; }
+.aw-row { border-top: 1px solid var(--line); }
+.aw-row:first-of-type { border-top: 0; }
+
+.aw-rk {
+  font-family: var(--ff-d); font-stretch: 118%;
+  font-size: 1.1rem; font-weight: 900; color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.aw-rk i {
+  display: block; font-style: normal; font-family: var(--ff);
+  font-size: .64rem; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted-2);
+}
+.aw-who b { display: block; font-weight: 700; font-size: .95rem; line-height: 1.45; }
+.aw-who .pend { font-weight: 500; font-style: italic; color: #5f6b7a; }
+.aw-pz {
+  text-align: right; white-space: nowrap;
+  font-weight: 800; font-size: .9rem; color: var(--muted);
+}
+
+/* ba hạng đầu có nền nhạt theo màu huy chương, đúng thứ tự vàng bạc đồng */
+.aw-row.g1 { background: linear-gradient(90deg, #fffaec, var(--panel) 72%); }
+.aw-row.g2 { background: linear-gradient(90deg, #f6f6f7, var(--panel) 72%); }
+.aw-row.g3 { background: linear-gradient(90deg, #fdf3ec, var(--panel) 72%); }
+.aw-row.g1 .aw-rk, .aw-row.g1 .aw-pz { color: var(--gold); }
+.aw-row.g3 .aw-pz { color: var(--clay); }
+/* dòng gộp nhiều đội cùng dừng một vòng */
+.aw-row.grp .aw-who b { font-weight: 650; font-size: .9rem; }
+.aw-row.grp .aw-pz { font-weight: 700; font-size: .82rem; }
+
+.aw-empty {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0; padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--panel);
+  font-size: .9rem; color: var(--muted);
+}
+.aw-empty .pod-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--line-2); flex: none;
+}
+
+@media (max-width: 620px) {
+  .aw-big, .aw-big.lg, .aw-big.sm { min-height: 0; padding: 14px 15px 16px; }
+  .aw-medal { width: 38px; height: 51px; }
+  .aw-kind, .aw-big h4, .aw-sts { padding-right: 76px; }
+  .aw-wm { width: 62px; height: 62px; right: 9px; }
+  .aw-sts { gap: 18px; }
+  .aw-th, .aw-row { grid-template-columns: 42px minmax(0, 1fr); padding: 11px 13px; gap: 10px; }
+  /* Cột tiền xuống dòng riêng ở màn hẹp: để nguyên ba cột thì tên đôi
+     "Nguyễn Khắc Cường / Đoàn Bảo Quốc" chỉ còn chừng sáu ký tự một dòng. */
+  .aw-th span:last-child { display: none; }
+  .aw-pz { grid-column: 2; text-align: left; margin-top: 2px; font-size: .84rem; }
+}
+
+/* ============================================================
+   38. MÀU ICON CỦA TAB
+   Mỗi nội dung một màu, dùng chung cho cả ba thanh tab (Nhánh đấu, Giải
+   thưởng, Luật) để cùng một nội dung ở đâu cũng một màu — nhìn màu là
+   biết đang ở nội dung nào mà chưa cần đọc chữ.
+
+   PHẢI CÓ HAI BẢN mỗi màu, không dùng một bản cho cả hai nền:
+     --ic-dark dùng trên viên trắng (Nhánh đấu, Luật lúc chưa chọn)
+     --ic-lite dùng trên nền tối (viên đen đang chọn, và cả dải xám của
+               mục Giải thưởng)
+   Lấy bản sáng đặt lên viên trắng thì đo được 1.6:1, mờ tịt; lấy bản tối
+   đặt lên viên đen thì còn 2.5:1 — cả hai đều dưới ngưỡng 3:1 mà WCAG
+   đặt cho phần phi văn bản.
+   Số đo thật (tối trên #fff / tối trên nền hover #e9e9e9 / sáng trên
+   #151515 / sáng trên dải xám #555): thấp nhất của cả bảng là 3.56:1.
+   ============================================================ */
+.tabs button[data-k="pb-nam"],
+.tabs button[data-k="pickleball"] { --ic-dark: var(--pb);     --ic-lite: #9fd45a; }
+.tabs button[data-k="pb-mix"]     { --ic-dark: var(--brand);  --ic-lite: #7fd394; }
+.tabs button[data-k="cl-nam"],
+.tabs button[data-k="caulong"]    { --ic-dark: var(--cl);     --ic-lite: #58c3dd; }
+.tabs button[data-k="cl-mix"]     { --ic-dark: var(--steel);  --ic-lite: #8fb7ea; }
+.tabs button[data-k="jump"],
+.tabs button[data-k="nhayday"]    { --ic-dark: var(--jr);     --ic-lite: #f29ab0; }
+.tabs button[data-k="mini"]       { --ic-dark: var(--violet); --ic-lite: #b6adff; }
+
+/* viên trắng -> bản tối; viên đen đang chọn -> bản sáng */
+.tabs button svg { color: var(--ic-dark, currentColor); }
+.tabs button[aria-selected="true"] svg { color: var(--ic-lite, currentColor); }

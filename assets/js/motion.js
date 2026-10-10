@@ -10,6 +10,12 @@
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) return;
 
+  /* Dấu "chuyển động đang chạy". Trạng thái ẩn ban đầu của tiêu đề nấp
+     sau dấu này trong CSS, nhờ vậy tắt JS — hoặc file này văng lỗi trước
+     khi quét — thì tiêu đề vẫn hiện nguyên, chỉ mất phần chuyển động.
+     Dùng className chứ không classList: WebView cũ thiếu classList. */
+  document.documentElement.className += ' mo';
+
   var small = matchMedia('(max-width: 760px)');
   var $  = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
