@@ -18,7 +18,10 @@ var Tournament = (function () {
     CK: 'Chung kết',
     TB: 'Tranh hạng Ba'
   };
-  var ROUND_SHORT = { VL: 'VL', VV: 'VV', R1: 'Trận', TK: 'TK', BK: 'BK', CK: 'CK', TB: 'HB' };
+  /* VV hiện ra ngoài vẫn là "VL": BTC đánh số nhánh thua nối tiếp vòng
+     loại — VL7, VL8, VL9 — nên chỉ khác ở số hiển thị (m.no), còn mã vòng
+     bên trong giữ nguyên 'VV' vì bộ xếp lịch đang dựa vào nó. */
+  var ROUND_SHORT = { VL: 'VL', VV: 'VL', R1: 'Trận', TK: 'TK', BK: 'BK', CK: 'CK', TB: 'HB' };
 
   /* ---------- tiện ích thời gian ---------- */
   function toMin(hhmm) {
@@ -49,14 +52,18 @@ var Tournament = (function () {
         round: round,
         roundName: ROUND_NAME[round] || round,
         index: idx,
-        label: (ROUND_NAME[round] || round) +
-             (round === 'CK' || round === 'TB' ? '' : ' ' + idx),
+        /* no = số hiển thị, mặc định bằng index. Nhánh thua đặt riêng
+           (VL7/8/9) nên mới cần tách khỏi index. */
+        no: idx,
+        short: ROUND_SHORT[round] || round,
         a: a,
         b: b,
         isFinal: round === 'CK',
         targetScore: ev.targetScore
       };
       if (extra) for (var k in extra) m[k] = extra[k];
+      m.label = (ROUND_NAME[round] || round) +
+                (round === 'CK' || round === 'TB' ? '' : ' ' + m.no);
       ms.push(m);
       return m;
     }
@@ -96,14 +103,20 @@ var Tournament = (function () {
       for (var q = 1; q <= 6; q++) {
         add('VL', q, seedRef(q * 2 - 1), seedRef(q * 2));
       }
+      /* Nhánh thua đánh số nối tiếp: VL7, VL8, VL9 */
       for (var vv = 1; vv <= 3; vv++) {
         add('VV', vv, loserRef(ev.id + '-VL-' + (vv * 2 - 1)),
-                      loserRef(ev.id + '-VL-' + (vv * 2)));
+                      loserRef(ev.id + '-VL-' + (vv * 2)), { no: 6 + vv });
       }
-      add('TK', 1, winnerRef(ev.id + '-VL-1'), pickRef(1));
-      add('TK', 2, winnerRef(ev.id + '-VL-2'), winnerRef(ev.id + '-VL-3'));
-      add('TK', 3, winnerRef(ev.id + '-VL-4'), winnerRef(ev.id + '-VL-5'));
-      add('TK', 4, winnerRef(ev.id + '-VL-6'), pickRef(2));
+      /* Ghép tứ kết: ba cặp đầu là thắng VL1–VL2, VL3–VL4, VL5–VL6.
+         Tứ kết 4 dành cho NHÁNH THUA — hai trong ba đội thắng VL7, VL8,
+         VL9 có cách biệt điểm lớn nhất, và hai đội đó gặp nhau luôn.
+         Chốt cứng VL7 gặp VL8 thì đội thắng VL9 bị loại từ trước khi vào
+         sân dù thắng; chọn theo cách biệt thì cả ba đều còn cửa. */
+      add('TK', 1, winnerRef(ev.id + '-VL-1'), winnerRef(ev.id + '-VL-2'));
+      add('TK', 2, winnerRef(ev.id + '-VL-3'), winnerRef(ev.id + '-VL-4'));
+      add('TK', 3, winnerRef(ev.id + '-VL-5'), winnerRef(ev.id + '-VL-6'));
+      add('TK', 4, pickRef(1), pickRef(2));
       add('BK', 1, winnerRef(ev.id + '-TK-1'), winnerRef(ev.id + '-TK-2'));
       add('BK', 2, winnerRef(ev.id + '-TK-3'), winnerRef(ev.id + '-TK-4'));
       add('CK', 1, winnerRef(ev.id + '-BK-1'), winnerRef(ev.id + '-BK-2'));
@@ -401,7 +414,7 @@ var Tournament = (function () {
       }
       return {
         pending: true,
-        label: 'Thắng ' + ROUND_SHORT[dep.round] + ' ' + dep.index,
+        label: 'Thắng ' + (dep.short || ROUND_SHORT[dep.round]) + ' ' + (dep.no || dep.index),
         via: dep.id
       };
     }
@@ -415,7 +428,7 @@ var Tournament = (function () {
       }
       return {
         pending: true,
-        label: 'Thua ' + ROUND_SHORT[dl.round] + ' ' + dl.index,
+        label: 'Thua ' + (dl.short || ROUND_SHORT[dl.round]) + ' ' + (dl.no || dl.index),
         via: dl.id
       };
     }
@@ -440,12 +453,15 @@ var Tournament = (function () {
     return { pending: true, label: '—' };
   }
 
-  /* Chọn 2 trong 3 đội thắng vòng vớt.
-     Thứ tự xét: hiệu số trận vớt → tổng điểm ghi được → còn bằng nhau thì
-     BTC bốc thăm (trang báo "cần bốc thăm" chứ không tự chọn hộ).
-     Chọn xong còn phải tránh cho đội vớt gặp lại đúng đội đã loại mình ở
-     vòng loại: TK 1 gặp đội thắng VL 1, TK 4 gặp đội thắng VL 6, nên nếu
-     trùng thì đổi chỗ hai đội vớt cho nhau. */
+  /* Chọn 2 trong 3 đội thắng nhánh thua (VL7, VL8, VL9).
+     Thứ tự xét: cách biệt điểm của trận nhánh thua → tổng điểm ghi được →
+     còn bằng nhau thì BTC bốc thăm (trang báo "cần bốc thăm" chứ không tự
+     chọn hộ).
+
+     KHÔNG còn đoạn tránh cho đội vớt gặp lại đội đã loại mình: hai đội vớt
+     giờ gặp NHAU ở Tứ kết 4, mà ba trận nhánh thua lấy người thua từ sáu
+     trận vòng loại khác nhau, nên hai đội vớt chắc chắn chưa từng gặp nhau.
+     Giữ lại đoạn đó chỉ là code chết đi kèm một khái niệm sai. */
   function repechage(state, ev) {
     var rows = [], ready = true;
     state.matches.forEach(function (m) {
@@ -465,7 +481,8 @@ var Tournament = (function () {
     });
     rows.sort(function (x, y) { return (y.diff - x.diff) || (y.pts - x.pts); });
 
-    var out = { rows: rows, ready: false, tie: false, swapped: false, picks: [null, null] };
+    var out = { rows: rows, ready: false, tie: false, swapped: false, clash: false,
+                picks: [null, null] };
     if (!ready || rows.length !== 3) return out;
 
     /* hai đội đứng đầu phải hơn đội thứ ba, không thì phải bốc thăm */
@@ -474,38 +491,7 @@ var Tournament = (function () {
       return out;
     }
 
-    var picks = [rows[0].teamId, rows[1].teamId];
-
-    /* đội nào đã loại đội vớt này ở vòng loại */
-    function eliminator(teamId) {
-      var who = null;
-      state.matches.forEach(function (m) {
-        if (m.eventId !== ev.id || m.round !== 'VL') return;
-        var lo = loserOf(state, m);
-        if (lo && lo.teamId === teamId) {
-          var w = winnerOf(state, m);
-          if (w) who = w.teamId;
-        }
-      });
-      return who;
-    }
-    function sideOpponent(n) {           /* đối thủ của đội vớt thứ n ở tứ kết */
-      var vl = state.matchById[ev.id + '-VL-' + (n === 1 ? 1 : 6)];
-      var w = vl ? winnerOf(state, vl) : null;
-      return w ? w.teamId : null;
-    }
-
-    var clash = (eliminator(picks[0]) === sideOpponent(1)) ||
-                (eliminator(picks[1]) === sideOpponent(2));
-    if (clash) {
-      var swapped = [picks[1], picks[0]];
-      var stillClash = (eliminator(swapped[0]) === sideOpponent(1)) ||
-                       (eliminator(swapped[1]) === sideOpponent(2));
-      if (!stillClash) { picks = swapped; out.swapped = true; }
-      else out.clash = true;   /* cả hai cách đều trùng — BTC tự xếp */
-    }
-
-    out.picks = picks;
+    out.picks = [rows[0].teamId, rows[1].teamId];
     out.ready = true;
     return out;
   }

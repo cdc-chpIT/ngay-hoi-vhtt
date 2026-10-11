@@ -101,13 +101,36 @@ ok(vv[0].a.m === 'pb-nam-VL-1' && vv[0].b.m === 'pb-nam-VL-2' &&
    vv[2].a.m === 'pb-nam-VL-5' && vv[2].b.m === 'pb-nam-VL-6',
   'vòng vớt 1 = thua VL1 vs thua VL2, vòng vớt 3 = thua VL5 vs thua VL6');
 
-/* hai đội vớt nằm ở hai nhánh khác nhau */
+/* nhanh thua danh so noi tiep vong loai: VL7, VL8, VL9 */
+ok(vv.map(m => m.short + m.no).sort().join(' ') === 'VL7 VL8 VL9',
+  'nhanh thua hien ra la VL7, VL8, VL9', vv.map(m => m.short + m.no).join(' '));
+
+/* ghep tu ket theo bang BTC gui 12/10 */
 const tk = T.matchesOf('pb-nam').filter(m => m.round === 'TK');
-/* T.matches đã sắp theo giờ nên phải đọc m.index, không phải vị trí trong mảng */
-const pickSide = tk.filter(m => m.a.k === 'pick' || m.b.k === 'pick')
-                   .map(m => m.index).sort((x, y) => x - y);
-ok(pickSide.length === 2 && pickSide[0] === 1 && pickSide[1] === 4,
-  'hai đội vớt vào TK 1 và TK 4 — hai nhánh khác nhau', JSON.stringify(pickSide));
+const byIdx = {};
+tk.forEach(m => { byIdx[m.index] = m; });
+const want = {
+  1: ['pb-nam-VL-1', 'pb-nam-VL-2'],
+  2: ['pb-nam-VL-3', 'pb-nam-VL-4'],
+  3: ['pb-nam-VL-5', 'pb-nam-VL-6']
+};
+const tkOk = Object.keys(want).every(i => {
+  const m = byIdx[i];
+  return m && m.a.k === 'winner' && m.b.k === 'winner' &&
+         m.a.m === want[i][0] && m.b.m === want[i][1];
+});
+ok(tkOk, 'TK1=VL1-VL2, TK2=VL3-VL4, TK3=VL5-VL6',
+  tk.map(m => m.index + ':' + m.a.m + '/' + m.b.m).join(' '));
+
+/* TK4 danh cho nhanh thua: hai doi vot gap NHAU */
+ok(byIdx[4] && byIdx[4].a.k === 'pick' && byIdx[4].b.k === 'pick' &&
+   byIdx[4].a.n === 1 && byIdx[4].b.n === 2,
+  'TK4 = doi vot 1 gap doi vot 2');
+
+/* ca ba doi thang VL7, VL8, VL9 deu con cua len tu ket */
+ok(!tk.some(m => m.a.k === 'winner' && String(m.a.m).indexOf('-VV-') >= 0) &&
+   !tk.some(m => m.b.k === 'winner' && String(m.b.m).indexOf('-VV-') >= 0),
+  'khong chot cung tran nhanh thua nao vao tu ket');
 
 /* ---------- 3. thời lượng theo vòng ---------- */
 const durOk = T.matchesOf('pb-nam').every(m => {
@@ -161,7 +184,7 @@ const last = Math.max(...T.matches.map(m => m.endMin));
 const hh = n => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
 console.log('      giờ kết thúc dự kiến (chưa bốc thăm): ' + hh(last));
 
-/* ---------- 5. vòng vớt chọn đúng 2 đội ---------- */
+/* ---------- 5. nhanh thua chon dung 2 doi theo cach biet ---------- */
 const res = {};
 /* 6 đội số lẻ thắng vòng loại */
 T.matchesOf('pb-nam').filter(m => m.round === 'VL').forEach(m => { res[m.id] = [11, 5]; });
@@ -175,7 +198,10 @@ T.setResults(res);
 const rp = T.repechage(T.eventById['pb-nam']);
 ok(rp.ready, 'chọn xong 2 đội vớt khi đã đủ kết quả');
 ok(rp.rows.length === 3 && rp.rows[0].diff === 6 && rp.rows[2].diff === 2,
-  'xếp hạng vòng vớt theo hiệu số giảm dần', rp.rows.map(r => r.diff).join(','));
+  'xep hang nhanh thua theo cach biet giam dan', rp.rows.map(r => r.diff).join(','));
+/* hai doi duoc chon phai dung la hai doi cach biet lon nhat */
+ok(rp.picks[0] === rp.rows[0].teamId && rp.picks[1] === rp.rows[1].teamId,
+  'chon dung hai doi cach biet lon nhat, khong doi cho');
 ok(rp.picks.filter(Boolean).length === 2 && rp.picks[0] !== rp.picks[1],
   'chọn đúng 2 đội khác nhau', JSON.stringify(rp.picks));
 

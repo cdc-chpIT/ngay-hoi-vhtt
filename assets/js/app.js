@@ -214,6 +214,7 @@
      hội trường.                                                          */
   function agItem(t, k, tm, i) {
     var pillar = t.talk ? D.pillars[t.talk - 1] : null;
+    var tk = t.talk ? D.talks[t.talk - 1] : null;
     return '<div class="ag-item mt-st reveal" data-idx="' + k + '" data-part="' + esc(t.part) + '"' +
         (pillar ? ' data-pillar="' + esc(pillar.key) + '"' : '') +
         (t.sport ? ' data-sport="1"' : '') +
@@ -223,12 +224,20 @@
       '<i class="mt-dot" aria-hidden="true"></i>' +
       '<div class="ag-b">' +
         '<h3>' + esc(t.title) + '</h3>' +
+        /* TÊN DIỄN GIẢ ngay dưới tên bài: để ở mục Văn hóa thôi thì người
+           đang dò lịch phải nhớ xem bài nào của ai. Tên lấy thẳng từ D.talks
+           nên không bao giờ lệch với mục Văn hóa. */
+        (tk && tk.speaker
+          ? '<p class="ag-sp">' + esc(vnName(tk.speaker)) + '</p>' : '') +
         /* chỉ mục nào có địa điểm riêng mới in thêm một dòng */
         (t.place ? '<p class="ag-pl">' + icon('pin', 14) + esc(t.place) + '</p>' : '') +
+        /* KHÔNG IN TÊN TIỂU BAN PHỤ TRÁCH. Trang này ai có link cũng xem
+           được, mà phân công nội bộ thì không đưa lên công khai. Trường
+           này vẫn nằm trong data.js cho BTC dùng, chỉ không vẽ ra đây. */
         '<div class="ag-tags">' +
-          (t.fixed ? '' : '<span class="chip dim">dự kiến</span>') +
           (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
-          (t.owner ? '<span class="chip">' + esc(t.owner) + '</span>' : '') +
+          (t.goto ? '<a class="chip go" href="' + esc(t.goto.href) + '">' +
+                      esc(t.goto.label) + '</a>' : '') +
           (t.sport ? '<a class="chip ok" href="#the-thao" data-go-sport="1">Xem lịch từng trận</a>' : '') +
           '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
         '</div>' +
@@ -1097,7 +1106,7 @@
   }
 
   function formatLabel(ev) {
-    if (ev.format === 'q12r')   return 'Vòng loại + vòng vớt, rồi loại trực tiếp';
+    if (ev.format === 'q12r')   return 'Vòng loại + nhánh thua, rồi loại trực tiếp';
     if (ev.format === 'ko12b4') return 'Loại trực tiếp, 4 đội miễn vòng loại';
     if (ev.format === 'ko8')    return 'Loại trực tiếp từ tứ kết';
     if (ev.format === 'r6diff') return '3 trận vòng đầu, xếp hạng theo hiệu số';
@@ -1130,13 +1139,36 @@
     return 'i-paddle';
   }
 
+  /* TÊN NGƯỜI XUỐNG DÒNG CHO ĐÚNG CHỖ — CHỈ CAN THIỆP KHI CẦN.
+     "Nguyễn Thị Thanh Hoa" trong ô hẹp bị ngắt thành "Nguyễn Thị Thanh /
+     Hoa", tách đôi ngay giữa tên riêng. Nối hai tiếng cuối bằng dấu cách
+     không ngắt (U+00A0) để chúng luôn đi cùng nhau.
+
+     CHỈ ÁP DỤNG CHO TÊN TỪ BỐN TIẾNG. Tên ba tiếng như "Ngô Trung Phương",
+     "Nguyễn Khắc Cường" vốn ngắt đã đúng (họ + đệm / tên) — đụng vào là
+     đổi cách xuống dòng của hàng chục cái tên đang bình thường để chữa một
+     cái không hỏng.
+
+     Nhãn đội hai người ngăn bằng " / " nên phải tách ra xử lý từng người.
+
+     KHÔNG gây tràn: .nm vẫn có overflow-wrap:anywhere, ô quá hẹp thì trình
+     duyệt mới cắt trong từ — nhưng chỉ khi hết đường. */
+  function vnName(s) {
+    return String(s == null ? '' : s).split(' / ').map(function (one) {
+      var t = one.trim();
+      if (t.split(/\s+/).length < 4) return t;
+      var i = t.lastIndexOf(' ');
+      return i < 1 ? t : t.slice(0, i) + '\u00A0' + t.slice(i + 1);
+    }).join(' / ');
+  }
+
   function teamLines(ev, side) {
     if (side.teamId != null && ev.teamById[side.teamId]) {
       var t = ev.teamById[side.teamId];
-      if (t.name) return [t.name];
-      return [t.p1, t.p2].filter(Boolean);
+      if (t.name) return [vnName(t.name)];
+      return [t.p1, t.p2].filter(Boolean).map(vnName);
     }
-    return [side.label];
+    return [vnName(side.label)];
   }
 
   function sideHtml(ev, side, score, win) {
@@ -1234,14 +1266,32 @@
     var all = T.liveByCourt();
     var board = $('#court-board');
     board.classList.toggle('open', !!courtOpen);
+    /* Số hàng ô trận của CẢ BẢNG = sân nhiều trận nhất trong năm sân.
+       Dùng để hai khu Pickleball và Cầu lông ăn chung một bộ hàng khi
+       chúng đứng cạnh nhau, nhờ vậy hàng ngang thẳng suốt cả bảng. */
+    var rowsAll = 1;
+    all.forEach(function (c) {
+      var n = T.matchesOfCourt(c.court.id).length;
+      if (n > rowsAll) rowsAll = n;
+    });
+    board.style.setProperty('--rows-all', rowsAll);
     board.innerHTML = D.venues.map(function (vn) {
       var mine = all.filter(function (c) { return c.venue.id === vn.id; });
       if (!mine.length) return '';
       var k = sportKey(vn.sport);
+      /* Số hàng ô trận của khu = sân nhiều trận nhất. CSS lấy con số này
+         dựng sẵn từng hàng, nhờ vậy ô trận thứ N của mọi sân trong khu
+         nằm đúng một hàng ngang. Sân ít trận hơn thì bỏ trống mấy hàng
+         cuối, thanh tiến độ vẫn thẳng hàng ở đáy. */
+      var maxRows = 1;
+      mine.forEach(function (c) {
+        var n = T.matchesOfCourt(c.court.id).length;
+        if (n > maxRows) maxRows = n;
+      });
       return '<section class="crt-zone" data-sport="' + k + '">' +
         '<header class="crt-zh"><b>' + esc(vn.name) + '</b>' +
           '<span>' + mine.length + ' sân</span></header>' +
-        '<div class="crt-grid">' +
+        '<div class="crt-grid" style="--rows:' + maxRows + '">' +
           mine.map(function (c) { return courtCard(c, byId[c.court.id]); }).join('') +
         '</div>' +
       '</section>';
@@ -1295,15 +1345,28 @@
   function parseTeamPlayers(team, ev) {
     if (team.teamId != null && ev && ev.teamById && ev.teamById[team.teamId]) {
       var t = ev.teamById[team.teamId];
-      if (t.p1 && t.p2) return { p1: t.p1, p2: t.p2, single: false };
-      if (t.name) return { p1: t.name, p2: '', single: true };
+      if (t.p1 && t.p2) return { p1: vnName(t.p1), p2: vnName(t.p2), single: false };
+      if (t.name) return { p1: vnName(t.name), p2: '', single: true };
     }
     if (team.label) {
       var parts = team.label.split(' / ');
-      if (parts.length === 2) return { p1: parts[0], p2: parts[1], single: false };
-      return { p1: team.label, p2: '', single: true };
+      if (parts.length === 2) return { p1: vnName(parts[0]), p2: vnName(parts[1]), single: false };
+      return { p1: vnName(team.label), p2: '', single: true };
     }
     return { p1: '—', p2: '', single: true };
+  }
+
+  /* Trọng tài và người hỗ trợ của sân. Lấy từ data.js; CHƯA ĐIỀN THÌ
+     KHÔNG IN GÌ — in ra một dòng trống chỉ làm người xem tưởng sân đó
+     chưa có ai phụ trách. */
+  function officialsHtml(court) {
+    if (!court) return '';
+    var tt = (court.referee || '').trim(), ht = (court.helper || '').trim();
+    if (!tt && !ht) return '';
+    var out = '';
+    if (tt) out += '<span><i>Trọng tài</i>' + esc(tt) + '</span>';
+    if (ht) out += '<span><i>Hỗ trợ</i>' + esc(ht) + '</span>';
+    return '<div class="bkm-off">' + out + '</div>';
   }
 
   function bkCard(m, extraCls) {
@@ -1321,9 +1384,13 @@
     var winA = v.done && v.winnerSide === 'a';
     var winB = v.done && v.winnerSide === 'b';
 
-    var tag = Tournament.ROUND_SHORT[m.round] + (m.round === 'CK' ? '' : ' ' + m.index);
+    /* m.no chứ không phải m.index: nhánh thua đánh số VL7, VL8, VL9 */
+    var tag = (m.short || Tournament.ROUND_SHORT[m.round]) +
+              (m.round === 'CK' ? '' : ' ' + (m.no || m.index));
     return '<div class="bkm ' + (extraCls || '') + '" data-mid="' + esc(m.id) + '" title="' + esc(m.label) + '">' +
-      '<div class="hd"><span class="tag">' + esc(tag) + '</span><span class="meta">' + esc(m.time + ' · ' + m.court.short) + '</span></div>' +
+      '<div class="hd"><span class="tag">' + esc(tag) + '</span>' +
+        '<span class="meta">' + esc(m.time) + ' · Sân: ' + esc(m.court.short) + '</span></div>' +
+      officialsHtml(m.court) +
       '<div class="bkm-body">' +
         '<div class="sd sd-a ' + clsA + '">' +
           '<span class="nm" title="' + esc(tpA.p1) + '">' + esc(tpA.p1) + '</span>' +
@@ -1385,6 +1452,28 @@
 
         var srcA = (m.a && m.a.k === 'winner') ? cardMap[m.a.m] : null;
         var srcB = (m.b && m.b.k === 'winner') ? cardMap[m.b.m] : null;
+
+        /* Ô lấy đội vớt không trỏ vào một trận cụ thể nào — hai chỗ của nó
+           do cách biệt điểm quyết. Vẽ nét ĐỨT từ cả ba trận nhánh thua
+           sang: cả ba đều là ứng viên, chỉ hai đội đi tiếp. Nét liền ở đây
+           sẽ nói dối là cả ba cùng vào. */
+        if (!srcA && !srcB &&
+            ((m.a && m.a.k === 'pick') || (m.b && m.b.k === 'pick'))) {
+          var dx = tx, dy = ty;
+          cards.forEach(function (sc) {
+            var sm = T.matchById[sc.getAttribute('data-mid')];
+            if (!sm || sm.eventId !== m.eventId || sm.round !== 'VV') return;
+            var sr = sc.getBoundingClientRect();
+            var sx0 = sr.right - bkRect.left;
+            var sy0 = (sr.top + sr.bottom) / 2 - bkRect.top;
+            var mx0 = sx0 + (dx - sx0) * 0.5;
+            paths += '<path d="M ' + sx0 + ' ' + sy0 + ' L ' + mx0 + ' ' + sy0 +
+                     ' L ' + mx0 + ' ' + dy + ' L ' + dx + ' ' + dy +
+                     '" fill="none" stroke="#64748b" stroke-width="1.7" ' +
+                     'stroke-dasharray="5 4" marker-end="url(#arr-def)"/>';
+          });
+          return;
+        }
 
         if (!srcA && !srcB) return;
 
@@ -1479,21 +1568,50 @@
       if (list.length) rounds.push({ key: r, name: Tournament.ROUND_NAME[r], list: list });
     });
 
+    /* NHÁNH THUA NẰM TRONG CHÍNH BẢNG NÀY, không tách ra khối riêng.
+       Tách ra thì phải vẽ lại ô Tứ kết 4 lần thứ hai ở khối dưới, mà hai
+       khối lại cuộn ngang độc lập nên không thể kẻ một đường nối thật từ
+       khối này sang khối kia. Gộp vào thì chỉ còn MỘT ô Tứ kết 4, và
+       đường nối từ VL7/VL8/VL9 lên thẳng ô đó là đường thật. */
+    var vv = T.matchesOf(ev.id).filter(function (m) { return m.round === 'VV'; })
+              .sort(function (a, b) { return a.index - b.index; });
+
     var html = '<div class="bk-scroll"><div class="bk" data-sport="' + k + '">';
     html += '<svg class="bk-svg-lines" aria-hidden="true"></svg>';
     rounds.forEach(function (rd) {
+      /* Mỗi cột chia làm hai tầng: tầng trên là nhánh chính, tầng dưới
+         (.bk-tail) dành cho nhánh thua. Hai tầng dưới của cột Vòng loại và
+         cột Tứ kết cao bằng nhau nên tầng trên cũng bằng nhau — nhờ vậy
+         TK1 vẫn nằm đúng giữa VL1 và VL2 như trước khi gộp. */
+      /* Chỉ cột Vòng loại có tầng dưới thật (ba trận nhánh thua). Tứ kết
+         giữ nguyên bốn ô ở tầng trên như cũ: bỏ TK4 xuống tầng dưới thì
+         Bán kết hết nằm đúng giữa cặp Tứ kết của nó. Ô Tứ kết 4 nằm CAO
+         HƠN ba ô nhánh thua nên đường nối đi chếch lên — đúng như cần. */
+      var main = rd.list, tail = (vv.length && rd.key === 'VL') ? vv : [];
+      var inner = '<div class="bk-main">' + main.map(function (m) {
+        return bkCard(m, rd.key === 'CK' ? 'ck' : '');
+      }).join('') + '</div>';
+      /* Cột không có gì ở tầng dưới vẫn phải có một tầng dưới RỖNG cao
+         đúng bằng các cột kia, nếu không tầng trên của nó cao hơn và cả
+         cột lệch xuống. */
+      if (vv.length && !tail.length) inner += '<div class="bk-tail"></div>';
+      if (tail.length) {
+        inner += '<div class="bk-tail">' +
+          (rd.key === 'VL'
+            ? '<div class="bk-sub"><b>Nhánh thua</b><span>Hai đội thắng có cách biệt điểm lớn nhất vào Tứ kết 4. Bằng điểm thì xét tổng điểm loạt trận.</span></div>'
+            : '') +
+          tail.map(function (m) { return bkCard(m, rd.key === 'VL' ? 'vv' : ''); }).join('') +
+        '</div>';
+      }
       html += '<div class="bk-wrapcol"><span class="rnd">' + esc(rd.name) + '</span>' +
-              '<div class="bk-col">' +
-              rd.list.map(function (m) { return bkCard(m, rd.key === 'CK' ? 'ck' : ''); }).join('') +
-              '</div></div>';
+              '<div class="bk-col' + (vv.length ? ' split' : '') + '">' + inner + '</div></div>';
     });
     html += '</div></div>';
 
+    /* Dòng luật KHÔNG được buộc vào bảng xếp hạng: bảng chỉ hiện khi đã có
+       kết quả ba trận nhánh thua, mà luật thì phải đọc được từ trước. */
+    var win = loseRule(ev) + html;
     var lose = loserBranch(ev);
-    var win = lose
-      ? '<div class="bk-branch win"><div class="bk-bh"><b>Nhánh thắng</b></div>' +
-        html + '</div>'
-      : html;
     /* Bảng vinh danh đã tách sang mục Giải thưởng — để lại ở đây nữa thì
        cùng một nội dung hiện hai lần trên cùng màn hình. */
     return win + lose + thirdPlaceHtml(ev);
@@ -1501,44 +1619,41 @@
 
   /* Nhánh thua: sáu đội thua vòng loại đấu tiếp, hai đội tốt nhất quay lại
      tứ kết. Vẽ thành một nhánh riêng nằm dưới nhánh thắng. */
+  /* Nhãn đặt ngay trên bảng: phần chính của bảng là NHÁNH THẮNG.
+     Luật chọn đội của nhánh thua đã chuyển xuống đứng cạnh chữ
+     "Nhánh thua" ở tầng dưới, để luật nằm đúng chỗ nó nói tới. */
+  function loseRule(ev) {
+    if (!T.matchById[ev.id + '-VV-1']) return '';
+    return '<p class="bk-rule"><b>Nhánh thắng</b>' +
+      '<span>Thắng vòng loại vào thẳng tứ kết</span></p>';
+  }
+
+  /* Bảng xếp hạng cách biệt của ba trận nhánh thua. Chỉ hiện khi đã có đủ
+     kết quả — chưa đá xong thì chưa có gì để xếp. */
   function loserBranch(ev) {
-    var vv = T.matchesOf(ev.id).filter(function (m) { return m.round === 'VV'; })
-              .sort(function (a, b) { return a.index - b.index; });
+    var vv = T.matchesOf(ev.id).filter(function (m) { return m.round === 'VV'; });
     if (!vv.length) return '';
 
     var rp = T.repechage(ev);
-    var note;
-    if (rp.tie) {
-      note = '<span class="chip warn">Bằng cả hiệu số lẫn tổng điểm — BTC bốc thăm</span>';
-    } else if (rp.clash) {
-      note = '<span class="chip warn">Hai đội đều gặp lại đội đã loại mình — BTC xếp tay</span>';
-    } else if (rp.swapped) {
-      note = '<span class="chip">Đã đổi chỗ hai đội để không gặp lại đội đã loại mình</span>';
-    } else if (rp.ready) {
-      note = '<span class="chip ok">Đã chọn xong 2 đội lên tứ kết</span>';
-    } else {
-      /* chưa có kết quả thì chưa có gì để nói, để trống cho đỡ rối */
-      note = '';
-    }
+    if (!rp.rows.length) return '';
+
+    var note = rp.tie
+      ? '<span class="chip warn">Bằng cả cách biệt lẫn tổng điểm — BTC bốc thăm</span>'
+      : (rp.ready ? '<span class="chip ok">Đã chọn xong 2 đội lên tứ kết</span>' : '');
 
     var rows = rp.rows.map(function (r, i) {
       return '<li class="' + (i < 2 && rp.ready ? 'in' : '') + '">' +
-        '<b>' + esc(r.label) + '</b>' +
+        '<b>' + esc(vnName(r.label)) + '</b>' +
+        '<span class="vm">' + esc(r.matchLabel) + '</span>' +
         '<span class="sc">' + esc(r.score) + '</span>' +
-        '<span class="df">hiệu số ' + r.diff + '</span>' +
+        '<span class="df">cách biệt ' + r.diff + '</span>' +
         '<span class="st">' + (i < 2 && rp.ready ? 'Lên tứ kết' : 'Dừng') + '</span>' +
       '</li>';
     }).join('');
 
-    var k = sportKey(ev.sport);
     return '<div class="bk-branch lose">' +
-      '<div class="bk-bh"><b>Nhánh thua</b>' + note + '</div>' +
-      '<div class="bk-scroll"><div class="bk" data-sport="' + k + '">' +
-        '<div class="bk-wrapcol">' +
-          '<div class="bk-col bk-row">' + vv.map(function (m) { return bkCard(m); }).join('') + '</div>' +
-        '</div>' +
-      '</div></div>' +
-      (rows ? '<ol class="vv-r">' + rows + '</ol>' : '') +
+      '<div class="bk-bh"><b>Xếp hạng nhánh thua</b>' + note + '</div>' +
+      '<ol class="vv-r">' + rows + '</ol>' +
     '</div>';
   }
 
@@ -1667,7 +1782,7 @@
       (pos === 1 ? goldMedal() : '') +
       '<span class="aw-kind">' + esc(kind) + '</span>' +
       '<h4>' + (has
-        ? lines.map(function (x) { return '<span>' + esc(x) + '</span>'; }).join('')
+        ? lines.map(function (x) { return '<span>' + esc(vnName(x)) + '</span>'; }).join('')
         : '<span class="pend">' + esc(pend) + '</span>') + '</h4>' +
       '<div class="aw-sts">' + stats.map(function (s) {
         return '<div><i>' + esc(s.k) + '</i><b>' + esc(s.v) + '</b></div>';
@@ -1698,7 +1813,7 @@
     return '<div class="aw-row' + (cls ? ' ' + cls : '') + '">' +
       '<span class="aw-rk">' + esc(rank) + (sub ? '<i>' + esc(sub) + '</i>' : '') + '</span>' +
       '<span class="aw-who">' + (names.length
-        ? names.map(function (n) { return '<b>' + esc(n) + '</b>'; }).join('')
+        ? names.map(function (n) { return '<b>' + esc(vnName(n)) + '</b>'; }).join('')
         : '<b class="pend">' + esc(pend) + '</b>') + '</span>' +
       '<span class="aw-pz">' + esc(right) + '</span>' +
     '</div>';
@@ -1741,13 +1856,56 @@
         pz == null ? medal[pos - 1] : money(pz), 'g' + pos, pendText[pos - 1]);
     });
 
-    /* Nhóm dừng ở tứ kết — đúng như bảng kết quả thật hay làm: mấy đội cùng
-       dừng một vòng thì đứng chung một dòng, KHÔNG xếp thứ tự 5-6-7-8 vì
-       nhánh đấu loại trực tiếp không đẻ ra thứ tự đó. Bịa ra là sai. */
+    /* BẢNG PHẢI CÓ ĐỦ MỌI ĐỘI THAM DỰ — 12 đội thì đủ 12, 8 thì đủ 8.
+       Nhưng KHÔNG bịa thứ tự 5-6-7-8: nhánh loại trực tiếp không đẻ ra thứ
+       tự đó. Mấy đội cùng dừng một vòng đứng chung một dòng, đúng như bảng
+       kết quả thật hay làm. */
     var onTop = [];
     vals.forEach(function (l) { onTop = onTop.concat(l); });
-    var tk = roundLosers(ev, 'TK').filter(function (n) { return onTop.indexOf(n) < 0; });
-    rows += awRow('', 'Tứ kết', tk, 'Dừng ở tứ kết', 'grp');
+
+    /* Đội nào dừng ở vòng nào: lấy trận THUA CUỐI CÙNG của họ. Đội thua
+       vòng loại rồi thắng nhánh thua, lên tứ kết rồi mới thua thì phải ghi là
+       dừng ở tứ kết, không phải ở vòng loại. */
+    var stopAt = {};
+    T.matchesOf(ev.id).forEach(function (m) {
+      var l = sideOf(T.view(m), false);
+      if (l) stopAt[l.label] = m.round;
+    });
+    /* Đội THẮNG nhánh thua mà cách biệt thấp nhất không thua trận nào, nhưng
+       vẫn dừng lại ở đó — chỉ ghi được khi đã chọn xong hai suất. */
+    var rp = T.repechage(ev);
+    if (rp.ready) {
+      rp.rows.forEach(function (r) {
+        if (rp.picks.indexOf(r.teamId) < 0) stopAt[r.label] = 'VV';
+      });
+    }
+
+    var STOP = [
+      { r: 'TK', sub: 'Tứ kết',    txt: 'Dừng ở tứ kết' },
+      { r: 'VV', sub: 'Nhánh thua', txt: 'Dừng ở nhánh thua' },
+      { r: 'VL', sub: 'Vòng loại',  txt: 'Dừng ở vòng loại' },
+      { r: 'R1', sub: 'Vòng đầu',  txt: 'Dừng ở vòng đầu' }
+    ];
+    var placed = onTop.slice();
+    STOP.forEach(function (gp) {
+      var names = [];
+      for (var nm in stopAt) {
+        if (!Object.prototype.hasOwnProperty.call(stopAt, nm)) continue;
+        if (stopAt[nm] === gp.r && placed.indexOf(nm) < 0) names.push(nm);
+      }
+      if (!names.length) return;
+      placed = placed.concat(names);
+      rows += awRow('', gp.sub, names, gp.txt, 'grp');
+    });
+
+    /* Còn lại là những đội CHƯA thua trận nào và chưa lên bục — họ vẫn đang
+       trong cuộc. Ghi “dừng” cho họ là báo sai kết quả. */
+    var still = [];
+    for (var ti = 1; ti <= ev.teamCount; ti++) {
+      var lb = T.teamLabel(ev, ti);
+      if (placed.indexOf(lb) < 0) still.push(lb);
+    }
+    rows += awRow('', 'Đang thi đấu', still, 'Chưa có kết quả', 'grp');
 
     return big + awTable(rows);
   }
@@ -1777,8 +1935,7 @@
     function jcard(pos, size) {
       var top = ranks[pos - 1], first = top[0];
       return awBig(pos, g.label, top.map(function (a) { return a.name; }), pend, [
-        { k: 'Số lần nhảy', v: first ? String(first.count) : '–' },
-        { k: 'Bộ phận', v: first ? first.dept : '–' }
+        { k: 'Số lần nhảy', v: first ? String(first.count) : '–' }
       ], 'i-rope', size);
     }
     var big = awPodium(jcard(1, 'lg'), jcard(2, ''), [jcard(3, 'sm')]);
@@ -1792,6 +1949,16 @@
         rows += awRow(String(r3), '', [], medal3[r3 - 1], 'g' + r3, pend);
       });
     }
+    if (!full && list.length) {
+      /* ĐỦ TÊN NGƯỜI ĐĂNG KÝ ngay từ đầu, chứ không chờ đo xong mới hiện:
+         người đến xem phải tìm được tên mình trong danh sách. Ai đo rồi thì
+         kèm luôn số lần, ai chưa thì để không. */
+      rows += awRow('', 'Đã đăng ký', list.map(function (a) {
+        var c = (typeof a.count === 'number' && isFinite(a.count));
+        return a.name + (c ? ' · ' + a.count + ' lần' : '');
+      }), 'Đã đo ' + done.length + '/' + list.length + ' lượt', 'grp');
+    }
+
     byRank.forEach(function (x) {
       if (seen[x.r]) return;
       seen[x.r] = 1;
@@ -1804,33 +1971,51 @@
     return '<h4 class="aw-sub">' + esc(g.label) + '</h4>' + big + awTable(rows);
   }
 
-  /* --------- mini game: thưởng theo số câu đúng, không có nhất nhì ba --------- */
+  /* --------- mini game: 11 người có thưởng, xếp theo số câu đúng --------- */
+  /* Tiền tra theo HẠNG chứ không nhân theo số câu nữa: nhất 300k, nhì 200k,
+     ba 100k, từ hạng 4 trở đi mỗi người 50k, hết 11 suất. */
+  function miniPrize(rank) {
+    var pz = (D.miniGame && D.miniGame.prizes) || {};
+    if (rank > (D.miniGame.prizeCount || 0)) return 0;
+    return pz[rank] == null ? (pz.rest || 0) : pz[rank];
+  }
+  function miniTotal() {
+    var n = (D.miniGame && D.miniGame.prizeCount) || 0, t = 0;
+    for (var i = 1; i <= n; i++) t += miniPrize(i);
+    return t;
+  }
+
   function miniAwardPane() {
     var g = D.miniGame, w = (g.winners || []).slice();
+    var n = g.prizeCount || 0;
     w.sort(function (a, b) { return (b.correct || 0) - (a.correct || 0); });
-
-    function cash(p) { return (p.correct || 0) * (g.prizePerCorrect || 0); }
 
     function mcard(pos, size) {
       var p = w[pos - 1];
       return awBig(pos, 'Nhiều câu đúng nhất', p ? [p.name] : [],
         'Công bố ngay sau khi chơi', [
           { k: 'Câu đúng', v: p ? String(p.correct || 0) : '–' },
-          { k: 'Tiền thưởng', v: p ? money(cash(p)) : money(g.prizePerCorrect) + '/câu' }
+          { k: 'Tiền thưởng', v: money(miniPrize(pos)) }
         ], 'i-game', size);
     }
     var big = awPodium(mcard(1, 'lg'), mcard(2, ''), [mcard(3, 'sm')]);
 
-    if (!w.length) {
-      return big + '<p class="aw-empty"><span class="pod-dot"></span>' +
-        'Chưa có kết quả. Mỗi câu trả lời đúng được thưởng ' +
-        money(g.prizePerCorrect) + '; danh sách người trúng hiện ngay sau khi chơi xong.</p>';
+    /* ĐỦ 11 DÒNG, kể cả khi chưa chơi: người xem biết trước có bao nhiêu
+       suất và mỗi suất bao nhiêu tiền. Hạng 4–11 cùng một mức nên khi chưa có
+       tên thì gộp làm một dòng cho khỏi tám dòng trống giống hệt nhau. */
+    var rows = '', i;
+    for (i = 0; i < n; i++) {
+      var p = w[i];
+      if (!p && i === 3) {
+        rows += awRow('4 – ' + n, '', [], money(miniPrize(4)) + ' mỗi người',
+          'grp', 'Còn ' + (n - 3) + ' suất, công bố sau khi chơi');
+        break;
+      }
+      rows += awRow(String(i + 1), p ? (p.dept || '') : '',
+        p ? [p.name + ' · ' + (p.correct || 0) + ' câu đúng'] : [],
+        money(miniPrize(i + 1)), i < 3 ? 'g' + (i + 1) : '',
+        'Công bố ngay sau khi chơi');
     }
-    var rows = w.map(function (p, i) {
-      return awRow(String(i + 1), p.dept || '',
-        [p.name + ' · ' + (p.correct || 0) + ' câu đúng'],
-        money(cash(p)), i < 3 ? 'g' + (i + 1) : '');
-    }).join('');
     return big + awTable(rows);
   }
 
@@ -1880,7 +2065,7 @@
         }).join('') + '</div>';
     } else if (key === 'mini') {
       head = awHead(D.miniGame.name,
-        money(D.miniGame.prizePerCorrect) + ' mỗi câu đúng',
+        D.miniGame.prizeCount + ' người có thưởng · tổng ' + money(miniTotal()),
         (D.miniGame.winners || []).length > 0);
       body = miniAwardPane();
     } else {
@@ -2348,19 +2533,61 @@
     };
   }
 
-  /* Ghép hai ô một trang. Bảng ví dụ cuộn ngang được nên chiếm trọn trang,
-     không ghép với ai. */
+  /* MỘT TRANG TỐI ĐA BA Ô, VÀ CHIA ĐỀU.
+     Trước đây cứ hai ô một trang: bảy ô thành 2+2+2+1, trang cuối trơ
+     một ô nên bỏ không nửa trang. Giờ gộp ba ô một trang ở màn rộng và
+     chia đều: bảy ô thành 3+2+2 — bớt được một trang, mà không trang
+     nào còn lẻ một ô. Số ô ghi vào data-n để CSS biết chia mấy cột.
+
+     BA Ô CHỈ KHI MÀN ĐỦ RỘNG cho ba cột thật. Màn hẹp hơn mà vẫn nhét
+     ba ô thì ô thứ ba tụt xuống hàng hai, trang đó cao gấp rưỡi và kéo
+     MỌI trang cao theo nó — đo ở 1000px là 825px, còn tệ hơn lúc chưa
+     sửa. Trên điện thoại càng tệ: ba ô chồng dọc thành 1159px một trang.
+     Nên ngưỡng này phải KHỚP đúng ngưỡng 1100px của CSS. */
+  function oMoiTrang() {
+    return window.innerWidth >= 1100 ? 3 : 2;
+  }
+
+  /* n ô chia làm ít trang nhất có thể, rồi rải cho đều.
+     7 → [3,2,2]   6 → [3,3]   4 → [2,2]   1 → [1] */
+  function chiaDeu(n, max) {
+    var sotrang = Math.ceil(n / max), nen = Math.floor(n / sotrang),
+        du = n % sotrang, out = [], i;
+    for (i = 0; i < sotrang; i++) out.push(nen + (i < du ? 1 : 0));
+    return out;
+  }
+
+  function gomTrang(list) {
+    return {
+      label: list.map(function (x) { return x.label; }).join(' · '),
+      html: list.map(function (x) { return x.html; }).join(''),
+      n: list.length
+    };
+  }
+
+  /* Bảng ví dụ cuộn ngang được nên chiếm trọn bề ngang trang. Hai bảng
+     ví dụ liền nhau thì xếp chồng dọc trong CÙNG một trang: chúng là một
+     cặp để so sánh, tách ra hai trang thì phải lật qua lật lại mới so được. */
   function pairPages(items) {
     var out = [], i = 0;
     while (i < items.length) {
-      var a = items[i], b = items[i + 1];
-      if (a.wide || !b || b.wide) {
-        out.push({ label: a.label, html: a.html, solo: true });
-        i += 1;
-      } else {
-        out.push({ label: a.label + ' · ' + b.label, html: a.html + b.html, solo: false });
-        i += 2;
+      if (items[i].wide) {
+        var w = [];
+        while (i < items.length && items[i].wide && w.length < 2) { w.push(items[i]); i++; }
+        /* Một bảng thì ăn cả bề ngang. HAI bảng thì đứng CẠNH NHAU chứ
+           không chồng dọc: chồng dọc thì trang đó cao gấp rưỡi các trang
+           kia và kéo cả tập sách cao theo. Đứng cạnh nhau còn dễ so hơn —
+           vốn hai bảng này là một cặp để so sánh. */
+        out.push(gomTrang(w));
+        continue;
       }
+      var run = [];
+      while (i < items.length && !items[i].wide) { run.push(items[i]); i++; }
+      var k = 0;
+      chiaDeu(run.length, oMoiTrang()).forEach(function (sz) {
+        out.push(gomTrang(run.slice(k, k + sz)));
+        k += sz;
+      });
     }
     return out;
   }
@@ -2381,20 +2608,9 @@
         '</ul>'));
     });
 
-    /* Nhảy dây trong data.js chỉ có đúng một khối luật. Thêm một ô lấy
-       thẳng từ D.jumpRope — chỗ thi, giờ bắt đầu, độ dài mỗi lượt. CỐ TÌNH
-       KHÔNG ĐƯA SỐ NGƯỜI: ba nguồn đang ghi 33 / 24 / 30, BTC chưa chốt. */
-    if (key === 'nhayday' && D.jumpRope) {
-      var jr = D.jumpRope, heats = 0;
-      (jr.groups || []).forEach(function (x) { heats += x.heats || 0; });
-      items.push(ruleItem('Thi ở đâu, lúc nào', null,
-        '<h4>Thi ở đâu, lúc nào</h4><ul>' +
-        '<li>Khu thi: ' + esc(jr.station) + '.</li>' +
-        '<li>Bắt đầu lúc ' + esc(jr.start) + '.</li>' +
-        '<li>Mỗi lượt gói trong ' + jr.heatMinutes + ' phút, tất cả ' + heats + ' lượt.</li>' +
-        '<li>' + esc(jr.rule) + '</li>' +
-        '</ul>'));
-    }
+    /* KHÔNG đưa chỗ thi, giờ bắt đầu, số lượt vào trang luật — đó là
+       việc của mục Lịch. Để ở đây thì một thông tin nằm hai chỗ, sửa
+       một chỗ là lệch nhau. Trang luật chỉ nói LUẬT. */
 
     (g.examples || []).forEach(function (ex) {
       items.push(ruleItem(ex.title, null,
@@ -2418,10 +2634,16 @@
     return pages;
   }
 
+  /* Tab luật đang mở và số ô/trang lúc dựng nó — để biết khi nào phải
+     chia lại trang. */
+  var rdKey = null, rdCot = 0;
+
   function renderRulePane(key) {
     var g = D.rules.groups.filter(function (x) { return x.key === key; })[0];
     if (!g) return;
     var sl = ruleSlides(g, key);
+    rdKey = key;
+    rdCot = oMoiTrang();
     rdIdx = 0;
 
     var nav = sl.length < 2 ? '' :
@@ -2430,10 +2652,11 @@
           return '<button type="button" data-i="' + i + '" class="' + (i ? '' : 'on') +
                  '" aria-label="' + esc(x.label) + '"></button>';
         }).join('') + '</div>' +
-        '<p class="rd-hint">Bấm vào nửa phải của trang để lật sang, nửa trái để quay lại</p>' +
       '</div>';
 
-    $('#rule-pane').innerHTML =
+    var host = $('#rule-pane');
+    if (!host) return;
+    host.innerHTML =
       '<div class="pane" data-accent="' + esc(g.accent) + '">' +
         '<div class="rdeck">' +
           '<div class="rd-head"><b class="rd-label">' + esc(sl[0] ? sl[0].label : '') + '</b>' +
@@ -2443,8 +2666,8 @@
           '<div class="rdeck-track" aria-live="polite">' + sl.map(function (x, i) {
             /* Trang trước nằm TRÊN trang sau, đúng như sách: lật trang đang
                xem đi là lộ ngay trang kế bên dưới, không phải chờ nó bay vào. */
-            return '<section class="rslide' + (i ? ' turned' : ' on') + (x.solo ? ' solo' : '') +
-                   '" style="z-index:' + (sl.length - i) +
+            return '<section class="rslide' + (i ? ' turned' : ' on') +
+                   '" data-n="' + x.n + '" style="z-index:' + (sl.length - i) +
                    '" aria-hidden="' + (i ? 'true' : 'false') +
                    '" aria-label="' + esc(x.label) + '">' + x.html +
                    '<span class="fp-no" aria-hidden="true">' + (i + 1) + '</span></section>';
@@ -3202,6 +3425,22 @@
     sizeTabbar();
     window.addEventListener('resize', sizeTabbar);
     window.addEventListener('resize', updateBracketSvg);
+    /* Kéo rộng/hẹp cửa sổ qua ngưỡng 1100px thì số ô một trang đổi, phải
+       chia lại trang. Chặn lại cho đến khi thôi kéo, không thì mỗi pixel
+       một lần dựng lại. Giữ nguyên trang đang đọc, chỉ kẹp lại cho khỏi
+       vượt số trang mới. */
+    var rdHen = null;
+    window.addEventListener('resize', function () {
+      if (!rdKey || oMoiTrang() === rdCot) return;
+      if (rdHen) clearTimeout(rdHen);
+      rdHen = setTimeout(function () {
+        rdHen = null;
+        if (!rdKey || oMoiTrang() === rdCot) return;
+        var giu = rdIdx;
+        renderRulePane(rdKey);
+        rdShow(giu);
+      }, 180);
+    });
 
     /* nội dung dựng bằng JS nên mốc #... phải cuộn lại sau khi dựng xong */
     if (location.hash.length > 1) {

@@ -50,8 +50,11 @@ Trang này ai có link cũng xem được. **Cấm** đưa lên: thù lao diễn
 mốc hạn nội bộ, phân công nhân sự từng tiểu ban, khoản tài trợ, bảng việc
 cần làm của BTC, bộ câu hỏi mini game, các mục còn "chờ duyệt".
 
-Ngoại lệ đã được chốt: **mức thưởng 100.000đ mỗi câu đúng và danh sách người
-trúng** thì được hiện — chủ nhà đã đồng ý công khai.
+Ngoại lệ đã được chốt: **cơ cấu giải mini game và danh sách người trúng**
+thì được hiện — chủ nhà đã đồng ý công khai. Từ 12/10/2026 cơ cấu là **11
+người có thưởng**: nhất 300.000đ, nhì 200.000đ, ba 100.000đ, hạng 4–11 mỗi người
+50.000đ — tổng 1.000.000đ. Số nằm ở `miniGame.prizes` trong `data.js`, trang tự cộng
+tổng. (Mức cũ “100.000đ mỗi câu đúng” đã bỏ.)
 
 ## Hệ thiết kế hiện có
 
@@ -113,8 +116,8 @@ Những lỗi dưới đây đều **không báo lỗi**, chỉ âm thầm mất
 Chạy đủ, đừng báo "xong" khi chưa chạy:
 
 ```bash
-node tools/q12r_test.js   # 25 phép thử bộ dựng nhánh đấu
-node tools/regress.js     # 10 phép thử lịch sân
+node tools/q12r_test.js   # 29 phép thử bộ dựng nhánh đấu
+node tools/regress.js     # 11 phép thử lịch sân
 ```
 
 Và trên trình duyệt:
@@ -154,7 +157,12 @@ vẽ lại rồi mới đo. `document.hidden` cho biết ngay.
 - **Ba chỗ nói khác nhau về luật tính điểm**: bảng tính nói pickleball chạm
   7 / cầu lông trần 26, artifact nói 11 / 30. Trang đang theo artifact.
 - Số người nhảy dây lệch nhau: 33 đăng ký / 24 trong sheet / 30 trên trang.
-- **Năm suất còn ghi "tuyển thủ dự bị"**, BTC cần chốt tên trước ngày hội.
+- **Hai suất còn ghi "tuyển thủ dự bị"** ở pickleball đôi nam nữ (đội 3 và
+  đội 6) và một ở pickleball đôi nam (đội 2). BTC cần chốt tên.
+- **Chị Loan và Chị Nga chưa có họ tên đầy đủ** — trang đang in đúng hai chữ
+  đó vì đó là cách BTC ghi. Có tên đầy đủ thì sửa trong `data.js`.
+- **Trọng tài và người hỗ trợ từng sân còn trống** — điền vào `referee` và
+  `helper` của mỗi sân trong `data.js`. Để trống thì trang không in gì.
 - **Trần Thị Xuyến đang đứng tên ở hai đội của cầu lông đôi nam nữ** (đội 3
   với Nguyễn Thanh Bình, đội 8 với Ngô Trung Phương, thêm ngày 10/10). Hai
   đội nằm hai nhánh nên nếu cùng thắng thì chung kết là chính người đó gặp
@@ -162,4 +170,11 @@ vẽ lại rồi mới đo. `document.hidden` cho biết ngay.
   BTC chốt lại. Đội 7 cũng chưa có bộ phận của Nguyễn Bảo Châu.
 - Mục Nhánh đấu vẫn dùng emoji 🥇🥈🥉 làm huy chương — trái luật ở trên,
   cần đổi sang icon SVG.
+- **Dải lịch không còn in `owner` và nhãn “dự kiến”** (chủ nhà yêu cầu bỏ ngày
+  12/10/2026). Hai trường đó vẫn nằm trong `data.js` cho BTC dùng, chỉ là không vẽ
+  ra trang. Hệ quả: mốc “Thi đấu trên 5 sân” không còn dấu hiệu nào cho biết giờ
+  đó mới là dự kiến — nếu cần báo lại thì thêm vào `desc` của mốc đó.
+- Bảng giải thưởng giờ liệt kê **đủ mọi đội / mọi người đăng ký**, nhóm theo vòng bị
+  loại. Chưa có kết quả thì tất cả nằm ở nhóm “Đang thi đấu” — cố ý, **không
+  bịa thứ tự 5-6-7-8** vì nhánh loại trực tiếp không đẻ ra thứ tự đó.
 - Ba ảnh `*_n.jpg` trong `assets/img/` chưa dùng tới.

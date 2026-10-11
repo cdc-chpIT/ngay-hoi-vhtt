@@ -953,6 +953,71 @@ main { padding-inline-start: var(--rail-w); }
   background: #fff;
 }
 .court .crm.now { box-shadow: inset 3px 0 0 #d92d3c; }
+
+/* ---- Ô TRẬN THỨ N CỦA MỌI SÂN NẰM ĐÚNG MỘT HÀNG NGANG ----
+   Trước đây mỗi sân là một lưới riêng, grid-auto-rows:1fr chỉ kéo các ô
+   TRONG CÙNG MỘT SÂN bằng nhau. Sân nào có tên dài ba dòng thì ô của sân
+   đó cao hơn, và từ hàng thứ ba trở đi các sân lệch hẳn nhau.
+
+   Giờ cả khu dùng CHUNG một bộ hàng: lưới khu dựng sẵn --rows hàng (lấy
+   theo sân nhiều trận nhất), mỗi sân là subgrid ăn đúng bộ hàng đó. Chiều
+   cao mỗi hàng lấy theo ô cao nhất TRÊN CẢ HÀNG, nên hàng nào cũng thẳng.
+
+   Đường lui: WebView cũ không có subgrid thì cả khối @supports bị bỏ qua,
+   giữ nguyên cách cũ — vẫn đọc được đủ, chỉ không thẳng hàng. */
+@supports (grid-template-rows: subgrid) {
+ /* Chỉ áp dụng khi các sân thật sự đứng CẠNH NHAU. Dưới 620px mỗi sân
+    chiếm trọn một dòng, lúc đó không có hàng ngang nào để so; tệ hơn,
+    mỗi sân ăn hết các hàng nên lưới phải đẻ thêm cột ngầm — đo được là
+    tràn ngang 351px ở khổ 390px. */
+ @media (min-width: 621px) {
+  .courts.open .crt-grid {
+    align-items: stretch;
+    row-gap: 5px;
+    /* hàng: đầu sân · N ô trận · thanh tiến độ · dòng đếm */
+    grid-template-rows: auto repeat(var(--rows, 1), auto) auto auto;
+  }
+  .courts.open .court {
+    display: grid;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    row-gap: 5px;
+  }
+  .courts.open .court > .ch { grid-row: 1; }
+  /* các ô trận thành con trực tiếp của lưới sân để ăn đúng hàng chung */
+  .courts.open .court > .crt-all { display: contents; }
+  /* thanh tiến độ và dòng đếm ghim xuống hai hàng cuối, nên dù sân ít trận
+     hơn thì đáy các sân vẫn thẳng nhau */
+  .courts.open .court > .crt-bar { grid-row: -3 / -2; margin: 12px 0 5px; }
+  .courts.open .court > .crt-n { grid-row: -2 / -1; margin-top: 0; }
+
+  /* ---- Nối tiếp: hai khu đứng cạnh nhau thì ăn CHUNG một bộ hàng ----
+     Chỉ trong mỗi khu thôi thì Pickleball có một hàng tên ba dòng là từ
+     hàng đó trở đi lệch hẳn với Cầu lông — đo được 17px rồi 36px. Ở khổ
+     màn hai khu nằm cạnh nhau, cho cả bảng làm chủ bộ hàng, mỗi khu và
+     mỗi sân đều là subgrid ăn theo. Dưới 1200px hai khu xếp chồng dọc,
+     lúc đó so hàng giữa hai khu không còn nghĩa gì nên để nguyên. */
+  @media (min-width: 1200px) {
+    .courts.open {
+      align-items: stretch;
+      column-gap: 14px; row-gap: 5px;
+      /* hàng: đầu khu · đầu sân · N ô trận · thanh tiến độ · dòng đếm */
+      grid-template-rows: auto auto repeat(var(--rows-all, 1), auto) auto auto;
+    }
+    .courts.open .crt-zone {
+      display: grid;
+      grid-row: 1 / -1;
+      grid-template-rows: subgrid;
+      row-gap: 5px;
+    }
+    .courts.open .crt-zone > .crt-zh { grid-row: 1; }
+    .courts.open .crt-zone > .crt-grid {
+      grid-row: 2 / -1;
+      grid-template-rows: subgrid;
+    }
+  }
+ }
+}
 .court .crm-h {
   display: flex; align-items: baseline; gap: 8px;
   margin-bottom: 5px; font-size: .7rem; color: var(--muted);
@@ -1257,6 +1322,74 @@ main { padding-inline-start: var(--rail-w); }
   overflow-wrap: anywhere;
 }
 
+/* trọng tài và người hỗ trợ của sân, dưới dòng giờ–sân */
+.bkm-off {
+  display: flex; flex-wrap: wrap; gap: 3px 12px;
+  padding: 0 12px 8px;
+  font-size: .72rem; color: var(--muted);
+}
+.bkm-off span { display: inline-flex; align-items: baseline; gap: 5px; min-width: 0; }
+.bkm-off i {
+  font-style: normal; flex: none;
+  font-size: .6rem; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted-2);
+}
+/* luật chọn đội của nhánh thua, nằm ngay dưới tên nhánh */
+/* Một dòng luật gọn ngay trên bảng. Cố tình nhỏ: nó chen giữa tiêu đề
+   mục và bảng, dài quá là đẩy bảng xuống, đứt mạch nhìn từ nhánh thua
+   lên ô Tứ kết 4. */
+.bk-rule {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  margin: 0 2px 12px;
+  font-size: .8rem; color: var(--muted); line-height: 1.45;
+}
+.bk-rule b {
+  font-family: var(--ff-d); font-stretch: 118%;
+  font-size: .74rem; font-weight: 800; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--brand);
+}
+.bk-rule span { font-size: .78rem; color: var(--muted-2); }
+
+/* Cột chia hai tầng khi nội dung có nhánh thua. Tầng dưới cao CỐ ĐỊNH và
+   bằng nhau ở mọi cột, nên tầng trên cũng bằng nhau — TK1 vẫn nằm đúng
+   giữa VL1 và VL2. Chiều cao tính từ --card-h chứ không đo bằng JS: đo
+   bằng JS thì đổi bề ngang cửa sổ là con số cũ thành sai. */
+/* +168px chu khong phai +106px: dong luat chon doi da chuyen xuong day,
+   o be ngang cot 380px no xuong ba dong. Thieu cho la ba o nhanh thua bi
+   day lo ra ngoai khung cot. */
+.bk-col.split { --tail-h: calc(var(--card-h) * 3 + 168px); }
+/* flex-basis auto, KHÔNG min-height:0 — đặt 0 thì tầng trên co về đúng
+   0px và toàn bộ ô trận tràn ra ngoài khung cột. Để auto thì nó cao ít
+   nhất bằng nội dung, rồi giãn ra cho bằng cột cao nhất. */
+.bk-col.split > .bk-main {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column; justify-content: space-around;
+}
+.bk-col.split > .bk-tail {
+  flex: 0 0 var(--tail-h); height: var(--tail-h);
+  display: flex; flex-direction: column; justify-content: space-around;
+}
+
+/* vạch ngăn trong cột Vòng loại: dưới vạch này là ba trận nhánh thua */
+.bk-sub {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  margin: 18px 0 2px; padding-top: 12px;
+  border-top: 2px dashed var(--line-2);
+}
+.bk-sub b {
+  font-family: var(--ff-d); font-stretch: 118%;
+  font-size: .74rem; font-weight: 800; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--clay);
+}
+.bk-sub span { font-size: .74rem; line-height: 1.5; color: var(--muted-2); }
+/* ô nhánh thua nhạt hơn một chút để tách khỏi sáu ô vòng loại ở trên */
+.bkm.vv { background: var(--panel); }
+/* tên trận nhánh thua trong bảng xếp hạng — biết đội này ra từ trận nào */
+.vv-r .vm {
+  font-size: .74rem; color: var(--muted-2);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
 .bkm .sd.pend .nm {
   color: #94a3b8;
   font-style: italic;
@@ -1416,8 +1549,16 @@ main { padding-inline-start: var(--rail-w); }
    dòng chảy và quyết định chiều cao khung. Bản cũ đặt height cố định bằng
    JS: phép đo hụt chừng 31px, và cứ đổi bề ngang cửa sổ là con số cũ thành
    sai ngay — trang luật tràn xuống ĐÈ LÊN mục Lịch. */
+/* MOI TRANG BANG NHAU.
+   Ban cu: chi trang dang xem nam trong dong chay nen khung co gian theo
+   tung trang — lat mot cai la ca muc nhay len hoac tut xuong, trang ngan
+   thi be teo, trang dai thi dai ngoang.
+   Gio MOI trang nam chung MOT O LUOI: khung tu cao bang trang cao nhat,
+   moi trang gian ra cho bang o do. Van khong do bang JS nen khong the do
+   hut roi de len muc Lich nhu ban truoc nua. */
 .rdeck-track {
   position: relative;
+  display: grid;
   perspective: 2200px;
   /* CẮT ĐÚNG MÉP KHUNG. Khung chỉ cao bằng trang đang xem, mà các trang
      CHƯA LẬT vẫn nằm nguyên khổ ở dưới — trang nào dài hơn là thò ra ngoài
@@ -1427,10 +1568,15 @@ main { padding-inline-start: var(--rail-w); }
 }
 
 .rslide {
-  position: absolute; top: 0; left: 0; right: 0;
+  grid-area: 1 / 1;
   min-width: 0;
-  display: grid; gap: 18px; align-content: start;
-  padding: 20px 22px 40px;
+  /* align-content: CENTER chu khong phai start.
+     Moi trang cao bang nhau (bang trang dai nhat), nen trang nao ngan hon
+     la thua cho. De start thi cho thua don het xuong day thanh mot mang
+     trong nhin nhu trang bi cut. De center thi no chia deu tren duoi, doc
+     ra la le trang - dung dang mot trang sach. */
+  display: grid; gap: 16px; align-content: center;
+  padding: 16px 20px 30px;
   border: 1px solid var(--line);
   /* mép trái vuông như chỗ đóng gáy, mép ngoài bo tròn */
   border-radius: 4px 16px 16px 4px;
@@ -1444,8 +1590,9 @@ main { padding-inline-start: var(--rail-w); }
   -webkit-backface-visibility: hidden;
   transition: transform .62s var(--e-expo), opacity .42s var(--ease);
 }
-/* trang đang xem nằm trong dòng chảy — nó là cái quyết định chiều cao khung */
-.rslide.on { position: relative; }
+/* Chi trang dang xem bat duoc cu bam. Cac trang chua toi nam ngay duoi
+   no trong cung o luoi nen phai tat, khong thi bam trung trang khuat. */
+.rslide:not(.on) { pointer-events: none; }
 /* trang đã lật: quay khuất quanh gáy. Không đụng tới chiều cao nên khung
    đứng yên, chỉ transform và opacity nên chạy trên lớp hợp thành. */
 .rslide.turned { transform: rotateY(-124deg); opacity: 0; pointer-events: none; }
@@ -1471,17 +1618,42 @@ main { padding-inline-start: var(--rail-w); }
 }
 .rslide:hover::after { width: 48px; height: 48px; }
 
-/* Mỗi trang HAI ô nội dung đứng cạnh nhau, nên mỗi trang có hai hình.
-   Trang lẻ (.solo) chỉ có một ô: ô đó tự tách hình trái, chữ phải để
-   không phình hình to gấp đôi các trang khác. */
+/* SỐ CỘT TỰ CHẠY THEO BỀ NGANG, không chốt cứng hai cột nữa.
+   auto-fit: chỗ đủ cho ba cột thì ba ô đứng thành ba cột; trang chỉ có
+   hai ô thì cột thứ ba tự xẹp lại và hai ô chia nhau trọn bề ngang —
+   không để hở một cột trống nào. */
 @media (min-width: 880px) {
-  .rslide { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px; }
-  .rslide.solo { grid-template-columns: minmax(0, 1fr); }
-  .rslide.solo .fp-it { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  /* KHONG dung auto-fit. auto-fit chi xep lai cot RONG, ma dong "Meo nho"
+     o chan trang lai trai suot ca ba cot (grid-column: 1/-1) nen cot thu
+     ba khong bao gio rong: trang hai o van bi chia lam ba, hai bang vi du
+     chi duoc 377px va phai cuon ngang. Dem so o ro rang thi khong dinh. */
+  .rslide { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+  /* Trang một ô (bảng ví dụ, hoặc nhảy dây) ăn cả bề ngang; bên trong
+     nó tự tách hình trái – chữ phải cho khỏi phình hình to gấp đôi. */
+  .rslide[data-n="1"] { grid-template-columns: minmax(0, 1fr); }
+  .rslide[data-n="1"] .fp-it { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+  /* O KHONG CO HINH thi chu phai chiem CA HAI cot: bang vi du khong co
+     hinh nen chu roi vao mot cot, bo khong nua trang ben phai. */
+  .rslide[data-n="1"] .fp-it > .fp-txt:only-child { grid-column: 1 / -1; }
 }
-.fp-it { min-width: 0; display: grid; gap: 14px; align-content: start; }
+/* Ba o mot hang chi khi du cho cho ba cot thuc su. Hep hon thi trang ba
+   o tu xuong thanh hai hang - van doc duoc, chi la trang cao hon. */
+@media (min-width: 1100px) {
+  .rslide[data-n="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.fp-it { min-width: 0; display: grid; gap: 11px; align-content: start; }
 .fp-art { min-width: 0; align-self: start; }
-.fp-art svg { display: block; width: 100%; height: auto; }
+/* HINH KHONG DUOC TO HON 380px.
+   Moi so do la 576x317: mot cai hinh 319px cao de phuc vu 110px chu.
+   Trang nao ba o thi cot chi rong 379 nen hinh tu nho lai vua phai;
+   trang hai o thi cot rong 580, hinh phinh len 319 va keo ca tap sach
+   cao theo no. Chan o 380 thi moi trang cung mot co hinh - dung bang co
+   hinh tren dien thoai, da doc duoc - va trang ngan di mot phan ba.
+   Hinh hep hon cot thi can giua, nhin ra la mot hinh minh hoa. */
+.fp-art svg {
+  display: block; width: 100%; height: auto;
+  max-width: 380px; margin-inline: auto;
+}
 .fp-txt { min-width: 0; }
 
 /* "Mẹo nhớ" chạy suốt chân trang cuối, không chiếm riêng một trang */
@@ -1498,9 +1670,11 @@ main { padding-inline-start: var(--rail-w); }
   text-transform: uppercase; color: var(--accent, var(--ink));
 }
 
-.fp-txt h4 { font-size: 1rem; margin-bottom: 11px; }
-.fp-txt ul { display: flex; flex-direction: column; gap: 7px; }
-.fp-txt li { display: flex; gap: 9px; font-size: .9rem; color: var(--muted); line-height: 1.55; }
+.fp-txt h4 { font-size: 1rem; margin-bottom: 9px; }
+/* khoi chu thu hai tren cung mot trang - tach khoi khoi tren */
+.fp-txt .fp-h2 { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.fp-txt ul { display: flex; flex-direction: column; gap: 6px; }
+.fp-txt li { display: flex; gap: 8px; font-size: .88rem; color: var(--muted); line-height: 1.5; }
 .fp-txt li::before {
   content: ''; flex: none; width: 6px; height: 6px; border-radius: 2px;
   margin-top: .52em; background: var(--accent); opacity: .7;
@@ -1518,7 +1692,6 @@ main { padding-inline-start: var(--rail-w); }
 
 .rdeck-nav { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
 .rdeck-nav { flex-direction: column; gap: 9px; }
-.rd-hint { margin: 0; font-size: .78rem; color: var(--muted-2); text-align: center; }
 .rd-dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .rd-dots button {
   width: 8px; height: 8px; padding: 0; border-radius: 50%;
@@ -1531,7 +1704,7 @@ main { padding-inline-start: var(--rail-w); }
 @media (max-width: 620px) {
   .rd-head .rd-label { font-size: .92rem; }
   .rslide::after { width: 20px; height: 20px; }
-  .rslide { padding: 16px 15px 36px; gap: 14px; }
+  .rslide { padding: 14px 14px 30px; gap: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2235,41 +2408,67 @@ summary { list-style: none; }
   cursor: grab;
   /* tràn ra hai mép cho dải chạy hết khổ, thẻ đầu vẫn thẳng hàng với lề */
   margin: 0 calc(var(--gut) * -1);
-  padding: 2px var(--gut) 86px;
+  /* Nen dai van tran ra tan hai mep, nhung NOI DUNG thi lui vao them 22px
+     o ben trai: nhan "BUOI SANG" cua moc dau tien truoc day dung sat ngay
+     canh cot dieu huong, nhin nhu dinh vao menu. */
+  padding: 2px var(--gut) 86px calc(var(--gut) + 22px);
+  /* PHAI co scroll-padding bang dung padding-left o tren.
+     Cac moc gio deu co scroll-snap-align:start. Neu khong khai bao
+     scroll-padding thi diem dung cua snap tinh tu MEP KHUNG chu khong
+     phai tu mep phan dem, nen trinh duyet tu keo scroll sang 68px de ap
+     moc dau tien vao sat mep — dung bang dung phan dem vua them vao. Ket
+     qua: hang gio dinh sat cot dieu huong y nhu truoc, chi co nhan ten
+     buoi (position:sticky, bi ghim vao mep phan dem) la lui ra. */
+  scroll-padding-left: calc(var(--gut) + 22px);
   -webkit-overflow-scrolling: touch;
-  /* ĐOÀN TÀU CHẠY PHÍA SAU DẢI LỊCH.
-     Cả mục này vốn đã là ẩn dụ tuyến tàu — đường ray màu theo buổi, chấm
-     ga, "đang dừng ở ga". Nền cũ là đường chân trời thành phố, giờ thay
-     bằng đoàn tàu chạy thật trên ray.
+  /* THÀNH PHỐ TRÔI PHÍA SAU DẢI LỊCH.
+     Mục này là một tuyến đi suốt cả ngày, nên nền là cảnh nhìn qua cửa
+     sổ: mây, dãy nhà xa, dãy nhà gần — BA LỚP TRÔI BA TỐC ĐỘ khác nhau
+     nên mắt đọc ra chiều sâu, và ra đúng cảm giác thời gian đang trôi.
+     Chủ nhà chọn kiểu này trong sáu kiểu đã dựng thử ngày 13/10/2026.
 
      KHÔNG DÙNG FILE GIF: GIF 256 màu viền sẽ răng cưa, không co giãn theo
-     màn, và phần lớn người xem mở bằng 4G ngay tại nhà thi đấu. Đây là
-     hai hoạ tiết SVG nhúng thẳng vào CSS, lặp ngang nên dài bao nhiêu
-     cũng đủ, chỉ dịch background-position nên chạy trên lớp hợp thành.
+     màn, và phần lớn người xem mở bằng 4G ngay tại nhà thi đấu. Ba hoạ
+     tiết SVG nhúng thẳng vào CSS cộng lại chưa tới 6KB, không tốn một
+     lượt tải nào, và nét vẫn sắc ở mọi độ phóng.
+
+     CẢ BA LỚP CHẠY CHUNG MỘT ANIMATION. Mỗi lớp dịch đúng một số NGUYÊN
+     lần bề ngang ô lặp của nó — mây 1 ô, nhà xa 2 ô, nhà gần 4 ô — nên
+     hết 120 giây cả ba cùng về đúng chỗ cũ. Vòng nào cũng khớp, không giật.
 
      Ngoại lệ có chủ ý so với luật "mỗi hiệu ứng chạy một lần rồi đứng
-     yên": đoàn tàu phải chạy liên tục mới ra đoàn tàu. Bù lại màu rất
+     yên": cảnh phải trôi liên tục mới ra cảnh đang trôi. Bù lại màu rất
      nhạt để không tranh với chữ, và tắt hẳn khi người dùng xin giảm
      chuyển động. */
   background-image:
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 56'><rect x='4' y='10' width='140' height='30' rx='5' fill='%23b4c4d4'/><rect x='8' y='5' width='132' height='7' rx='3.5' fill='%239bafc2'/><rect x='16' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='48' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='80' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='112' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='150' y='26' width='12' height='5' rx='2' fill='%239bafc2'/><circle cx='32' cy='45' r='7' fill='%239bafc2'/><circle cx='32' cy='45' r='2.6' fill='%23e8eef4'/><circle cx='116' cy='45' r='7' fill='%239bafc2'/><circle cx='116' cy='45' r='2.6' fill='%23e8eef4'/><rect x='154' y='10' width='140' height='30' rx='5' fill='%23b4c4d4'/><rect x='158' y='5' width='132' height='7' rx='3.5' fill='%239bafc2'/><rect x='166' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='198' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='230' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='262' y='17' width='22' height='13' rx='2' fill='%23e8eef4'/><rect x='300' y='26' width='12' height='5' rx='2' fill='%239bafc2'/><circle cx='182' cy='45' r='7' fill='%239bafc2'/><circle cx='182' cy='45' r='2.6' fill='%23e8eef4'/><circle cx='266' cy='45' r='7' fill='%239bafc2'/><circle cx='266' cy='45' r='2.6' fill='%23e8eef4'/></svg>"),
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 16'><rect x='6' y='3' width='6' height='10' rx='1.5' fill='%23c3cedb'/><rect x='26' y='3' width='6' height='10' rx='1.5' fill='%23c3cedb'/><rect x='0' y='0' width='40' height='3.4' fill='%239bafc2'/><rect x='0' y='13' width='40' height='2.4' fill='%23c3cedb'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 46'><rect x='0' y='20' width='38' height='26' fill='%23a9bdd0'/><rect x='19' y='11' width='3' height='9' fill='%23a9bdd0'/><rect x='17' y='27' width='5' height='6' fill='%23dde7ef'/><rect x='47' y='21' width='43' height='25' fill='%23a9bdd0'/><rect x='53' y='28' width='5' height='6' fill='%23dde7ef'/><rect x='95' y='14' width='48' height='32' fill='%23a9bdd0'/><rect x='112' y='8' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='101' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='101' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='112' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='112' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='123' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='123' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='148' y='14' width='31' height='32' fill='%23a9bdd0'/><rect x='154' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='165' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='184' y='24' width='29' height='22' fill='%23a9bdd0'/><rect x='190' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='218' y='24' width='29' height='22' fill='%23a9bdd0'/><rect x='254' y='24' width='31' height='22' fill='%23a9bdd0'/><rect x='260' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='271' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='288' y='17' width='64' height='29' fill='%23a9bdd0'/><rect x='320' y='8' width='3' height='9' fill='%23a9bdd0'/><rect x='294' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='305' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='316' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='338' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='361' y='22' width='57' height='24' fill='%23a9bdd0'/><rect x='400' y='29' width='5' height='6' fill='%23dde7ef'/><rect x='427' y='23' width='62' height='23' fill='%23a9bdd0'/><rect x='451' y='17' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='433' y='30' width='5' height='6' fill='%23dde7ef'/><rect x='444' y='30' width='5' height='6' fill='%23dde7ef'/><rect x='494' y='16' width='28' height='30' fill='%23a9bdd0'/><rect x='500' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='527' y='16' width='50' height='30' fill='%23a9bdd0'/><rect x='545' y='10' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='533' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='544' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='555' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='582' y='26' width='48' height='20' fill='%23a9bdd0'/><rect x='635' y='26' width='48' height='20' fill='%23a9bdd0'/><rect x='690' y='26' width='10' height='20' fill='%23a9bdd0'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 72'><rect x='0' y='27' width='61' height='45' fill='%23ccd9e5'/><rect x='65' y='29' width='53' height='43' fill='%23ccd9e5'/><rect x='126' y='38' width='29' height='34' fill='%23ccd9e5'/><rect x='161' y='42' width='27' height='30' fill='%23ccd9e5'/><rect x='190' y='41' width='38' height='31' fill='%23ccd9e5'/><rect x='209' y='32' width='3' height='9' fill='%23ccd9e5'/><rect x='232' y='9' width='39' height='63' fill='%23ccd9e5'/><rect x='279' y='43' width='59' height='29' fill='%23ccd9e5'/><rect x='340' y='28' width='49' height='44' fill='%23ccd9e5'/><rect x='393' y='8' width='41' height='64' fill='%23ccd9e5'/><rect x='438' y='10' width='33' height='62' fill='%23ccd9e5'/><rect x='479' y='19' width='48' height='53' fill='%23ccd9e5'/><rect x='533' y='23' width='46' height='49' fill='%23ccd9e5'/><rect x='556' y='14' width='3' height='9' fill='%23ccd9e5'/><rect x='581' y='22' width='57' height='50' fill='%23ccd9e5'/><rect x='642' y='29' width='58' height='43' fill='%23ccd9e5'/><rect x='708' y='24' width='39' height='48' fill='%23ccd9e5'/><rect x='749' y='9' width='29' height='63' fill='%23ccd9e5'/><rect x='782' y='28' width='60' height='44' fill='%23ccd9e5'/><rect x='812' y='19' width='3' height='9' fill='%23ccd9e5'/><rect x='846' y='30' width='52' height='42' fill='%23ccd9e5'/><rect x='872' y='21' width='3' height='9' fill='%23ccd9e5'/><rect x='906' y='39' width='28' height='33' fill='%23ccd9e5'/><rect x='940' y='43' width='26' height='29' fill='%23ccd9e5'/><rect x='968' y='42' width='32' height='30' fill='%23ccd9e5'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 26'><ellipse cx='0' cy='11' rx='18' ry='9' fill='%23dae5ee'/><ellipse cx='9' cy='7' rx='11' ry='7' fill='%23dae5ee'/><ellipse cx='242' cy='16' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='249' cy='13' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='476' cy='17' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='483' cy='14' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='731' cy='14' rx='22' ry='11' fill='%23dae5ee'/><ellipse cx='742' cy='9' rx='14' ry='8' fill='%23dae5ee'/><ellipse cx='985' cy='22' rx='26' ry='13' fill='%23dae5ee'/><ellipse cx='998' cy='16' rx='16' ry='10' fill='%23dae5ee'/><ellipse cx='1221' cy='19' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='1228' cy='16' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='1384' cy='19' rx='20' ry='10' fill='%23dae5ee'/><ellipse cx='1394' cy='14' rx='13' ry='8' fill='%23dae5ee'/></svg>"),
     linear-gradient(180deg, rgba(144, 182, 212, .05) 0%,
       rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .16) 100%);
-  background-repeat: repeat-x, repeat-x, no-repeat;
-  background-size: 300px 56px, 40px 16px, 100% 100%;
-  background-position: 0 calc(100% - 23px), 0 calc(100% - 12px), 0 0;
-  animation: chayTau 15s linear infinite;
+  background-repeat: repeat-x, repeat-x, repeat-x, no-repeat;
+  background-size: 700px 46px, 1000px 72px, 1400px 26px, 100% 100%;
+  background-position:
+    0 calc(100% - 6px), 0 calc(100% - 6px), 0 calc(100% - 58px), 0 0;
+  animation: troiPho 120s linear infinite;
 }
-@keyframes chayTau {
-  from { background-position: 0 calc(100% - 23px), 0 calc(100% - 12px), 0 0; }
-  to   { background-position: -300px calc(100% - 23px), 0 calc(100% - 12px), 0 0; }
+/* Nha gan di 4 o, nha xa 2 o, may 1 o - chenh nhau nen ra chieu sau. */
+@keyframes troiPho {
+  from { background-position:
+    0 calc(100% - 6px), 0 calc(100% - 6px), 0 calc(100% - 58px), 0 0; }
+  to   { background-position:
+    -2800px calc(100% - 6px), -2000px calc(100% - 6px),
+    -1400px calc(100% - 58px), 0 0; }
 }
-@keyframes chayTauNho {
-  from { background-position: 0 calc(100% - 19px), 0 calc(100% - 10px), 0 0; }
-  to   { background-position: -236px calc(100% - 19px), 0 calc(100% - 10px), 0 0; }
+@keyframes troiPhoNho {
+  from { background-position:
+    0 calc(100% - 5px), 0 calc(100% - 5px), 0 calc(100% - 44px), 0 0; }
+  to   { background-position:
+    -1960px calc(100% - 5px), -1400px calc(100% - 5px),
+    -980px calc(100% - 44px), 0 0; }
 }
-/* thanh cuộn mảnh, nằm dưới đường ray */
+}
+/* thanh cuộn mảnh, nằm dưới dãy nhà */
 .tl-scroll::-webkit-scrollbar { height: 8px; }
 .tl-scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 999px; }
 .tl-scroll.drag { cursor: grabbing; scroll-behavior: auto; }
@@ -2304,9 +2503,13 @@ summary { list-style: none; }
   width: 2px; height: 96px;
   background: repeating-linear-gradient(180deg, var(--line-2) 0 5px, transparent 5px 11px);
 }
+/* Đường ray phải nằm đúng giữa hàng chấm ga. Đổi --tl-dau (chiều cao
+   dải tên buổi) thì PHẢI đổi con số này theo, nếu không ray trôi khỏi
+   chấm ga. Tâm chấm ga = --tl-dau + 24px (hàng giờ) + 8px (nửa chấm),
+   nên mép trên đường ray = tâm trừ 3px (nửa bề dày ray) = +29px. */
 .tl-part::before, .tl-part::after {
   content: ''; position: absolute; z-index: 0;
-  top: 56px; height: 6px; border-radius: 999px;
+  top: calc(var(--tl-dau) + 29px); height: 6px; border-radius: 999px;
   background: var(--bu);
   pointer-events: none;
 }
@@ -2314,7 +2517,10 @@ summary { list-style: none; }
 .tl-part::after  { left: 0; width: var(--run, 0px); transition: width 1s var(--e-expo); }
 
 /* tên buổi làm thẻ tuyến, y như số tuyến trên bản đồ tàu */
-.tlp-h { height: 26px; padding-right: 10px; }
+/* Dải tên buổi cách hàng mốc giờ một khoảng thở. Trước để 26px nên chữ
+   "BUỔI SÁNG" dính sát vào "08:30" ở ngay dưới. */
+.tl-part { --tl-dau: 50px; }
+.tlp-h { height: var(--tl-dau); padding-right: 10px; }
 .tlp-in {
   position: sticky; left: 0; z-index: 2;
   display: inline-flex; align-items: baseline; gap: 9px;
@@ -2425,11 +2631,27 @@ summary { list-style: none; }
 }
 .ag-pl svg { flex: none; color: var(--gold); }
 
+/* Ten dien gia ngay duoi ten bai. KHONG dung chung voi .ag-b p: dong do
+   bi cat con ba dong va mau nhat nhu chu phu, ma ten nguoi thi phai doc
+   duoc ngay. */
+.ag-b .ag-sp {
+  display: block; -webkit-line-clamp: none; overflow: visible;
+  margin-top: 2px; font-size: .82rem; font-weight: 650; line-height: 1.4;
+  color: var(--bu, var(--muted));
+}
+/* nut dan sang muc khac cua chinh trang nay */
+.chip.go {
+  background: var(--brand-s); color: var(--brand);
+  font-weight: 700; text-decoration: none;
+}
+.chip.go::after { content: ' \2192'; }
+.chip.go:hover { background: var(--brand); color: #fff; }
+
 /* Màu theo buổi và theo trục văn hóa nay nằm trên chấm ga, xem mục
    tuyến tàu ở trên. */
 
 @media (max-width: 620px) {
-  .tl-part { padding: 0 8px; }
+  .tl-part { padding: 0 8px; --tl-dau: 44px; }
   .tl-part + .tl-part { margin-left: 32px; }
   .tl-part + .tl-part > .tlp-h::before { left: -17px; height: 88px; }
   .mt-st { width: 150px; padding-right: 10px; }
@@ -2442,10 +2664,22 @@ summary { list-style: none; }
      theo — vẫn dịch 300px mà toa chỉ rộng 236px thì mỗi vòng tàu giật
      một cái. */
   .tl-scroll {
-    padding-bottom: 72px;
-    background-size: 236px 44px, 34px 14px, 100% 100%;
-    background-position: 0 calc(100% - 19px), 0 calc(100% - 10px), 0 0;
-    animation-name: chayTauNho;
+    padding-bottom: 76px;
+    /* man hep khong co cot dieu huong ben trai nen khong can chua cho */
+    padding-left: var(--gut);
+    scroll-padding-left: var(--gut);
+    /* O lap nho lai thi quang chay mot vong cung phai nho theo, khong thi
+       het mot vong canh giat mot cai. */
+    background-image:
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 490 34'><rect x='0' y='20' width='38' height='14' fill='%23a9bdd0'/><rect x='19' y='11' width='3' height='9' fill='%23a9bdd0'/><rect x='47' y='11' width='43' height='23' fill='%23a9bdd0'/><rect x='53' y='18' width='5' height='6' fill='%23dde7ef'/><rect x='95' y='19' width='48' height='15' fill='%23a9bdd0'/><rect x='112' y='13' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='148' y='10' width='31' height='24' fill='%23a9bdd0'/><rect x='165' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='184' y='9' width='29' height='25' fill='%23a9bdd0'/><rect x='190' y='16' width='5' height='6' fill='%23dde7ef'/><rect x='218' y='13' width='29' height='21' fill='%23a9bdd0'/><rect x='254' y='17' width='31' height='17' fill='%23a9bdd0'/><rect x='288' y='10' width='64' height='24' fill='%23a9bdd0'/><rect x='320' y='1' width='3' height='9' fill='%23a9bdd0'/><rect x='294' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='305' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='316' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='338' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='361' y='4' width='57' height='30' fill='%23a9bdd0'/><rect x='400' y='11' width='5' height='6' fill='%23dde7ef'/><rect x='427' y='12' width='62' height='22' fill='%23a9bdd0'/><rect x='451' y='6' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='433' y='19' width='5' height='6' fill='%23dde7ef'/><rect x='444' y='19' width='5' height='6' fill='%23dde7ef'/></svg>"),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 52'><rect x='0' y='7' width='61' height='45' fill='%23ccd9e5'/><rect x='65' y='24' width='53' height='28' fill='%23ccd9e5'/><rect x='126' y='24' width='29' height='28' fill='%23ccd9e5'/><rect x='161' y='7' width='27' height='45' fill='%23ccd9e5'/><rect x='190' y='6' width='38' height='46' fill='%23ccd9e5'/><rect x='209' y='-3' width='3' height='9' fill='%23ccd9e5'/><rect x='232' y='10' width='39' height='42' fill='%23ccd9e5'/><rect x='279' y='20' width='59' height='32' fill='%23ccd9e5'/><rect x='340' y='32' width='49' height='20' fill='%23ccd9e5'/><rect x='393' y='27' width='41' height='25' fill='%23ccd9e5'/><rect x='438' y='17' width='33' height='35' fill='%23ccd9e5'/><rect x='479' y='17' width='48' height='35' fill='%23ccd9e5'/><rect x='533' y='27' width='46' height='25' fill='%23ccd9e5'/><rect x='556' y='18' width='3' height='9' fill='%23ccd9e5'/><rect x='581' y='26' width='57' height='26' fill='%23ccd9e5'/><rect x='642' y='30' width='58' height='22' fill='%23ccd9e5'/></svg>"),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 20'><ellipse cx='0' cy='14' rx='18' ry='9' fill='%23dae5ee'/><ellipse cx='9' cy='10' rx='11' ry='7' fill='%23dae5ee'/><ellipse cx='242' cy='15' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='249' cy='12' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='476' cy='14' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='483' cy='11' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='731' cy='16' rx='22' ry='11' fill='%23dae5ee'/><ellipse cx='742' cy='11' rx='14' ry='8' fill='%23dae5ee'/></svg>"),
+      linear-gradient(180deg, rgba(144, 182, 212, .05) 0%,
+      rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .16) 100%);
+    background-size: 490px 34px, 700px 52px, 980px 20px, 100% 100%;
+    background-position:
+      0 calc(100% - 5px), 0 calc(100% - 5px), 0 calc(100% - 44px), 0 0;
+    animation-name: troiPhoNho;
   }
   .ag-b p { font-size: .78rem; -webkit-line-clamp: 3; }
 }
@@ -2814,6 +3048,16 @@ summary { list-style: none; }
 .bk-row { flex-direction: row !important; gap: 16px; width: auto !important; }
 .bk-row .bkm { margin: 0; width: 380px; flex: none; }
 .bk-branch.lose .bk-wrapcol > .rnd { background: var(--clay-s); color: var(--clay); }
+
+/* ---- Nhánh thua KHÔNG dùng khung cuộn ngang của nhánh thắng ----
+   Nhánh thắng phải cuộn vì nó rộng thật và có đường nối chạy sang phải,
+   nên khung chừa 102px đệm bên phải cho mũi tên. Nhánh thua chỉ có ba ô
+   rời, không đường nối nào — giữ nguyên khung đó thì ba ô vừa khít mà
+   vẫn mọc ra một thanh cuộn không có gì để cuộn.
+   Đổi thành lưới co giãn: ba ô chia đều bề ngang, hẹp dần thì xuống hai
+   ô rồi một ô, không bao giờ phải cuộn. */
+/* khối xếp hạng nhánh thua giờ chỉ còn bảng, không còn ô trận nào */
+.bk-branch.lose { margin-top: 22px; }
 .bk-branch.lose .vv-r { margin-top: 14px; }
 
 /* ============================================================
@@ -4066,7 +4310,8 @@ summary { list-style: none; }
 /* ---- ba bậc cao thấp ---- */
 .aw-big.lg { min-height: 236px; padding: 18px 22px 20px; }
 /* bạc: khoảng giữa vàng và đồng, đọc ra ngay bậc hai */
-.aw-big.g2 { min-height: 188px; padding: 17px 20px 19px; }
+/* giải nhì dài hơn một chút: 236 – 212 – 88 cho ra đúng dáng bục */
+.aw-big.g2 { min-height: 212px; padding: 17px 20px 19px; }
 .aw-big.sm { min-height: 88px; gap: 5px; padding: 11px 14px 12px; }
 .aw-big.lg h4 { font-size: clamp(1.18rem, 2.4vw, 1.62rem); }
 .aw-big.g2 h4 { font-size: clamp(1.08rem, 2.1vw, 1.38rem); }
@@ -4133,6 +4378,12 @@ summary { list-style: none; }
 .aw-row.g1 .aw-rk, .aw-row.g1 .aw-pz { color: var(--gold); }
 .aw-row.g3 .aw-pz { color: var(--clay); }
 /* dòng gộp nhiều đội cùng dừng một vòng */
+/* Nhom nhieu doi (ca danh sach 12 doi) xep thanh nhieu cot: de moi doi
+   mot dong thi rieng dong do cao hon ca ba dong giai cong lai. */
+.aw-row.grp .aw-who {
+  display: grid; gap: 2px 18px;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+}
 .aw-row.grp .aw-who b { font-weight: 650; font-size: .9rem; }
 .aw-row.grp .aw-pz { font-weight: 700; font-size: .82rem; }
 

@@ -9,8 +9,10 @@ function load(mutate){
 function ok(n,c){console.log((c?'PASS':'FAIL')+'  '+n)}
 // A. baseline
 let S=load();
-// 47 tu 10/10/2026: cl-mix len 8 doi (ko8) nen co 7 tran thay vi 4
-ok('baseline builds, 47 matches, none unscheduled', S.matches.length===47 && (S.unscheduled||[]).length===0 && S.matches.every(m=>m.court));
+// 46 tu 11/10/2026: cl-mix len 8 doi (+3 tran), cl-nam bo tran tranh hang Ba (-1)
+ok('baseline builds, 46 matches, none unscheduled', S.matches.length===46 && (S.unscheduled||[]).length===0 && S.matches.every(m=>m.court));
+// khong con noi dung nao co tran tranh hang Ba: ca bon noi dung doi deu 2 giai ba
+ok('khong con tran tranh hang Ba o noi dung nao', S.matches.every(m => m.round !== 'TB'));
 // B. neu BTC rut lai hai doi bo sung thi cl-mix ve r6diff 6 doi
 S=load(d=>{const e=d.events.find(x=>x.id==='cl-mix');e.format='r6diff';e.teamCount=6;e.teams=e.teams.slice(0,6);e.seeds=[1,2,3,4,5,6]});
 ok('cl-mix -> r6diff does not crash and schedules everything',

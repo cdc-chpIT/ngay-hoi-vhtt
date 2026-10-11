@@ -150,15 +150,19 @@ var VHTT_DATA = {
       desc: 'Thích ứng là phương thức: đổi cách làm khi điều kiện đổi.',
       talk: 3 },
 
+    /* goto: nút dẫn thẳng tới mục liên quan trên chính trang này.
+       Để trống thì mốc đó không có nút nào.                               */
     { start: '10:15', end: '10:45', fixed: true, part: 'morning', icon: 'talk',
       title: 'Hỏi – đáp',
       desc: 'Hỏi trực tiếp tại hội trường hoặc gửi qua form trên trang này.',
-      tag: 'Gửi câu hỏi được cả trước và trong giờ' },
+      tag: 'Gửi câu hỏi được cả trước và trong giờ',
+      goto: { href: '#hoi-dap', label: 'Gửi câu hỏi' } },
 
     { start: '10:45', end: '11:15', fixed: true, part: 'morning', icon: 'game',
       title: 'Vui chơi có thưởng',
       desc: 'Mini game trắc nghiệm, có câu lấy ngay từ ba bài vừa nghe.',
-      tag: 'Có thưởng' },
+      tag: 'Có thưởng',
+      goto: { href: '#minigame', label: 'Xem mini game' } },
 
     { start: '11:15', end: '11:25', fixed: true, part: 'morning', icon: 'camera',
       title: 'Tổng kết, bế mạc, chụp ảnh',
@@ -193,8 +197,7 @@ var VHTT_DATA = {
        Chỉ Liên hoan có, các mốc khác đã nói rõ chỗ ngay trong tên. */
     { start: '17:30', end: null, fixed: true, part: 'evening', icon: 'dinner',
       title: 'Liên hoan',
-      place: 'Nhà hàng Bia Hải Xồm — số 5 Phan Kế Bính, Giảng Võ, Hà Nội',
-      tag: 'Tự nguyện' }
+      place: 'Nhà hàng Bia Hải Xồm — số 5 Phan Kế Bính, Giảng Võ, Hà Nội' }
   ],
 
   /* ================== MINI GAME ================== */
@@ -210,14 +213,18 @@ var VHTT_DATA = {
       'Điểm tính theo cả độ chính xác lẫn tốc độ trả lời.',
       'Bảng xếp hạng hiện trực tiếp trên màn hình hội trường.'
     ],
-    /* Mỗi câu trả lời đúng được thưởng bằng này tiền. */
-    prizePerCorrect: 100000,
+    /* Cơ cấu giải mini game — BTC chốt ngày 12/10/2026.
+       Đúng 11 người có thưởng: nhất 300.000đ, nhì 200.000đ, ba 100.000đ,
+       từ hạng 4 đến hạng 11 mỗi người 50.000đ. Tổng đúng 1.000.000đ.
+       Đổi số ở đây thì trang tự tính lại tổng, không phải sửa chỗ nào khác. */
+    prizeCount: 11,
+    prizes: { 1: 300000, 2: 200000, 3: 100000, rest: 50000 },
 
     /* Danh sách người đạt giải — BTC điền trong lúc chơi hoặc ngay sau đó.
        Để rỗng thì trang hiện dòng "chưa có kết quả".
-       Mẫu một dòng:
+       Mẫu một dòng (xếp theo thứ tự hạng, cao nhất trước):
          { name: 'Nguyễn Văn A', dept: 'A&I', correct: 7 }
-       Tiền thưởng trang tự nhân: correct × prizePerCorrect.                */
+       Tiền thưởng trang tự tra theo hạng trong bảng prizes ở trên.        */
     winners: []
   },
 
@@ -264,9 +271,13 @@ var VHTT_DATA = {
       gridMinutes: 5,
       start: '13:30',
       finalsTogether: true,  /* hai chung kết pickleball đá đồng thời */
+      /* referee = trọng tài, helper = người hỗ trợ (thư ký ghi điểm).
+         ĐỂ TRỐNG LÀ KHÔNG HIỆN GÌ — không in ra chỗ trống, cũng không
+         bịa tên. BTC chốt xong thì điền thẳng vào đây, không phải sửa
+         code chỗ nào khác. */
       courts: [
-        { id: 'PB1', name: 'Sân Pickleball 1', short: 'PB 1' },
-        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2' }
+        { id: 'PB1', name: 'Sân Pickleball 1', short: 'PB 1', referee: '', helper: '' },
+        { id: 'PB2', name: 'Sân Pickleball 2', short: 'PB 2', referee: '', helper: '' }
       ],
       /* Thứ tự ưu tiên khi hai trận cùng xếp được vào một giờ. */
       roundOrder: [
@@ -288,9 +299,9 @@ var VHTT_DATA = {
       gridMinutes: 5,
       start: '13:30',
       courts: [
-        { id: 'CL1', name: 'Sân Cầu lông 1', short: 'CL 1' },
-        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2' },
-        { id: 'CL3', name: 'Sân Cầu lông 3', short: 'CL 3' }
+        { id: 'CL1', name: 'Sân Cầu lông 1', short: 'CL 1', referee: '', helper: '' },
+        { id: 'CL2', name: 'Sân Cầu lông 2', short: 'CL 2', referee: '', helper: '' },
+        { id: 'CL3', name: 'Sân Cầu lông 3', short: 'CL 3', referee: '', helper: '' }
       ],
       roundOrder: [
         ['cl-nam', 'VL'],
@@ -299,7 +310,6 @@ var VHTT_DATA = {
         ['cl-nam', 'TK'],
         ['cl-mix', 'BK'],
         ['cl-nam', 'BK'],
-        ['cl-nam', 'TB'],
         ['cl-mix', 'CK'],
         ['cl-nam', 'CK']
       ]
@@ -310,9 +320,11 @@ var VHTT_DATA = {
      Bảng ghép cặp lấy đúng theo bốn bảng của BTC. Vòng loại ghép lần lượt
      Đội 1–2, Đội 3–4 … nên thứ tự đội ở đây chính là thứ tự trận.
      format:
-       'q12r'   = 12 đội. 6 trận vòng loại, 6 đội thắng vào thẳng tứ kết;
-                  6 đội thua đấu 3 trận nhánh thua, lấy thêm 2 đội theo
-                  hiệu số rồi tổng điểm.
+       'q12r'   = 12 đội. 6 trận vòng loại VL1–VL6, 6 đội thắng vào thẳng
+                  tứ kết (VL1–VL2, VL3–VL4, VL5–VL6). 6 đội thua đấu 3 trận
+                  nhánh thua VL7–VL9; hai đội thắng có CÁCH BIỆT ĐIỂM lớn
+                  nhất lên Tứ kết 4 và gặp nhau ở đó. Bằng cách biệt thì
+                  xét tổng điểm; bằng nốt thì BTC bốc thăm.
        'ko8'    = 8 đội, loại trực tiếp từ tứ kết.
        'r6diff' = 6 đội, 3 trận vòng đầu, 2 đội thắng có hiệu số cao nhất
                   vào chung kết, đội thắng còn lại hạng ba.
@@ -370,13 +382,16 @@ var VHTT_DATA = {
       scoring: 'Tứ kết ăn điểm trực tiếp. Bán kết và chung kết tính điểm theo lượt giao.',
       drawRule: 'Tám đội vào thẳng tứ kết theo bảng ghép cặp của BTC.',
       status: 'ok',
-      statusNote: 'Ba suất còn ghi là tuyển thủ dự bị, BTC chốt tên trước giờ thi đấu.',
+      /* Chị Loan và Chị Nga đã là người cụ thể, chỉ thiếu họ tên đầy đủ —
+         nên hai đội đó KHÔNG còn pending. Còn đúng hai suất chưa có người. */
+      statusNote: 'Hai suất còn ghi là tuyển thủ dự bị, BTC chốt tên trước giờ thi đấu. ' +
+                  'Chị Loan và Chị Nga chưa có họ tên đầy đủ.',
       teams: [
         { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Ngô Tấn Sơn', dept: 'BGĐ · TED' },
-        { id: 2, p1: 'Tuyển thủ nữ 1 (Chị Loan)', p2: 'Nguyễn Ngọc Tuấn', dept: 'TED', pending: true },
+        { id: 2, p1: 'Chị Loan', p2: 'Nguyễn Ngọc Tuấn', dept: 'TED' },
         { id: 3, p1: 'Trương Xuân Phương', p2: 'Tuyển thủ nam 1', dept: 'CDC · VPĐD', pending: true },
         { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
-        { id: 5, p1: 'Tuyển thủ nữ 2 (Chị Nga)', p2: 'Ngô Trung Phương', dept: 'UHRI', pending: true },
+        { id: 5, p1: 'Chị Nga', p2: 'Ngô Trung Phương', dept: 'UHRI' },
         { id: 6, p1: 'Mai Lệ Hằng', p2: 'Tuyển thủ nam 2', dept: 'HPTC · VPĐD', pending: true },
         { id: 7, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Quốc Tuấn', dept: 'FIN · CHPS' },
         { id: 8, p1: 'Huỳnh Minh Nguyệt', p2: 'Nguyễn Khắc Cường', dept: 'ADM · A&I' }
@@ -395,7 +410,9 @@ var VHTT_DATA = {
       venueId: 'cl',
       format: 'q12r',
       teamCount: 12,
-      thirdPlace: true,
+      /* Bỏ trận tranh hạng Ba 11/10: hai đội thua bán kết đồng giải ba,
+         giống ba nội dung đôi còn lại. */
+      thirdPlace: false,
       targetScore: 21,
       durations: { mac_dinh: 15 },
       scoring: 'Mọi vòng đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
@@ -451,7 +468,7 @@ var VHTT_DATA = {
         { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Sơn Tùng', dept: 'HPTC · PMD' },
         /* Hai đội BTC bổ sung ngày 10/10. Bộ phận của Nguyễn Bảo Châu chưa
            có trong bảng nào nên để trống, KHÔNG đoán. */
-        { id: 7, p1: 'Phạm Trung Đức', p2: 'Nguyễn Bảo Châu' },
+        { id: 7, p1: 'Nguyễn Bảo Châu', p2: 'Phạm Trung Đức' },
         { id: 8, p1: 'Trần Thị Xuyến', p2: 'Ngô Trung Phương', dept: 'FIN · UHRI' }
       ],
       seeds: [
