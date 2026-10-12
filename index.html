@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=20261014c">
+<link rel="stylesheet" href="assets/css/style.css?v=20261014k">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/img/favicon.png">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -45,6 +45,7 @@
     <g id="i-paddle-duo"><ellipse cx="7.4" cy="8.8" rx="4.2" ry="4.8" fill="none" stroke="currentColor" stroke-width="1.6"/><ellipse cx="16.6" cy="8.8" rx="4.2" ry="4.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m9.4 12.9 2.9 6.6M14.6 12.9l-2.9 6.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></g>
     <g id="i-shuttle-duo"><path d="M7.2 3.4 4.3 9.1h5.8L7.2 3.4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="7.2" cy="12.3" r="2.9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16.8 9.1 13.9 14.8h5.8L16.8 9.1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="16.8" cy="18" r="2.9" fill="none" stroke="currentColor" stroke-width="1.5"/></g>
     <g id="i-up"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <g id="i-video"><rect x="2.6" y="6.2" width="13" height="11.6" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M15.6 11.3 20.3 8.4a.85.85 0 0 1 1.3.72v5.76a.85.85 0 0 1-1.3.72l-4.7-2.9Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></g>
     <g id="i-qr"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M14 14h2.5v2.5H14zM17.5 17.5H20V20h-2.5zM14 20h1M19 14h1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></g>
     <g id="i-book"><path d="M4.5 5.5A2.5 2.5 0 0 1 7 3h12v15.5H7a2.5 2.5 0 0 0-2.5 2.5V5.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8.5 8h7M8.5 11.5h4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></g>
     <g id="i-live"><circle cx="12" cy="12" r="3" fill="currentColor"/><path d="M6.4 6.4a8 8 0 0 0 0 11.2M17.6 6.4a8 8 0 0 1 0 11.2M3.6 3.6a12 12 0 0 0 0 16.8M20.4 3.6a12 12 0 0 1 0 16.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></g>
@@ -62,6 +63,7 @@
     </span>
   </a>
   <nav class="nav" id="nav" aria-label="Mục lục">
+      <a href="#lich"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"/></svg><i>Lịch</i></a>
       <a href="#van-hoa"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flag"/></svg><i>Văn hóa</i></a>
       <a href="#hoi-dap"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-talk"/></svg><i>Hỏi đáp</i></a>
       <a href="#minigame"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-game"/></svg><i>Mini game</i></a>
@@ -69,7 +71,6 @@
       <a href="#nhanh-dau"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trophy"/></svg><i>Nhánh đấu</i></a>
       <a href="#giai-thuong"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-medal"/></svg><i>Giải thưởng</i></a>
       <a href="#luat"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg><i>Luật</i></a>
-      <a href="#lich"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-cal"/></svg><i>Lịch</i></a>
   </nav>
 </header>
 
@@ -138,7 +139,11 @@
       <!-- một dòng duy nhất: mấy giờ rồi và đang tới mục nào -->
       <div class="hnow reveal" style="--d:140ms" id="hero-now"></div>
 
-      <div class="cd reveal" id="countdown" style="--d:230ms; display:none"></div>
+      <!-- hai dòng địa điểm: sáng ở hội trường, chiều ở nhà thi đấu.
+           Bấm vào cả dòng là mở bản đồ. -->
+      <div class="hnoi reveal" style="--d:190ms" id="hero-noi"></div>
+
+      <div class="cd reveal" id="countdown" style="--d:250ms; display:none"></div>
 
       <div class="hero-cta reveal" style="--d:320ms">
         <a class="btn btn-pri hbtn" href="#the-thao">
@@ -174,6 +179,20 @@
    </div>
   </section>
 
+  <!-- ============ LỊCH CHƯƠNG TRÌNH ============
+       Đặt NGAY DƯỚI banner (chủ nhà chốt 12/10/2026). Trước đây nó nằm cuối
+       trang vì là dải kéo ngang dài nhất, chen vào giữa thì cắt mạch đọc —
+       nay đã xếp thành hai khối sáng/chiều tự xuống dòng, không kéo ngang
+       nữa, nên để lên đầu là chỗ đúng: mở trang ra là thấy ngay cả ngày
+       chạy thế nào. Đừng chuyển xuống cuối lại. -->
+  <section class="section" id="lich">
+    <div class="wrap">
+      <!-- chỉ còn chương trình cả ngày; lịch từng trận nằm ngay trong
+           mục Thể thao, bấm "Chi tiết từng trận" là mở ra -->
+      <div class="agenda" id="agenda" aria-label="Lịch chương trình"></div>
+    </div>
+  </section>
+
   <!-- ============ BA TRỤC VĂN HÓA ============ -->
   <div class="mq" aria-hidden="true">
     <div class="mq-row" id="mq-row"><span>Truyền thống <i>&#9670;</i> Tự lực <i>&#9670;</i> Thích ứng <i>&#9670;</i> <b>VĂN HÓA CHP 2026</b> <i>&#9670;</i> </span></div>
@@ -181,6 +200,9 @@
 
   <section class="section" id="van-hoa">
     <div class="wrap">
+      <!-- địa điểm buổi sáng + phòng Zoom; đặt trước ba trục vì người mới
+           mở trang cần biết đi đâu trước đã -->
+      <div class="noi-card reveal" id="vh-noi"></div>
       <div class="pshow reveal" id="pillar-shots"></div>
     </div>
   </section>
@@ -238,6 +260,7 @@
             <h2 data-fx="wipe">Đại hội thể thao</h2>
           </div>
           <p class="sb-meta" id="sport-lead"></p>
+          <p class="sb-dc" id="sport-noi"></p>
         </div>
       </div>
 
@@ -298,17 +321,6 @@
     </div>
   </section>
 
-  <!-- ============ LỊCH CHƯƠNG TRÌNH ============
-       Nằm cuối trang: đây là dải kéo ngang dài nhất trang, đặt giữa hai mục
-       khác thì nó cắt mạch đọc. Để cuối thì ai cần tra cả ngày mới cuộn tới. -->
-  <section class="section" id="lich">
-    <div class="wrap">
-      <!-- chỉ còn chương trình cả ngày; lịch từng trận nằm ngay trong
-           mục Thể thao, bấm "Chi tiết từng trận" là mở ra -->
-      <div class="agenda" id="agenda" aria-label="Lịch chương trình"></div>
-    </div>
-  </section>
-
 </main>
 
 <button class="btn btn-sm btn-adm-float" id="btn-adm" style="display:none">Bảng BTC</button>
@@ -342,11 +354,11 @@
 </aside>
 
 <script src="assets/js/vendor-qrcode.js"></script>
-<script src="assets/js/config.js?v=20261014c"></script>
-<script src="assets/js/data.js?v=20261014c"></script>
-<script src="assets/js/tournament.js?v=20261014c"></script>
-<script src="assets/js/live.js?v=20261014c"></script>
-<script src="assets/js/app.js?v=20261014c"></script>
-<script src="assets/js/motion.js?v=20261014c"></script>
+<script src="assets/js/config.js?v=20261014k"></script>
+<script src="assets/js/data.js?v=20261014k"></script>
+<script src="assets/js/tournament.js?v=20261014k"></script>
+<script src="assets/js/live.js?v=20261014k"></script>
+<script src="assets/js/app.js?v=20261014k"></script>
+<script src="assets/js/motion.js?v=20261014k"></script>
 </body>
 </html>

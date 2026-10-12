@@ -200,11 +200,13 @@
      --------------------------------------------------------------- */
   /* Lịch xếp theo buổi như thời khóa biểu. Thứ tự buổi cố định ở đây,
      còn thứ tự mốc trong một buổi thì giữ nguyên như trong data.js.    */
+  /* HAI khối thôi: sáng và chiều. Chủ nhà chốt 12/10/2026 — bốn buổi xếp
+     cạnh nhau thì dải dài gấp đôi bề ngang màn và phải kéo qua kéo lại.
+     Nghỉ trưa gộp vào buổi sáng (nó khép lại buổi sáng), liên hoan tối gộp
+     vào buổi chiều. */
   var AG_PARTS = [
-    { k: 'morning',   label: 'Buổi sáng' },
-    { k: 'noon',      label: 'Buổi trưa' },
-    { k: 'afternoon', label: 'Buổi chiều' },
-    { k: 'evening',   label: 'Buổi tối' }
+    { k: 'sang',  label: 'Buổi sáng',  gom: ['morning', 'noon'] },
+    { k: 'chieu', label: 'Buổi chiều', gom: ['afternoon', 'evening'] }
   ];
 
   /* Mỗi mốc là một nhà ga trên tuyến: giờ ở trên, chấm ga nằm đúng trên
@@ -212,6 +214,23 @@
      Tên ga để nằm ngang chứ không viết nghiêng như bản đồ tàu thật — chữ
      nghiêng 45° đẹp nhưng đọc khó, mà đây là thứ người ta tra vội giữa
      hội trường.                                                          */
+  /* Dòng địa điểm của một mốc. Mốc nào khai `venue` thì lấy thẳng từ
+     config.js; mốc nào có `place` riêng thì dùng chữ của nó.
+     Chỗ hội trường in TÊN (tên mốc không nói ở đâu), chỗ nhà thi đấu in
+     ĐỊA CHỈ (tên đã nằm sẵn trong tên mốc) — in cả hai thì dòng dài gấp
+     đôi mà chẳng thêm thông tin. */
+  function agNoi(t) {
+    var ten = t.place || '', map = t.placeMap || '';
+    if (t.venue === 'main')  { ten = CFG.venueName || '';         map = CFG.venueMapUrl || ''; }
+    if (t.venue === 'sport') { ten = CFG.sportVenueAddress || ''; map = CFG.sportVenueMapUrl || ''; }
+    if (!ten) return '';
+    var ruot = icon('pin', 14) + '<span>' + esc(ten) + '</span>';
+    if (!map) return '<p class="ag-pl">' + ruot + '</p>';
+    return '<a class="ag-pl ag-pl-go" href="' + esc(map) + '" target="_blank"' +
+      ' rel="noopener" aria-label="Mở bản đồ: ' + esc(ten) + '">' + ruot +
+      '<i class="noi-ar" aria-hidden="true">\u2197</i></a>';
+  }
+
   function agItem(t, k, tm, i) {
     var pillar = t.talk ? D.pillars[t.talk - 1] : null;
     var tk = t.talk ? D.talks[t.talk - 1] : null;
@@ -230,7 +249,7 @@
         (tk && tk.speaker
           ? '<p class="ag-sp">' + esc(vnName(tk.speaker)) + '</p>' : '') +
         /* chỉ mục nào có địa điểm riêng mới in thêm một dòng */
-        (t.place ? '<p class="ag-pl">' + icon('pin', 14) + esc(t.place) + '</p>' : '') +
+        agNoi(t) +
         /* KHÔNG IN TÊN TIỂU BAN PHỤ TRÁCH. Trang này ai có link cũng xem
            được, mà phân công nội bộ thì không đưa lên công khai. Trường
            này vẫn nằm trong data.js cho BTC dùng, chỉ không vẽ ra đây. */
@@ -266,8 +285,12 @@
 
     var n = 0, parts = '';
     AG_PARTS.forEach(function (p) {
-      var list = bucket[p.k];
-      if (!list || !list.length) return;
+      /* gom mấy buổi nhỏ lại rồi xếp theo giờ, không thì nghỉ trưa rơi
+         xuống cuối buổi sáng sai thứ tự khi BTC sửa data.js */
+      var list = [];
+      p.gom.forEach(function (g) { list = list.concat(bucket[g] || []); });
+      if (!list.length) return;
+      list.sort(function (x, y) { return x.tm.start < y.tm.start ? -1 : 1; });
       parts += '<section class="tl-part" data-part="' + p.k + '">' +
           '<header class="tlp-h"><span class="tlp-in"><b>' + esc(p.label) + '</b>' +
             '<span>' + esc(agSpan(list)) + '</span></span></header>' +
@@ -277,118 +300,12 @@
         '</section>';
     });
 
+    /* Vẫn giữ tên .tl-scroll: đây là chỗ mang dải thành phố Hà Nội vẽ bằng
+       CSS. Chỉ bỏ phần cuộn ngang, không bỏ lớp. */
     host.innerHTML =
-      '<div class="tl-scroll" tabindex="0" role="region"' +
-          ' aria-label="Lịch chương trình cả ngày, kéo ngang để xem tiếp">' +
+      '<div class="tl-scroll" role="region" aria-label="Lịch chương trình cả ngày">' +
         '<div class="tl-track">' + parts + '</div>' +
       '</div>';
-
-    wireTl();
-    tlLast = -2;
-  }
-
-  /* --------------------------------------------------------------
-     Kéo dải lịch bằng chuột. Điện thoại đã cuộn ngang sẵn nên chỉ cần
-     lo con chuột. Kéo quá 5px thì nuốt luôn cú click, không thì thả tay
-     ra là trúng vào thẻ bên dưới.
-     -------------------------------------------------------------- */
-  /* --------------------------------------------------------------
-     Kéo dải lịch bằng chuột. Điện thoại đã cuộn ngang sẵn nên chỉ cần
-     lo con chuột. Kéo quá 5px thì nuốt luôn cú click, không thì thả tay
-     ra là trúng vào thẻ bên dưới.
-     Gắn một lần ở cấp trang: bảng BTC có thể dựng lại dải lịch, gắn vào
-     từng dải thì mỗi lần dựng lại là chồng thêm một bộ nghe sự kiện.
-     -------------------------------------------------------------- */
-  var tlWired = false;
-  function wireTl() {
-    if (tlWired) return;
-    tlWired = true;
-    var sc = null, down = false, moved = false, x0 = 0, s0 = 0;
-
-    function scrollerOf(e) {
-      return e.target && e.target.closest ? e.target.closest('.tl-scroll') : null;
-    }
-
-    document.addEventListener('mousedown', function (e) {
-      if (e.button !== 0) return;
-      var el = scrollerOf(e);
-      if (!el) return;
-      sc = el; down = true; moved = false; x0 = e.pageX; s0 = el.scrollLeft;
-    });
-    document.addEventListener('mousemove', function (e) {
-      if (!down || !sc) return;
-      var dx = e.pageX - x0;
-      if (!moved && Math.abs(dx) > 5) { moved = true; sc.classList.add('drag'); }
-      if (moved) { e.preventDefault(); sc.scrollLeft = s0 - dx; }
-    });
-    document.addEventListener('mouseup', function () {
-      if (!down) return;
-      down = false;
-      if (moved && sc) {
-        var el = sc;
-        setTimeout(function () { el.classList.remove('drag'); }, 0);
-      }
-    });
-    document.addEventListener('click', function (e) {
-      var el = scrollerOf(e);
-      if (el && el.classList.contains('drag')) { e.preventDefault(); e.stopPropagation(); }
-    }, true);
-
-    /* Trước đây đường chân trời trôi theo tay kéo, nay nó tự trôi bằng
-       @keyframes troiPho trong CSS nên đoạn dời nền theo scroll đã bỏ.
-       Để lại thì nguy: nó ghi một background-position chỉ có hai lớp,
-       trong khi nền giờ có bốn lớp — hôm nào ai tắt animation là mây và
-       nền trời nhảy lung tung. */
-
-    /* Vị trí con trỏ "đang ở đây" đo bằng pixel của bố cục thật, nên bố
-       cục đổi là phải đo lại: đổi bề ngang màn, và lúc font hiển thị xong
-       (chữ đổi bề ngang thì thẻ cũng xê dịch theo). Truyền lại tlLast để
-       nó chỉ đặt lại chỗ chứ không tự kéo, giành tay người đang xem. */
-    var rz = 0;
-    addEventListener('resize', function () {
-      clearTimeout(rz);
-      rz = setTimeout(function () { placeTlNow(tlLast); }, 150);
-    });
-    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
-      document.fonts.ready.then(function () { placeTlNow(tlLast); });
-    }
-  }
-
-  /* Tô phần tuyến đã chạy qua: mỗi buổi tự tô đoạn ray của mình bằng màu
-     của nó, cắt đúng ở ga đang dừng. Đo bằng toạ độ màn hình vì ga nằm
-     lồng trong buổi, offsetLeft chỉ tính trong buổi đó.                 */
-  var tlLast = -2;
-  function placeTlNow(on) {
-    var track = $('#agenda .tl-track');
-    if (!track) return;
-    var card = $('#agenda .ag-item.now');
-    var tr = track.getBoundingClientRect();
-    var x = -1;
-    if (card) {
-      var cr = card.getBoundingClientRect();
-      x = Math.round(cr.left - tr.left + 12);   /* 12px: đúng tâm chấm ga */
-    }
-
-    $$('.tl-part', track).forEach(function (sec) {
-      var r = sec.getBoundingClientRect();
-      var a = r.left - tr.left;
-      var run = x < 0 ? 0 : Math.max(0, Math.min(r.width, x - a));
-      sec.style.setProperty('--run', Math.round(run) + 'px');
-    });
-
-    if (x < 0) { tlLast = on; return; }
-
-    /* chỉ tự kéo khi ga đang dừng vừa đổi, không giành tay người xem */
-    if (on !== tlLast) {
-      tlLast = on;
-      var sc = $('#agenda .tl-scroll');
-      if (!sc) return;
-      var to = Math.max(0, x - sc.clientWidth / 2);
-      if (!reduce && sc.scrollTo) {
-        try { sc.scrollTo({ left: to, behavior: 'smooth' }); return; } catch (e) {}
-      }
-      sc.scrollLeft = to;
-    }
   }
 
   /* đánh dấu mốc đang diễn ra trên dòng thời gian */
@@ -415,7 +332,6 @@
     $$('#agenda .tl-part').forEach(function (sec) {
       sec.classList.toggle('now', !!$('.ag-item.now', sec));
     });
-    placeTlNow(on);
   }
 
   /* =====================================================================
@@ -1097,9 +1013,80 @@
     if (empty) empty.hidden = shown > 0;
   }
 
+
+  /* =====================================================================
+     ĐỊA ĐIỂM
+     Một chỗ dựng mọi dòng địa điểm trên trang. Cả dòng là một đường dẫn mở
+     bản đồ — ngón tay giữa sân bóng thì bấm cả dòng dễ hơn bấm chữ "bản đồ"
+     bé tí. Chưa có link bản đồ thì vẫn in địa chỉ, chỉ không bấm được.
+     ===================================================================== */
+  function noiText(ten, dc) {
+    return '<b>' + esc(ten) + '</b>' + (dc ? '<span>' + esc(dc) + '</span>' : '');
+  }
+
+  function noiDong(ten, dc, map, cls) {
+    var ruot = icon('pin', 15) + '<span class="noi-tx">' + noiText(ten, dc) + '</span>';
+    if (!map) return '<p class="' + cls + '">' + ruot + '</p>';
+    return '<a class="' + cls + ' noi-go" href="' + esc(map) + '" target="_blank"' +
+      ' rel="noopener" aria-label="Mở bản đồ: ' + esc(ten) + '">' + ruot +
+      '<i class="noi-ar" aria-hidden="true">\u2197</i></a>';
+  }
+
+  /* Hai dòng trên banner: buổi sáng ở đâu, buổi chiều ở đâu. */
+  function renderHeroNoi() {
+    var host = $('#hero-noi');
+    if (!host) return;
+    var hang = [
+      { tag: 'Văn hóa',  gio: CFG.venueHours || '',
+        ten: CFG.venueName, dc: CFG.venueAddress, map: CFG.venueMapUrl },
+      { tag: 'Thể thao', gio: CFG.sportHours || '',
+        ten: CFG.sportVenueName, dc: CFG.sportVenueAddress, map: CFG.sportVenueMapUrl }
+    ];
+    host.innerHTML = hang.map(function (r) {
+      if (!r.ten) return '';
+      return '<div class="hv-row">' +
+        '<span class="hv-tag">' + esc(r.tag) + '</span>' +
+        (r.gio ? '<span class="hv-gio">' + esc(r.gio) + '</span>' : '') +
+        noiDong(r.ten, r.dc, r.map, 'hv-noi') +
+      '</div>';
+    }).join('');
+  }
+
+  /* Ô địa điểm + phòng Zoom của mục Văn hóa. */
+  function renderVhNoi() {
+    var host = $('#vh-noi');
+    if (!host) return;
+    var z = CFG.zoomUrl || '';
+    var ma = [];
+    if (CFG.zoomId) ma.push('<div><dt>Mã phòng</dt><dd>' + esc(CFG.zoomId) + '</dd></div>');
+    if (CFG.zoomCode) ma.push('<div><dt>Mật khẩu</dt><dd>' + esc(CFG.zoomCode) + '</dd></div>');
+
+    host.innerHTML =
+      '<div class="noi-main">' +
+        noiDong(CFG.venueName, CFG.venueAddress, CFG.venueMapUrl, 'noi-dc') +
+        (CFG.venueHours ? '<p class="noi-gio">' + icon('clock', 15) +
+          esc(CFG.venueHours) + '</p>' : '') +
+      '</div>' +
+      (z || ma.length
+        ? '<div class="noi-zoom">' +
+            '<b class="noi-t"><i class="zm-ic">' + icon('video', 19) + '</i>' +
+              'Tham gia online qua Zoom</b>' +
+            (ma.length ? '<dl class="zm-ma">' + ma.join('') + '</dl>' : '') +
+            (z ? '<a class="btn btn-sm btn-pri zm-go" target="_blank" rel="noopener"' +
+                 ' href="' + esc(z) + '">Vào phòng Zoom \u2197</a>' : '') +
+          '</div>'
+        : '');
+  }
+
   function renderSport() {
     $('#sport-lead').textContent =
       [CFG.sportVenueName, CFG.sportHours].filter(Boolean).join(', ');
+    var noi = $('#sport-noi');
+    if (noi) {
+      noi.innerHTML = CFG.sportVenueAddress
+        ? noiDong(CFG.sportVenueAddress, '', CFG.sportVenueMapUrl, 'sb-noi')
+        : '';
+    }
 
     renderCourtBoard();
     renderEvFilter();
@@ -3411,6 +3398,8 @@
     renderMiniGame();
     renderQr();
     renderSport();
+    renderHeroNoi();
+    renderVhNoi();
 
     /* Nút "Chi tiết từng trận": mở từng ô sân ra thành danh sách đủ các
        trận của sân đó, ngay tại chỗ. */

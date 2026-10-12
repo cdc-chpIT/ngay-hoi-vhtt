@@ -106,7 +106,9 @@ var VHTT_DATA = {
       pillar: 'thichung',
       name: 'Văn hóa thích ứng: Thời đại AI',
       altTitle: 'Thích ứng để làm chủ: người CHP trong thời đại AI',
-      speaker: 'Nguyễn Trường Lâm',
+      speaker: 'Nguyễn Trường Lâm, Nguyễn Minh Đức',
+      /* speakerRole mới chỉ là của người thứ nhất — chưa có bộ phận của
+         Nguyễn Minh Đức, có thì bổ sung. */
       speakerRole: 'Giám đốc Trung tâm Quản trị Dữ liệu (CDC)',
       minutes: 20,
       qa: 5,
@@ -121,7 +123,10 @@ var VHTT_DATA = {
      derive    : để trang tự tính giờ từ lịch thi đấu                  */
   timeline: [
     /* ---- BUỔI SÁNG — PHẦN VĂN HÓA (hội trường) ---- */
+    /* venue: lấy tên chỗ và link bản đồ thẳng từ config.js, khỏi chép lại
+       hai lần rồi lệch nhau. 'main' = hội trường, 'sport' = nhà thi đấu. */
     { start: '08:30', end: '08:50', fixed: true, part: 'morning', icon: 'door',
+      venue: 'main',
       title: 'Tập trung, ổn định chỗ ngồi',
       desc: 'Quét mã QR để mở trang này, nhận chỗ và chuẩn bị vào chương trình.',
       owner: 'Tiểu ban Hậu cần' },
@@ -160,7 +165,6 @@ var VHTT_DATA = {
     { start: '10:45', end: '11:15', fixed: true, part: 'morning', icon: 'game',
       title: 'Vui chơi có thưởng',
       desc: 'Mini game trắc nghiệm, có câu lấy ngay từ ba bài vừa nghe.',
-      tag: 'Có thưởng',
       goto: { href: '#minigame', label: 'Xem mini game' } },
 
     { start: '11:15', end: '11:25', fixed: true, part: 'morning', icon: 'camera',
@@ -173,6 +177,7 @@ var VHTT_DATA = {
 
     /* ---- BUỔI CHIỀU — ĐẠI HỘI THỂ THAO (Nhà thi đấu BV 354) ---- */
     { start: '13:00', end: '13:25', fixed: true, part: 'afternoon', icon: 'pin',
+      venue: 'sport',
       title: 'Có mặt tại Nhà thi đấu BV 354',
       desc: 'Nhận áo, khởi động, kiểm tra danh sách đội và sân.',
       owner: 'Tiểu ban Hậu cần' },
@@ -197,7 +202,8 @@ var VHTT_DATA = {
        Chỉ Liên hoan có, các mốc khác đã nói rõ chỗ ngay trong tên. */
     { start: '17:30', end: null, fixed: true, part: 'evening', icon: 'dinner',
       title: 'Liên hoan',
-      place: 'Nhà hàng Bia Hải Xồm — số 5 Phan Kế Bính, Giảng Võ, Hà Nội' }
+      place: 'Nhà hàng Bia Hải Xồm — số 5 Phan Kế Bính, Giảng Võ, Hà Nội',
+      placeMap: 'https://www.google.com/maps/search/?api=1&query=Nh%C3%A0%20h%C3%A0ng%20Bia%20H%E1%BA%A3i%20X%E1%BB%93m%2C%20s%E1%BB%91%205%20Phan%20K%E1%BA%BF%20B%C3%ADnh%2C%20Gi%E1%BA%A3ng%20V%C3%B5%2C%20H%C3%A0%20N%E1%BB%99i' }
   ],
 
   /* ================== MINI GAME ================== */

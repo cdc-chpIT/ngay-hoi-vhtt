@@ -1883,6 +1883,169 @@ summary { list-style: none; }
 .live-flag i { width: 7px; height: 7px; border-radius: 50%; background: var(--pb); animation: ping 2s infinite; }
 .live-flag.off i { background: var(--muted-2); animation: none; }
 
+/* ------------------------------ ĐỊA ĐIỂM ------------------------------
+   Ba chỗ in địa điểm: hai dòng trên banner, ô đầu mục Văn hóa, và dòng
+   dưới dải Đại hội thể thao. Cả dòng là một đường dẫn mở bản đồ — ngón
+   tay giữa nhà thi đấu bấm cả dòng dễ hơn bấm hai chữ "bản đồ" bé tí.
+   Tiền tố hv- chứ không phải hn-: hn- đã là của ô "đang diễn ra" ngay
+   phía trên trong cùng cái banner.                                      */
+
+/* --- hai dòng trên banner --- */
+/* HAI DÒNG PHẢI THẲNG CỘT VỚI NHAU. Trước đây mỗi dòng tự căn giữa, mà
+   tên hai chỗ dài ngắn khác nhau nên nhãn "VĂN HÓA" và "THỂ THAO" lệch
+   nhau, nhìn như xếp ẩu. Cách làm: khối bọc rộng đúng bằng dòng dài nhất
+   (fit-content) rồi tự căn giữa, còn hai dòng bên trong lấy hết bề ngang đó
+   và chia thành ba cột cố định — nhãn, giờ, nơi. Ba cột thẳng tăm tăm.
+   KHÔNG dùng display:contents cho .hv-row: WebView cũ không hiểu, là cả
+   lưới sập. */
+.hnoi {
+  display: flex; flex-direction: column; gap: 9px;
+  width: fit-content; max-width: 100%;
+  margin: 0 auto 22px;
+}
+.hv-row {
+  display: grid; align-items: center;
+  grid-template-columns: 92px 108px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.hv-tag {
+  justify-self: start;
+  padding: 4px 10px; border-radius: 999px;
+  background: rgba(92, 194, 116, .2);
+  border: 1px solid rgba(92, 194, 116, .34);
+  font-family: var(--ff-d); font-stretch: 108%;
+  font-size: .72rem; font-weight: 750; letter-spacing: .12em;
+  text-transform: uppercase; color: #bff0ce;
+  white-space: nowrap;
+}
+.hv-gio {
+  font-size: .98rem; font-weight: 700; white-space: nowrap;
+  color: #fff; font-variant-numeric: tabular-nums;
+}
+.hv-noi {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-width: 0; margin: 0;
+  font-size: .96rem; line-height: 1.32;
+  color: rgba(255, 255, 255, .88);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.hv-noi svg { flex: none; opacity: .72; }
+.hv-noi .noi-tx { min-width: 0; text-align: left; }
+.hv-noi .noi-tx b { font-weight: 600; }
+/* trên banner chỉ cần tên chỗ, địa chỉ đầy đủ để dành cho ô bên dưới */
+.hv-noi .noi-tx span { display: none; }
+.hv-noi .noi-ar { font-style: normal; opacity: .6; }
+a.hv-noi:hover, a.hv-noi:focus-visible {
+  color: #fff; border-bottom-color: rgba(255, 255, 255, .45);
+}
+
+/* --- ô địa điểm + Zoom ở đầu mục Văn hóa --- */
+/* Hai vế DÍNH NHAU ở giữa thay vì bị đẩy ra hai mép: trước đây
+   justify-content: space-between trên một ô rộng 1500px để ra khoảng trống
+   gần 900px ở giữa, nhìn như hai thứ chẳng liên quan. */
+.noi-card {
+  display: flex; flex-wrap: wrap; gap: 14px 22px;
+  align-items: stretch; justify-content: flex-start;
+  width: fit-content; max-width: 100%;
+  margin: 0 auto 24px; padding: 14px 18px;
+  border-radius: var(--r);
+  background: var(--panel); border: 1px solid var(--line);
+  box-shadow: var(--shadow-s, 0 1px 2px rgba(16, 24, 40, .05));
+}
+.noi-main { flex: 0 1 auto; min-width: 0; align-self: center; }
+/* bỏ nhãn "Buổi sáng ở đâu" rồi thì tên chỗ là dòng đầu tiên — phải
+   đủ to để đọc ra ngay đây là cái gì. */
+.noi-main .noi-dc .noi-tx b { font-size: 1.06rem; font-weight: 750; }
+.noi-main .noi-dc .noi-tx span { font-size: .9rem; }
+/* vế Zoom là một ô riêng có nền, để đọc ra "đây là lối khác" */
+.noi-zoom {
+  flex: 0 1 auto; min-width: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 12px 16px; border-radius: var(--r-sm);
+  background: var(--panel-2); border: 1px solid var(--line);
+}
+/* huy hiệu hình máy quay: chỗ này trơ chữ nên trống, có một dấu hiệu
+   thì đọc ra ngay "đây là lối tham dự từ xa" */
+.zm-ic {
+  display: inline-grid; place-items: center; flex: none;
+  width: 30px; height: 30px; border-radius: 10px;
+  background: var(--brand); color: #fff;
+}
+.noi-zoom .noi-t { font-size: .76rem; gap: 9px; margin-bottom: 9px; }
+.noi-t {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin-bottom: 6px;
+  font-family: var(--ff-d); font-stretch: 106%;
+  font-size: .7rem; font-weight: 750; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.noi-t svg { opacity: .7; }
+.noi-dc {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin: 0; text-decoration: none; color: var(--text);
+}
+.noi-dc svg { flex: none; margin-top: 2px; color: var(--brand); }
+.noi-dc .noi-tx { display: block; min-width: 0; }
+.noi-dc .noi-tx b { display: block; font-weight: 650; line-height: 1.35; }
+.noi-dc .noi-tx span {
+  display: block; margin-top: 2px;
+  font-size: .86rem; color: var(--muted);
+}
+.noi-dc .noi-ar { font-style: normal; color: var(--brand); font-weight: 700; }
+a.noi-dc:hover .noi-tx b, a.noi-dc:focus-visible .noi-tx b {
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.noi-gio {
+  display: flex; align-items: center; gap: 7px;
+  margin: 7px 0 0; font-size: .95rem; font-weight: 650;
+  color: var(--text); font-variant-numeric: tabular-nums;
+}
+.noi-gio svg { opacity: .7; }
+.zm-ma { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 9px; }
+.zm-ma dt {
+  font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted-2);
+}
+.zm-ma dd {
+  margin: 1px 0 0; font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .95rem; color: var(--text);
+}
+.zm-go { justify-content: center; white-space: nowrap; }
+
+/* --- dòng địa chỉ dưới dải Đại hội thể thao --- */
+.sb-dc { position: relative; z-index: 1; margin: 7px 0 0; }
+.sb-noi {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 0; text-decoration: none;
+  font-size: clamp(.76rem, 1.4vw, .88rem);
+  color: rgba(255, 255, 255, .88);
+  text-shadow: 0 1px 8px rgba(8, 28, 10, .55);
+  border-bottom: 1px solid transparent;
+}
+.sb-noi svg { flex: none; opacity: .8; }
+.sb-noi .noi-tx span { display: none; }
+.sb-noi .noi-ar { font-style: normal; opacity: .7; }
+a.sb-noi:hover, a.sb-noi:focus-visible {
+  color: #fff; border-bottom-color: rgba(255, 255, 255, .5);
+}
+
+@media (max-width: 620px) {
+  .hnoi { gap: 8px; margin-bottom: 17px; }
+  /* Màn hẹp: hai cột cố định ăn mất nửa bề ngang, tên hội trường còn
+     136px là vỡ ra bốn dòng. Cho tên chỗ xuống hẳn dòng dưới, ăn trọn bề
+     ngang; nhãn và giờ ở trên vẫn thẳng cột với nhau. */
+  .hv-row { grid-template-columns: 78px minmax(0, 1fr); gap: 5px 9px; }
+  .hv-noi { grid-column: 1 / -1; }
+  .hv-tag { font-size: .64rem; padding: 3px 8px; letter-spacing: .1em; }
+  .hv-noi { font-size: .86rem; gap: 5px; }
+  .hv-gio { font-size: .88rem; }
+  .noi-card { width: auto; padding: 14px; gap: 12px; }
+  .noi-main, .noi-zoom { flex: 1 1 100%; }
+}
+
 /* ------------------------------ 18. REVEAL ------------------------------ */
 .reveal {
   opacity: 0;
@@ -2414,11 +2577,9 @@ summary { list-style: none; }
    bằng chuột hoặc vuốt trên điện thoại để xem tiếp.
    ============================================================ */
 .tl-scroll {
-  overflow-x: auto; overflow-y: hidden;
-  scrollbar-width: thin;
-  scroll-snap-type: x proximity;
-  scroll-behavior: smooth;
-  cursor: grab;
+  /* Không còn cuộn ngang (12/10/2026). Giữ nguyên tên lớp vì đây là chỗ
+     mang dải thành phố Hà Nội; đổi tên là mất cả ba lớp nền. */
+  overflow: hidden;
   /* tràn ra hai mép cho dải chạy hết khổ, thẻ đầu vẫn thẳng hàng với lề */
   margin: 0 calc(var(--gut) * -1);
   /* Nen dai van tran ra tan hai mep, nhung NOI DUNG thi lui vao them 22px
@@ -2489,7 +2650,11 @@ summary { list-style: none; }
 
 /* align-items: stretch để cả dải chỉ có một đáy: không thì buổi chiều
    thẻ cao hơn buổi sáng, nhìn răng cưa. */
-.tl-track { position: relative; display: flex; align-items: flex-start; width: max-content; }
+.tl-track {
+  position: relative;
+  display: flex; flex-direction: column; gap: 26px;
+  width: auto;
+}
 
 /* --- tuyến tàu: mỗi buổi một đoạn ray màu riêng --------------------
    Đoạn nhạt là phần chưa tới, đoạn đặc là phần đã chạy qua; bề rộng
@@ -2498,35 +2663,33 @@ summary { list-style: none; }
 /* mỗi buổi một màu tuyến, lấy từ bộ màu nhấn đã đo sẵn trên nền sáng.
    Thiếu biến này là cả đường ray lẫn viền chấm ga mất sạch — border với
    màu không hợp lệ thì trình duyệt bỏ nguyên khai báo. */
-.tl-part[data-part="morning"]   { --bu: var(--brand); }
-.tl-part[data-part="noon"]      { --bu: var(--clay); }
-.tl-part[data-part="afternoon"] { --bu: var(--cyan); }
-.tl-part[data-part="evening"]   { --bu: var(--gold); }
+/* Hai khoi tu 12/10/2026. PHAI co gia tri mac dinh: thieu --bu thi
+   border-color nhan gia tri khong hop le va trinh duyet bo NGUYEN khai
+   bao — mat sach vien cham ga lan vach ben trai. */
+.tl-part                        { --bu: var(--brand); }
+.tl-part[data-part="sang"]      { --bu: var(--brand); }
+.tl-part[data-part="chieu"]     { --bu: var(--cyan); }
 .tl-part:first-of-type { padding-left: 0; }
 .tl-part:last-of-type { padding-right: 0; }
 /* HAI BUỔI PHẢI RỜI NHAU. Trước đây các buổi dính liền nên ray xanh của
    buổi sáng nối thẳng vào ray cam của buổi trưa, nhìn ra một tuyến duy
    nhất đổi màu giữa chừng. Giờ chừa khoảng trống và có vạch đứt ngăn,
    đúng kiểu hai tuyến khác nhau. */
-.tl-part + .tl-part { margin-left: 46px; }
+.tl-part + .tl-part { margin-left: 0; }
 .tlp-h { position: relative; }
-.tl-part + .tl-part > .tlp-h::before {
-  content: ''; position: absolute; left: -24px; top: 4px;
-  width: 2px; height: 96px;
-  background: repeating-linear-gradient(180deg, var(--line-2) 0 5px, transparent 5px 11px);
+/* hai khối xếp dọc nên vạch ngăn nằm NGANG, không còn dựng đứng */
+.tl-part + .tl-part > .tlp-h::after {
+  content: ''; position: absolute; left: 0; right: 0; top: -14px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--line-2) 0 5px, transparent 5px 11px);
 }
 /* Đường ray phải nằm đúng giữa hàng chấm ga. Đổi --tl-dau (chiều cao
    dải tên buổi) thì PHẢI đổi con số này theo, nếu không ray trôi khỏi
    chấm ga. Tâm chấm ga = --tl-dau + 24px (hàng giờ) + 8px (nửa chấm),
    nên mép trên đường ray = tâm trừ 3px (nửa bề dày ray) = +29px. */
-.tl-part::before, .tl-part::after {
-  content: ''; position: absolute; z-index: 0;
-  top: calc(var(--tl-dau) + 29px); height: 6px; border-radius: 999px;
-  background: var(--bu);
-  pointer-events: none;
-}
-.tl-part::before { left: 0; right: 0; opacity: .32; }
-.tl-part::after  { left: 0; width: var(--run, 0px); transition: width 1s var(--e-expo); }
+/* Không còn đường ray: lưới tự xuống dòng thì một vạch ngang chạy suốt
+   sẽ cắt ngang giữa các hàng. Màu tuyến (--bu) giờ chỉ còn ở nhãn tên
+   buổi và viền chấm ga. */
 
 /* tên buổi làm thẻ tuyến, y như số tuyến trên bản đồ tàu */
 /* Dải tên buổi cách hàng mốc giờ một khoảng thở. Trước để 26px nên chữ
@@ -2534,7 +2697,7 @@ summary { list-style: none; }
 .tl-part { --tl-dau: 50px; }
 .tlp-h { height: var(--tl-dau); padding-right: 10px; }
 .tlp-in {
-  position: sticky; left: 0; z-index: 2;
+  position: relative; z-index: 2;
   display: inline-flex; align-items: baseline; gap: 9px;
   padding: 4px 13px; border-radius: 999px;
   background: var(--bu); color: #fff;
@@ -2549,30 +2712,47 @@ summary { list-style: none; }
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
 
-/* --- nhà ga --- */
-.tl-row { position: relative; z-index: 1; display: flex; align-items: flex-start; }
+/* --- nhà ga ---
+   Lưới tự xuống dòng thay cho hàng ngang kéo tay: màn rộng được 5–6 cột,
+   màn hẹp rơi về MỘT cột và mỗi mốc thành một dòng gọn. Không chỗ nào
+   phải kéo qua kéo lại nữa. */
+/* MỖI MỐC LÀ MỘT DÒNG, không phải một thẻ dựng đứng. Kiểu thẻ làm
+   chiều cao hàng bị kéo theo ô cao nhất, nên ô ngắn như "Nghỉ giải lao"
+   để lại một mảng trắng cao ngoậo bên dưới, mà hàng cuối thiếu ô thì
+   trống cả nửa dải. Dòng thì cao đều nhau, hết bao nhiêu ăn bấy nhiêu. */
+.tl-row {
+  position: relative; z-index: 1;
+  display: grid; gap: 0 32px;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  align-items: start;
+}
 .mt-st {
   position: relative; z-index: 1;
-  width: clamp(142px, 12.5vw, 178px); flex: none;
-  padding-right: 14px;
-  scroll-snap-align: start;
+  display: grid; align-items: start;
+  grid-template-columns: 13px 62px minmax(0, 1fr);
+  column-gap: 10px;
+  min-width: 0;
+  padding: 9px 0 10px;
+  border-bottom: 1px dashed var(--line);
 }
 .mt-when {
-  display: flex; align-items: baseline; gap: 7px;
-  height: 24px; font-variant-numeric: tabular-nums;
+  grid-column: 2; grid-row: 1;
+  display: block; height: auto; line-height: 1.22;
+  font-variant-numeric: tabular-nums;
 }
 .mt-when b {
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: 1.02rem; font-weight: 800; line-height: 1; color: var(--text);
+  font-family: var(--ff-d); font-stretch: 116%;
+  font-size: .98rem; font-weight: 800; color: var(--text);
 }
-.mt-when span { font-size: .74rem; color: var(--muted-2); }
+.mt-when span { display: block; font-size: .72rem; color: var(--muted-2); }
 
-/* chấm ga nằm đúng trên đường ray */
+/* chấm ga đứng đầu dòng, ngang với con số giờ */
 .mt-dot {
-  display: block; width: 16px; height: 16px; margin-bottom: 18px;
+  grid-column: 1; grid-row: 1;
+  display: block; width: 11px; height: 11px; margin: 4px 0 0;
   border-radius: 50%;
   background: var(--panel);
-  border: 5px solid var(--bu);
+  border: 3px solid var(--bu);
   transition: transform var(--t), border-color var(--t);
 }
 /* ba trục văn hóa giữ màu riêng ngay trên chấm ga */
@@ -2580,24 +2760,36 @@ summary { list-style: none; }
 .mt-st[data-pillar="tuluc"] .mt-dot       { border-color: var(--brand); }
 .mt-st[data-pillar="thichung"] .mt-dot    { border-color: var(--cyan); }
 
-.mt-st .ag-b { padding-right: 4px; }
+.mt-st .ag-b { grid-column: 3; grid-row: 1; min-width: 0; padding-right: 0; }
 .mt-st h3 {
-  font-family: var(--ff-d); font-stretch: 118%;
-  font-size: .96rem; font-weight: 800; line-height: 1.22;
-  margin-bottom: 6px;
+  font-family: var(--ff-d); font-stretch: 116%;
+  font-size: .94rem; font-weight: 800; line-height: 1.26;
+  margin-bottom: 2px;
 }
 .mt-st:hover h3 { color: var(--bu); }
-.mt-st .ag-tags { margin-top: 8px; }
+.mt-st .ag-sp { font-size: .82rem; line-height: 1.3; }
+/* dòng địa điểm là thứ người ta tra để đi tới nơi — cho to và đậm hơn
+   tên diễn giả, và bấm được thì mở thẳng bản đồ */
+.mt-st .ag-pl { font-size: .86rem; line-height: 1.32; margin-top: 4px; }
+.mt-st .ag-pl span { font-weight: 650; color: var(--text); }
+a.ag-pl-go { text-decoration: none; }
+a.ag-pl-go .noi-ar { font-style: normal; color: var(--gold); font-weight: 700; }
+a.ag-pl-go:hover span, a.ag-pl-go:focus-visible span {
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.mt-st .ag-tags { margin-top: 5px; gap: 5px; }
+.mt-st .ag-tags .chip { padding: 2px 9px; font-size: .72rem; }
 
 /* ga đang dừng: chấm to lên và có quầng nhấp nháy, như tàu đang đỗ */
+.mt-st.now { background: var(--brand-s); border-radius: 8px; }
 .mt-st.now .mt-dot {
-  transform: scale(1.18);
+  transform: scale(1.2);
   border-color: var(--brand);
-  box-shadow: 0 0 0 4px var(--brand-s);
+  box-shadow: 0 0 0 3px var(--brand-s);
 }
 .mt-st.now .mt-dot::after {
-  content: ''; position: absolute; left: -5px; top: -5px;
-  width: 26px; height: 26px; border-radius: 50%;
+  content: ''; position: absolute; left: -4px; top: -4px;
+  width: 19px; height: 19px; border-radius: 50%;
   background: var(--brand); opacity: 0;
   animation: tlPing 2.4s ease-out infinite;
 }
@@ -2663,12 +2855,12 @@ summary { list-style: none; }
    tuyến tàu ở trên. */
 
 @media (max-width: 620px) {
-  .tl-part { padding: 0 8px; --tl-dau: 44px; }
-  .tl-part + .tl-part { margin-left: 32px; }
-  .tl-part + .tl-part > .tlp-h::before { left: -17px; height: 88px; }
-  .mt-st { width: 150px; padding-right: 10px; }
+  .tl-part { padding: 0; --tl-dau: 40px; }
+  .tl-part + .tl-part > .tlp-h::after { top: -11px; }
+  .tl-row { grid-template-columns: 1fr; }
+  .mt-st { grid-template-columns: 12px 56px minmax(0, 1fr); column-gap: 9px; }
   .mt-when b { font-size: .94rem; }
-  .mt-st h3 { font-size: .9rem; }
+  .mt-st h3 { font-size: .92rem; }
   .tlp-in { padding: 3px 11px; }
   .tlp-in > b { font-size: .66rem; letter-spacing: .1em; }
   .tlp-in > span { font-size: .67rem; }
@@ -2676,7 +2868,7 @@ summary { list-style: none; }
      theo — vẫn dịch 300px mà toa chỉ rộng 236px thì mỗi vòng tàu giật
      một cái. */
   .tl-scroll {
-    padding-bottom: 76px;
+    padding-bottom: 68px;
     /* man hep khong co cot dieu huong ben trai nen khong can chua cho */
     padding-left: var(--gut);
     scroll-padding-left: var(--gut);

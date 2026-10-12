@@ -72,6 +72,14 @@ hội thể thao là mặt sân cỏ (vệt cỏ cắt, vạch sân kẻ bằng 
 Nhánh đấu là dải neon hồng; Luật là neon hồng tím. Thêm mục mới thì cho nó
 một phong cách riêng, đừng sao chép.
 
+**Mục Lịch nằm NGAY DƯỚI banner** (chủ nhà chốt 12/10/2026) và xếp thành
+**hai khối sáng / chiều**, mỗi khối là một lưới tự xuống dòng — **không còn kéo
+ngang**. Mỗi mốc là **một dòng** (chấm · giờ · việc), không phải thẻ dựng
+đứng: kiểu thẻ làm chiều cao hàng bị kéo theo ô cao nhất nên ô ngắn để lại
+mảng trắng cao ngoậo. Đừng đổi về thẻ. Nghỉ trưa gộp vào buổi sáng, liên hoan tối gộp vào buổi chiều.
+Lớp bọc vẫn tên `.tl-scroll` vì đó là chỗ mang dải thành phố; đổi tên là
+mất cả ba lớp nền. Bộ kéo chuột và thanh ray `--run` đã xoá, đừng dựng lại.
+
 **Dải thành phố dưới mục Lịch** là Hà Nội vẽ bằng ba lớp SVG nhúng thẳng
 trong CSS (nhà gần 700×46, nhà xa 1000×72, mây 1400×26), có năm người đang
 nhảy dây / đánh cầu lông / đánh pickleball ở lớp gần — người dùng đúng hai màu
@@ -172,6 +180,10 @@ vẽ lại rồi mới đo. `document.hidden` cho biết ngay.
 ## Việc còn treo
 
 - `siteUrl` trong `config.js` còn trống.
+- **Link Zoom để công khai là chủ nhà đã biết và đồng ý** (12/10/2026).
+  Đường link có sẵn `?pwd=` nên ai mở được trang là vào được phòng họp.
+  Muốn chặt hơn thì để `zoomUrl = ''`, giữ `zoomId`, BTC đọc mật khẩu lúc
+  bắt đầu — trang tự bỏ nút "Vào phòng Zoom".
 - **Mã phòng mini game là mã của một ván chơi, không phải địa chỉ cố định.**
   `quizJoinUrl` đang là `https://wayground.com/join?gc=083047` (chủ nhà gửi
   ngày 12/10/2026). Wayground cấp mã mới mỗi lần mở phòng, nên sáng 17/10 mở
