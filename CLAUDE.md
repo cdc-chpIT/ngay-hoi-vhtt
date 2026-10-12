@@ -69,12 +69,25 @@ ba. Playfair Display và Lora đã thử và loại — chúng xếp dấu tiế
 **Mỗi mục một phong cách riêng.** Đây là ý đồ có chủ đích, không phải lộn
 xộn: Hỏi diễn giả có dấu hỏi kẹp hai bên; Mini game kiểu máy điện tử; Đại
 hội thể thao là mặt sân cỏ (vệt cỏ cắt, vạch sân kẻ bằng CSS);
-Nhánh đấu là dải neon hồng; Luật là neon hồng tím. Thêm mục mới thì cho nó
+Nhánh đấu là dải neon hồng; Luật là neon hồng tím;
+Dự online có chấm đèn báo nhấp nháy trước tên mục như đang phát. Thêm mục mới thì cho nó
 một phong cách riêng, đừng sao chép.
+
+**Dải `.duo` có BA cột**: Hỏi diễn giả · Mini game · Dự online. Từ 1040px
+lên, ba ô này **thẳng hàng với ba thẻ Văn hóa** ở trên: chính `.duo` mang
+`max-width: var(--maxw)` và lề `--gut` giống `.wrap`, còn mấy `.wrap` con bên
+trong bị bỏ lề — không thì mỗi `.wrap` con tự chen lề vào giữa cột và thẻ
+hẹp lại 72px. Ô Dự online tích hợp thông tin địa điểm trực tiếp (hội trường,
+địa chỉ, khung giờ sáng) và phòng Zoom. Chưa khai địa điểm lẫn phòng Zoom
+thì mục Dự online tự ẩn cả đi (để một ô rỗng cạnh hai ô đầy thì dải lệch hẳn).
 
 **Mục Lịch nằm NGAY DƯỚI banner** (chủ nhà chốt 12/10/2026) và xếp thành
 **hai khối sáng / chiều**, mỗi khối là một lưới tự xuống dòng — **không còn kéo
-ngang**. Mỗi mốc là **một dòng** (chấm · giờ · việc), không phải thẻ dựng
+ngang**. **Từ 1380px trở lên mỗi buổi gọn trong MỘT hàng**: số cột đúng bằng số mốc
+của buổi đó (biến `--n` do `renderAgenda()` đặt vào `.tl-row`), mốc quay về
+kiểu dựng đứng và có đường ray chạy suốt hàng. Dưới 1380px ô chỉ còn chưa
+tới 110px nên rơi về kiểu danh sách: mỗi mốc là **một dòng** (chấm · giờ ·
+việc), không phải thẻ dựng
 đứng: kiểu thẻ làm chiều cao hàng bị kéo theo ô cao nhất nên ô ngắn để lại
 mảng trắng cao ngoậo. Đừng đổi về thẻ. Nghỉ trưa gộp vào buổi sáng, liên hoan tối gộp vào buổi chiều.
 Lớp bọc vẫn tên `.tl-scroll` vì đó là chỗ mang dải thành phố; đổi tên là

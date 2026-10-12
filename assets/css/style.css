@@ -612,8 +612,20 @@ main { padding-inline-start: var(--rail-w); }
    Trong nửa khổ thì các lưới con phải về một cột, không thì bẹp dí. */
 .duo { display: grid; gap: 0; }
 @media (min-width: 1040px) {
-  .duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+  /* BA cột THẲNG HÀNG với ba thẻ Văn hóa ngay trên.
+     Ba thẻ đó nằm trong `.wrap` (có max-width và lề --gut) còn `.duo` thì
+     trải hết khổ, nên phải đưa chính `.duo` vào đúng khung đó rồi bỏ lề
+     của mấy `.wrap` con — không thì mỗi `.wrap` con tự chen thêm lề vào giữa
+     cột, thẻ hẹp lại 72px và lệch hết với hàng trên.
+     Khoảng hở 16px lấy đúng bằng gap của `.pshow`. */
+  .duo {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 16px; align-items: stretch;
+    width: 100%; max-width: var(--maxw);
+    margin-inline: auto; padding-inline: var(--gut);
+  }
   .duo > .section { padding-left: 0; padding-right: 0; }
+  .duo > .section > .wrap { max-width: none; padding-inline: 0; }
   /* Hai ô phải cao bằng nhau. Mặc định mỗi cột cao theo nội dung của nó nên
      ô nào ít bước hơn sẽ hụt xuống; kéo cả chuỗi section > wrap > khung
      cùng giãn thì đáy hai khung mới trùng nhau. */
@@ -623,11 +635,17 @@ main { padding-inline-start: var(--rail-w); }
      lại lệch đúng 36px. Trả về bằng nhau. */
   .duo > .section:last-of-type { padding-bottom: 20px; }
   .duo > .section > .wrap { display: flex; flex-direction: column; flex: 1; }
-  .duo #mg-body { display: flex; flex-direction: column; flex: 1; }
+  .duo #mg-body, .duo #zoom-body { display: flex; flex-direction: column; flex: 1; }
   .duo .qa-card { flex: 1; align-content: flex-start; }
+  /* ô Zoom ít chữ hơn hai ô kia (hai ô đó còn mã QR) nên phải cho nó giãn
+     ra cho bằng, và đẩy nút xuống đáy — ba nút chính của ba ô nằm cùng
+     một đường ngang thì mới ra hàng. */
+  .duo .zm-card { flex: 1; }
+  .duo .zm-card .zm-go { margin-top: auto; }
   /* Mục thứ hai bình thường thụt lên 22px vì luật ".section + .section".
      Xếp cạnh nhau thì hai tiêu đề phải ngang nhau, nên trả lại cho bằng. */
   .duo > .section + .section { padding-top: 92px; }
+  .duo > .section:not(:last-of-type) { padding-bottom: 20px; }
   /* đường kẻ ngăn mục chỉ vắt ngang nửa phải, trông lệch — bỏ đi */
   .duo > .section + .section::before { display: none; }
 }
@@ -1947,9 +1965,9 @@ a.hv-noi:hover, a.hv-noi:focus-visible {
    gần 900px ở giữa, nhìn như hai thứ chẳng liên quan. */
 .noi-card {
   display: flex; flex-wrap: wrap; gap: 14px 22px;
-  align-items: stretch; justify-content: flex-start;
+  align-items: center; justify-content: flex-start;
   width: fit-content; max-width: 100%;
-  margin: 0 auto 24px; padding: 14px 18px;
+  margin: 0 auto 24px; padding: 13px 20px;
   border-radius: var(--r);
   background: var(--panel); border: 1px solid var(--line);
   box-shadow: var(--shadow-s, 0 1px 2px rgba(16, 24, 40, .05));
@@ -2044,6 +2062,47 @@ a.sb-noi:hover, a.sb-noi:focus-visible {
   .hv-gio { font-size: .88rem; }
   .noi-card { width: auto; padding: 14px; gap: 12px; }
   .noi-main, .noi-zoom { flex: 1 1 100%; }
+}
+
+/* ---------------------------- DỰ ONLINE ----------------------------
+   Mỗi mục một phong cách riêng (xem CLAUDE.md). Mục này lấy dáng một
+   cửa sổ họp trực tuyến: chấm sáng nhấp nháy trước tên mục như đèn
+   báo đang phát, trong ô là mã phòng và nút vào.                      */
+#truc-tuyen .sec-head h2 { position: relative; }
+#truc-tuyen .sec-head h2::before {
+  content: ''; position: absolute; left: -22px; top: 50%;
+  width: 10px; height: 10px; margin-top: -5px; border-radius: 50%;
+  background: var(--brand); box-shadow: 0 0 0 0 var(--brand-s);
+  animation: zmLive 2.4s ease-out infinite;
+}
+@keyframes zmLive {
+  0%   { box-shadow: 0 0 0 0 rgba(40, 118, 58, .45); }
+  70%  { box-shadow: 0 0 0 11px rgba(40, 118, 58, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(40, 118, 58, 0); }
+}
+.zm-card {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 0;
+}
+.zm-card .zm-venue {
+  width: 100%;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--line);
+}
+.zm-card .zm-venue .noi-dc .noi-tx b { font-size: 1.02rem; font-weight: 750; }
+.zm-card .zm-venue .noi-dc .noi-tx span { font-size: .88rem; }
+.zm-card .zm-venue .noi-gio { margin-top: 7px; font-size: .92rem; }
+.zm-card .noi-t { margin-bottom: 10px; }
+.zm-say {
+  margin: 0 0 14px; font-size: .9rem; line-height: 1.5; color: var(--muted);
+}
+.zm-card .zm-ma { margin-bottom: 14px; }
+.zm-card .zm-go { width: 100%; }
+
+@media (max-width: 1039px) {
+  /* một cột thì chấm đèn báo không có chỗ ở lề trái nữa */
+  #truc-tuyen .sec-head h2::before { left: -18px; }
 }
 
 /* ------------------------------ 18. REVEAL ------------------------------ */
@@ -2799,6 +2858,49 @@ a.ag-pl-go:hover span, a.ag-pl-go:focus-visible span {
   0%   { opacity: .4; transform: scale(1); }
   70%  { opacity: 0;  transform: scale(2.2); }
   100% { opacity: 0;  transform: scale(2.2); }
+}
+
+/* ------- MÀN RỘNG: MỖI BUỔI GỌN TRONG MỘT HÀNG -------------------
+   Số cột đúng bằng số mốc của buổi (biến --n do JS đặt), nên không
+   bao giờ còn hàng thứ hai cụt ngủn. Ô hẹp lại nên mốc quay về kiểu
+   dựng đứng: giờ ở trên, chấm ga, rồi tên việc.
+   Dưới 1380px thì ô chỉ còn chưa tới 110px, chữ vỡ vụn — lúc đó quay về
+   kiểu danh sách mỗi mốc một dòng ở trên.                                */
+@media (min-width: 1380px) {
+  .tl-row {
+    position: relative;
+    grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+    gap: 0 14px;
+    --ga: 40px;                    /* tâm hàng chấm ga, tính từ mép trên */
+  }
+  /* đường ray chạy suốt hàng, chấm ga nằm đúng trên nó */
+  .tl-row::before {
+    content: ''; position: absolute; left: 0; right: 0;
+    top: calc(var(--ga) - 2px); height: 4px; border-radius: 999px;
+    background: var(--bu); opacity: .24;
+  }
+  .mt-st {
+    display: block; width: auto;
+    padding: 0 12px 2px 0;
+    border-bottom: 0;
+  }
+  .mt-when { height: calc(var(--ga) - 6px); }
+  .mt-when b { font-size: .92rem; }
+  .mt-when span { font-size: .7rem; }
+  .mt-dot {
+    position: relative; z-index: 1;
+    width: 12px; height: 12px; border-width: 3px;
+    margin: 0 0 9px;
+  }
+  .mt-st h3 { font-size: .86rem; line-height: 1.26; margin-bottom: 3px; }
+  .mt-st .ag-sp { font-size: .75rem; line-height: 1.28; }
+  .mt-st .ag-pl { font-size: .74rem; line-height: 1.28; margin-top: 3px; }
+  .mt-st .ag-pl svg { width: 12px; height: 12px; }
+  .mt-st .ag-tags { margin-top: 5px; }
+  .mt-st .ag-tags .chip { padding: 2px 7px; font-size: .68rem; }
+  .mt-st.now { background: none; }
+  .mt-st.now .ag-b { background: var(--brand-s); border-radius: 8px;
+                     margin: -4px -6px; padding: 4px 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

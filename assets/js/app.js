@@ -294,7 +294,9 @@
       parts += '<section class="tl-part" data-part="' + p.k + '">' +
           '<header class="tlp-h"><span class="tlp-in"><b>' + esc(p.label) + '</b>' +
             '<span>' + esc(agSpan(list)) + '</span></span></header>' +
-          '<div class="tl-row">' +
+          /* --n = so mốc của buổi này. Màn rộng dùng đúng bấy nhiêu cột
+             để cả buổi gọn trong MỘT hàng. */
+          '<div class="tl-row" style="--n:' + list.length + '">' +
             list.map(function (x) { return agItem(x.t, x.k, x.tm, n++); }).join('') +
           '</div>' +
         '</section>';
@@ -1052,30 +1054,48 @@
     }).join('');
   }
 
-  /* Ô địa điểm + phòng Zoom của mục Văn hóa. */
+  /* Ô địa điểm buổi sáng. Đã chuyển vào ô Dự online (renderZoom). */
   function renderVhNoi() {
     var host = $('#vh-noi');
     if (!host) return;
+    host.innerHTML = '';
+  }
+
+  /* Mục Dự online: ô thứ ba của dải, cạnh Hỏi diễn giả và Mini game.
+     Bao gồm thông tin địa điểm hội trường (buổi sáng) và phòng họp Zoom. */
+  function renderZoom() {
+    var host = $('#zoom-body');
+    if (!host) return;
+    var sec = host.closest ? host.closest('.section') : null;
     var z = CFG.zoomUrl || '';
     var ma = [];
     if (CFG.zoomId) ma.push('<div><dt>Mã phòng</dt><dd>' + esc(CFG.zoomId) + '</dd></div>');
     if (CFG.zoomCode) ma.push('<div><dt>Mật khẩu</dt><dd>' + esc(CFG.zoomCode) + '</dd></div>');
+    var hasVenue = Boolean(CFG.venueName);
+    if (!z && !ma.length && !hasVenue) {
+      if (sec) sec.hidden = true;
+      return;
+    }
+    if (sec) sec.hidden = false;
+
+    var venueHtml = hasVenue
+      ? '<div class="zm-venue">' +
+          noiDong(CFG.venueName, CFG.venueAddress, CFG.venueMapUrl, 'noi-dc') +
+          (CFG.venueHours ? '<p class="noi-gio">' + icon('clock', 15) +
+            esc(CFG.venueHours) + '</p>' : '') +
+        '</div>'
+      : '';
 
     host.innerHTML =
-      '<div class="noi-main">' +
-        noiDong(CFG.venueName, CFG.venueAddress, CFG.venueMapUrl, 'noi-dc') +
-        (CFG.venueHours ? '<p class="noi-gio">' + icon('clock', 15) +
-          esc(CFG.venueHours) + '</p>' : '') +
-      '</div>' +
-      (z || ma.length
-        ? '<div class="noi-zoom">' +
-            '<b class="noi-t"><i class="zm-ic">' + icon('video', 19) + '</i>' +
-              'Tham gia online qua Zoom</b>' +
-            (ma.length ? '<dl class="zm-ma">' + ma.join('') + '</dl>' : '') +
-            (z ? '<a class="btn btn-sm btn-pri zm-go" target="_blank" rel="noopener"' +
-                 ' href="' + esc(z) + '">Vào phòng Zoom \u2197</a>' : '') +
-          '</div>'
-        : '');
+      '<div class="card zm-card reveal">' +
+        venueHtml +
+        '<b class="noi-t"><i class="zm-ic">' + icon('video', 19) + '</i>' +
+          'Tham gia online qua Zoom</b>' +
+        (ma.length ? '<dl class="zm-ma">' + ma.join('') + '</dl>' : '') +
+        (z ? '<a class="btn btn-pri zm-go" target="_blank" rel="noopener"' +
+             ' href="' + esc(z) + '">' + icon('video', 18) +
+             'Vào phòng Zoom \u2197</a>' : '') +
+      '</div>';
   }
 
   function renderSport() {
@@ -3400,6 +3420,7 @@
     renderSport();
     renderHeroNoi();
     renderVhNoi();
+    renderZoom();
 
     /* Nút "Chi tiết từng trận": mở từng ô sân ra thành danh sách đủ các
        trận của sân đó, ngay tại chỗ. */
