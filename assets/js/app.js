@@ -238,7 +238,7 @@
           (t.tag ? '<span class="chip">' + esc(t.tag) + '</span>' : '') +
           (t.goto ? '<a class="chip go" href="' + esc(t.goto.href) + '">' +
                       esc(t.goto.label) + '</a>' : '') +
-          (t.sport ? '<a class="chip ok" href="#the-thao" data-go-sport="1">Xem lịch từng trận</a>' : '') +
+          (t.sport ? '<a class="chip go" href="#the-thao" data-go-sport="1">Xem lịch từng trận</a>' : '') +
           '<span class="chip ok ag-live" hidden>Đang diễn ra</span>' +
         '</div>' +
       '</div>' +
@@ -334,20 +334,11 @@
       if (el && el.classList.contains('drag')) { e.preventDefault(); e.stopPropagation(); }
     }, true);
 
-    /* Đường chân trời trôi chậm hơn hàng thẻ cho ra chiều sâu. Nền của
-       thẻ cuộn không tự dịch theo nội dung nên phải tự dời lấy. */
-    var pTick = false;
-    document.addEventListener('scroll', function (e) {
-      var el = e.target;
-      if (!el || !el.classList || !el.classList.contains('tl-scroll')) return;
-      if (reduce || pTick) return;
-      pTick = true;
-      requestAnimationFrame(function () {
-        pTick = false;
-        el.style.backgroundPosition =
-          '0 0, ' + Math.round(-el.scrollLeft * 0.34) + 'px calc(100% - 10px)';
-      });
-    }, true);
+    /* Trước đây đường chân trời trôi theo tay kéo, nay nó tự trôi bằng
+       @keyframes troiPho trong CSS nên đoạn dời nền theo scroll đã bỏ.
+       Để lại thì nguy: nó ghi một background-position chỉ có hai lớp,
+       trong khi nền giờ có bốn lớp — hôm nào ai tắt animation là mây và
+       nền trời nhảy lung tung. */
 
     /* Vị trí con trỏ "đang ở đây" đo bằng pixel của bố cục thật, nên bố
        cục đổi là phải đo lại: đổi bề ngang màn, và lúc font hiển thị xong
@@ -470,15 +461,22 @@
        Chưa gắn form thì quay về địa chỉ trang như trước.
        Mã trong cửa sổ máy chiếu dựng lúc bấm mở, xem showProj().    */
     var url = qrTarget('ask');
+    /* Nút gửi câu hỏi: phần lớn người đọc đang cầm chính cái điện thoại hiện
+       mã QR, không tự quét màn hình của mình được — cho họ bấm thẳng. Chưa
+       gắn form thì bỏ nút đi, đừng dẫn tới chỗ trống. Địa chỉ đầy đủ vẫn
+       hiện ở cửa sổ máy chiếu, xem showProj(). */
+    var mo = $('#ask-open'), form = CFG.formOpenUrl || CFG.formEmbedUrl || '';
+    if (mo) {
+      if (form) mo.href = form;
+      else mo.parentNode.removeChild(mo);
+    }
     if (!url) {
       $('#qr-main').innerHTML = '<p style="color:#333;padding:14px;font-size:.84rem;max-width:200px">' +
         'Trang đang mở từ ổ đĩa nên chưa có địa chỉ để tạo mã QR. ' +
         'Sau khi đưa web lên mạng, điền <b>siteUrl</b> trong config.js.</p>';
-      $('#qr-url').textContent = 'Chưa có địa chỉ công khai';
       return;
     }
     makeQr($('#qr-main'), url, 4);
-    $('#qr-url').textContent = url;
   }
 
   /* =====================================================================
@@ -1009,11 +1007,14 @@
     }
     return '<b class="qs-t">Quét mã để vào phòng chơi</b>' +
       '<div class="qr-box" id="qr-quiz" aria-label="Mã QR dẫn tới phòng chơi mini game"></div>' +
-      '<div class="qr-url">' + esc(url) + '</div>' +
-      '<button class="btn btn-sm btn-pri" type="button" data-proj="quiz" ' +
-        'aria-label="Phóng to mã QR phòng chơi ra toàn màn hình">' +
-        '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><use href="#i-qr"/></svg>Phóng to</button>' +
-      '<a class="btn btn-sm qs-go" target="_blank" rel="noopener" href="' + esc(url) + '">Vào phòng chơi ↗</a>';
+      '<div class="qs-act">' +
+        '<a class="btn btn-sm btn-pri qs-go" target="_blank" rel="noopener" href="' + esc(url) + '">' +
+          'Chơi ngay ↗</a>' +
+        '<button class="btn btn-sm qs-zoom" type="button" data-proj="quiz" title="Phóng to mã QR" ' +
+          'aria-label="Phóng to mã QR phòng chơi ra toàn màn hình">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-qr"/></svg>' +
+        '</button>' +
+      '</div>';
   }
 
   function renderMiniGame() {
@@ -2545,7 +2546,12 @@
      sửa. Trên điện thoại càng tệ: ba ô chồng dọc thành 1159px một trang.
      Nên ngưỡng này phải KHỚP đúng ngưỡng 1100px của CSS. */
   function oMoiTrang() {
-    return window.innerWidth >= 1100 ? 3 : 2;
+    var w = window.innerWidth;
+    if (w >= 1100) return 3;
+    /* Dưới 880px thì .rslide chỉ còn một cột, hai ô trong cùng một trang sẽ
+       chồng dọc — đọc ra thành hai hình hai đoạn chữ trên một trang. Điện
+       thoại để đúng MỘT ô mỗi trang: một hình, chữ của nó, hết trang. */
+    return w >= 880 ? 2 : 1;
   }
 
   /* n ô chia làm ít trang nhất có thể, rồi rải cho đều.
@@ -2573,7 +2579,8 @@
     while (i < items.length) {
       if (items[i].wide) {
         var w = [];
-        while (i < items.length && items[i].wide && w.length < 2) { w.push(items[i]); i++; }
+        var toiDa = oMoiTrang() > 1 ? 2 : 1;
+        while (i < items.length && items[i].wide && w.length < toiDa) { w.push(items[i]); i++; }
         /* Một bảng thì ăn cả bề ngang. HAI bảng thì đứng CẠNH NHAU chứ
            không chồng dọc: chồng dọc thì trang đó cao gấp rưỡi các trang
            kia và kéo cả tập sách cao theo. Đứng cạnh nhau còn dễ so hơn —
@@ -3030,19 +3037,45 @@
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var io = null;
 
+  /* Thẻ hiện ra khi lướt tới, và ẩn lại khi đã ra HẲN khỏi khung nhìn, nhờ
+     vậy lướt ngược lên nó diễn lại chứ không đứng im. Hướng chạy đi theo
+     chiều lướt: ra khỏi mép trên thì lần sau rơi từ trên xuống (.fx-up),
+     ra khỏi mép dưới thì vẫn trồi từ dưới lên.
+
+     Chỉ xét CHIỀU DỌC. Những thứ nằm trong dải cuộn ngang — các ga của dải
+     lịch — cũng bị báo "không giao" khi kéo ngang ra khỏi mép, mà khung dọc
+     của chúng vẫn bình thường; đụng vào là nhấp nháy mỗi lần kéo dải.
+
+     Đo bằng window.innerHeight chứ KHÔNG lấy rootBounds.height: rootMargin
+     đang thu mép dưới 8% nên rootBounds chỉ còn 92% màn hình, thẻ vừa trôi
+     xuống dưới sẽ không bao giờ tính là "ra hẳn" và không bao giờ diễn lại. */
   function revealScan() {
     if (reduce) { $$('.reveal').forEach(function (e) { e.classList.add('in'); }); return; }
     if (!io) {
       io = new IntersectionObserver(function (es) {
         es.forEach(function (e) {
-          if (e.isIntersecting) {
-            e.target.classList.add('in');
-            io.unobserve(e.target);
+          var el = e.target;
+          if (e.isIntersecting) { el.classList.add('in'); return; }
+          if (el.fxOnce) return;
+          var r = e.boundingClientRect, vh = window.innerHeight;
+          if (r.bottom < -40) {
+            el.classList.add('fx-up');
+            el.classList.remove('in');
+          } else if (r.top > vh + 40) {
+            el.classList.remove('fx-up');
+            el.classList.remove('in');
           }
         });
       }, { rootMargin: '0px 0px -8% 0px', threshold: .08 });
     }
-    $$('.reveal:not(.in)').forEach(function (e) { io.observe(e); });
+    /* Khối mở đầu chỉ diễn MỘT lần: tên ngày hội còn kéo theo vệt kẻ và
+       quầng sáng chạy vô hạn, dựng lại từ đầu mỗi lần chạm đỉnh trang thì
+       chỉ tổ rối mắt. */
+    var hero = $('.hero');
+    $$('.reveal').forEach(function (e) {
+      if (hero && hero.contains(e)) e.fxOnce = true;
+      io.observe(e);
+    });
   }
 
 

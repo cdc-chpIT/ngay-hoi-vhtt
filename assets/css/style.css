@@ -639,7 +639,7 @@ main { padding-inline-start: var(--rail-w); }
 .qa-card { display: flex; flex-wrap: wrap; gap: 16px 18px; align-items: flex-start; }
 .qa-main { flex: 1 1 244px; min-width: 0; }
 .qa-side {
-  flex: 0 1 180px;
+  flex: 0 1 190px;
   margin-left: auto; margin-right: auto;
   padding: 14px 12px 15px;
   border-radius: var(--r-sm);
@@ -656,9 +656,19 @@ main { padding-inline-start: var(--rail-w); }
 }
 .qa-side .qr-box { padding: 9px; box-shadow: none; border: 1px solid var(--line); }
 .qa-side .qr-box svg, .qa-side .qr-box canvas { max-width: 134px; }
-.qa-side .qr-url { margin-top: 8px; font-size: .7rem; line-height: 1.35; }
-.qa-side .btn { margin-top: 10px; width: 100%; justify-content: center; gap: 6px; }
-.qa-side .qs-go { font-weight: 600; }
+/* Hai nút nằm cùng một hàng: nút chữ là việc chính, nút phóng to chỉ là ô
+   vuông có biểu tượng — xếp chồng lên nhau thì ô cao thêm 44px, đúng bằng
+   chỗ trắng thừa dưới cột các bước. Cũng không in địa chỉ dưới mã nữa:
+   dài hai dòng mà ai cũng bấm nút chứ không gõ tay. Địa chỉ đầy đủ vẫn
+   còn ở cửa sổ máy chiếu. */
+.qs-act { display: flex; gap: 7px; margin-top: 11px; }
+.qs-act .btn { margin-top: 0; white-space: nowrap; }
+.qa-side .qs-go {
+  flex: 1 1 auto; min-width: 0;
+  padding: 9px 12px; font-size: .82rem; font-weight: 650;
+}
+.qa-side .qs-zoom { flex: 0 0 auto; padding: 9px 10px; gap: 0; }
+.qa-side .qs-zoom svg { display: block; }
 /* chưa có link phòng chơi: ô trống đúng cỡ mã QR, ghi rõ vì sao chưa có */
 .qa-side .qr-wait {
   display: grid; place-items: center;
@@ -1881,6 +1891,9 @@ summary { list-style: none; }
   transition-delay: var(--d, 0ms);
 }
 .reveal.in { opacity: 1; transform: none; }
+/* đã trôi khỏi mép trên: lần sau gặp lại là người đọc đang lướt ngược lên,
+   cho thẻ rơi từ trên xuống. `:not(.in)` — xem lý do ở luật .sp-up. */
+.reveal.fx-up:not(.in) { transform: translateY(-22px); }
 
 /* ============================================================
    21. ĐANG DIỄN RA
@@ -2132,7 +2145,7 @@ summary { list-style: none; }
     transition-delay: 0s !important;
   }
   .pw { opacity: 1 !important; transform: none !important; }
-  .reveal { opacity: 1; transform: none; }
+  .reveal { opacity: 1 !important; transform: none !important; }
   .hero h1 .l1, .hero h1 .l2 { opacity: 1 !important; transform: none !important; }
   .hero h1 .l1::before { width: var(--rule-w) !important; opacity: 1 !important; }
   .hn-dot::after { animation: none !important; opacity: 0 !important; }
@@ -2441,11 +2454,11 @@ summary { list-style: none; }
      nhạt để không tranh với chữ, và tắt hẳn khi người dùng xin giảm
      chuyển động. */
   background-image:
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 46'><rect x='0' y='20' width='38' height='26' fill='%23a9bdd0'/><rect x='19' y='11' width='3' height='9' fill='%23a9bdd0'/><rect x='17' y='27' width='5' height='6' fill='%23dde7ef'/><rect x='47' y='21' width='43' height='25' fill='%23a9bdd0'/><rect x='53' y='28' width='5' height='6' fill='%23dde7ef'/><rect x='95' y='14' width='48' height='32' fill='%23a9bdd0'/><rect x='112' y='8' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='101' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='101' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='112' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='112' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='123' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='123' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='148' y='14' width='31' height='32' fill='%23a9bdd0'/><rect x='154' y='32' width='5' height='6' fill='%23dde7ef'/><rect x='165' y='21' width='5' height='6' fill='%23dde7ef'/><rect x='184' y='24' width='29' height='22' fill='%23a9bdd0'/><rect x='190' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='218' y='24' width='29' height='22' fill='%23a9bdd0'/><rect x='254' y='24' width='31' height='22' fill='%23a9bdd0'/><rect x='260' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='271' y='31' width='5' height='6' fill='%23dde7ef'/><rect x='288' y='17' width='64' height='29' fill='%23a9bdd0'/><rect x='320' y='8' width='3' height='9' fill='%23a9bdd0'/><rect x='294' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='305' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='316' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='338' y='24' width='5' height='6' fill='%23dde7ef'/><rect x='361' y='22' width='57' height='24' fill='%23a9bdd0'/><rect x='400' y='29' width='5' height='6' fill='%23dde7ef'/><rect x='427' y='23' width='62' height='23' fill='%23a9bdd0'/><rect x='451' y='17' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='433' y='30' width='5' height='6' fill='%23dde7ef'/><rect x='444' y='30' width='5' height='6' fill='%23dde7ef'/><rect x='494' y='16' width='28' height='30' fill='%23a9bdd0'/><rect x='500' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='527' y='16' width='50' height='30' fill='%23a9bdd0'/><rect x='545' y='10' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='533' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='544' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='555' y='23' width='5' height='6' fill='%23dde7ef'/><rect x='582' y='26' width='48' height='20' fill='%23a9bdd0'/><rect x='635' y='26' width='48' height='20' fill='%23a9bdd0'/><rect x='690' y='26' width='10' height='20' fill='%23a9bdd0'/></svg>"),
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 72'><rect x='0' y='27' width='61' height='45' fill='%23ccd9e5'/><rect x='65' y='29' width='53' height='43' fill='%23ccd9e5'/><rect x='126' y='38' width='29' height='34' fill='%23ccd9e5'/><rect x='161' y='42' width='27' height='30' fill='%23ccd9e5'/><rect x='190' y='41' width='38' height='31' fill='%23ccd9e5'/><rect x='209' y='32' width='3' height='9' fill='%23ccd9e5'/><rect x='232' y='9' width='39' height='63' fill='%23ccd9e5'/><rect x='279' y='43' width='59' height='29' fill='%23ccd9e5'/><rect x='340' y='28' width='49' height='44' fill='%23ccd9e5'/><rect x='393' y='8' width='41' height='64' fill='%23ccd9e5'/><rect x='438' y='10' width='33' height='62' fill='%23ccd9e5'/><rect x='479' y='19' width='48' height='53' fill='%23ccd9e5'/><rect x='533' y='23' width='46' height='49' fill='%23ccd9e5'/><rect x='556' y='14' width='3' height='9' fill='%23ccd9e5'/><rect x='581' y='22' width='57' height='50' fill='%23ccd9e5'/><rect x='642' y='29' width='58' height='43' fill='%23ccd9e5'/><rect x='708' y='24' width='39' height='48' fill='%23ccd9e5'/><rect x='749' y='9' width='29' height='63' fill='%23ccd9e5'/><rect x='782' y='28' width='60' height='44' fill='%23ccd9e5'/><rect x='812' y='19' width='3' height='9' fill='%23ccd9e5'/><rect x='846' y='30' width='52' height='42' fill='%23ccd9e5'/><rect x='872' y='21' width='3' height='9' fill='%23ccd9e5'/><rect x='906' y='39' width='28' height='33' fill='%23ccd9e5'/><rect x='940' y='43' width='26' height='29' fill='%23ccd9e5'/><rect x='968' y='42' width='32' height='30' fill='%23ccd9e5'/></svg>"),
-    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 26'><ellipse cx='0' cy='11' rx='18' ry='9' fill='%23dae5ee'/><ellipse cx='9' cy='7' rx='11' ry='7' fill='%23dae5ee'/><ellipse cx='242' cy='16' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='249' cy='13' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='476' cy='17' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='483' cy='14' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='731' cy='14' rx='22' ry='11' fill='%23dae5ee'/><ellipse cx='742' cy='9' rx='14' ry='8' fill='%23dae5ee'/><ellipse cx='985' cy='22' rx='26' ry='13' fill='%23dae5ee'/><ellipse cx='998' cy='16' rx='16' ry='10' fill='%23dae5ee'/><ellipse cx='1221' cy='19' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='1228' cy='16' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='1384' cy='19' rx='20' ry='10' fill='%23dae5ee'/><ellipse cx='1394' cy='14' rx='13' ry='8' fill='%23dae5ee'/></svg>"),
-    linear-gradient(180deg, rgba(144, 182, 212, .05) 0%,
-      rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .16) 100%);
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 46' preserveAspectRatio='none'><rect x='0' y='26' width='34' height='20' fill='%23a9bdd0'/><rect x='7' y='32' width='5' height='6' fill='%23f4e6c9'/><rect x='19' y='32' width='5' height='6' fill='%23f4e6c9'/><rect x='40' y='22' width='30' height='24' fill='%23c6a893'/><rect x='47' y='29' width='5' height='6' fill='%23f4e6c9'/><rect x='58' y='29' width='5' height='6' fill='%23f4e6c9'/><rect x='47' y='38' width='5' height='6' fill='%23f4e6c9'/><rect x='86' y='32' width='5' height='14' fill='%23b4725d'/><rect x='102' y='32' width='5' height='14' fill='%23b4725d'/><rect x='128' y='32' width='5' height='14' fill='%23b4725d'/><rect x='146' y='32' width='5' height='14' fill='%23b4725d'/><rect x='80' y='29' width='80' height='3' fill='%23d1bc98'/><path d='M72 30 Q78 26 84 27 Q98 18 120 17 Q142 18 156 27 Q162 26 168 30 Q120 23 72 30 Z' fill='%23b4725d'/><rect x='104' y='11' width='32' height='8' fill='%23d1bc98'/><circle cx='120' cy='15' r='3.6' fill='%23f4e6c9'/><path d='M92 12 Q96 9 100 10 Q108 4 120 3 Q132 4 140 10 Q144 9 148 12 Q120 7 92 12 Z' fill='%23b4725d'/><rect x='176' y='24' width='28' height='22' fill='%23a8c2aa'/><rect x='183' y='31' width='5' height='6' fill='%23f4e6c9'/><rect x='194' y='31' width='5' height='6' fill='%23f4e6c9'/><rect x='212' y='28' width='30' height='18' fill='%23b3a7c3'/><rect x='250' y='35' width='218' height='3' fill='%238ea2b4'/><rect x='272' y='38' width='7' height='8' fill='%238ea2b4'/><rect x='340' y='38' width='7' height='8' fill='%238ea2b4'/><rect x='408' y='38' width='7' height='8' fill='%238ea2b4'/><path d='M252 35 L262 24 L312 24 L322 35 M278.7 35 L278.7 24M295.4 35 L295.4 24 M262 35 L278.7 24 M295.4 35 L312 24' fill='none' stroke='%238ea2b4' stroke-width='2.2' stroke-linecap='round'/><path d='M324 35 L334 24 L384 24 L394 35 M350.7 35 L350.7 24M367.4 35 L367.4 24 M334 35 L350.7 24 M367.4 35 L384 24' fill='none' stroke='%238ea2b4' stroke-width='2.2' stroke-linecap='round'/><path d='M396 35 L406 24 L456 24 L466 35 M422.7 35 L422.7 24M439.4 35 L439.4 24 M406 35 L422.7 24 M439.4 35 L456 24' fill='none' stroke='%238ea2b4' stroke-width='2.2' stroke-linecap='round'/><g fill='none' stroke='%23d9a955' stroke-width='2.6' stroke-linecap='round'><path d='M636 46 V5'/><path d='M604 9 H672'/><path d='M656 9 V19'/><path d='M636 5 L606 9 M636 5 L670 9' stroke-width='1.6'/></g><rect x='598' y='6' width='9' height='6' fill='%23d9a955'/><rect x='662' y='28' width='38' height='18' fill='%23b3a7c3'/><rect x='669' y='35' width='5' height='6' fill='%23f4e6c9'/><rect x='470' y='39.5' width='162' height='6.5' rx='3' fill='%23c6d5c0'/><circle cx='486' cy='28.08' r='2.646' fill='%23b4725d'/><path d='M486 31.44 V37.6 M486 37.6 L482.08 43.48 M486 37.6 L489.92 43.48' stroke='%23b4725d' stroke-width='3.08' stroke-linecap='round' fill='none'/><path d='M486 31.44 L480.12 35.08' stroke='%23b4725d' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M486 31.44 L491.88 35.08' stroke='%23b4725d' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M480.12 35.08 C472.6 28 475.6 18 486 18 C496.4 18 499.4 28 491.88 35.08' stroke='%23b4725d' stroke-width='1.54' fill='none' stroke-linecap='round'/><rect x='534.88' y='28.5' width='2.24' height='17.5' fill='%238ea2b4' fill-opacity='.72'/><rect x='534.2' y='27.72' width='3.6' height='1.5' rx='.5' fill='%23e8eef3'/><circle cx='514' cy='28.08' r='2.646' fill='%231d627e'/><path d='M514 31.44 V37.6 M514 37.6 L510.08 46 M514 37.6 L517.92 46' stroke='%231d627e' stroke-width='3.08' stroke-linecap='round' fill='none'/><path d='M514 31.44 L521.84 24.16' stroke='%231d627e' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M514 31.44 L507.84 35.36' stroke='%231d627e' stroke-width='2.24' stroke-linecap='round' fill='none'/><path d='M521.84 24.16 L525.48 20.24' stroke='%231d627e' stroke-width='1.68' stroke-linecap='round'/><ellipse cx='527.44' cy='17.86' rx='2.66' ry='3.5' fill='none' stroke='%231d627e' stroke-width='1.54' transform='rotate(42 527.44 17.86)'/><circle cx='558' cy='28.08' r='2.646' fill='%231d627e'/><path d='M558 31.44 V37.6 M558 37.6 L554.08 46 M558 37.6 L561.92 46' stroke='%231d627e' stroke-width='3.08' stroke-linecap='round' fill='none'/><path d='M558 31.44 L550.16 24.16' stroke='%231d627e' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M558 31.44 L564.16 35.36' stroke='%231d627e' stroke-width='2.24' stroke-linecap='round' fill='none'/><path d='M550.16 24.16 L546.52 20.24' stroke='%231d627e' stroke-width='1.68' stroke-linecap='round'/><ellipse cx='544.56' cy='17.86' rx='2.66' ry='3.5' fill='none' stroke='%231d627e' stroke-width='1.54' transform='rotate(-42 544.56 17.86)'/><circle cx='536' cy='16.88' r='1.54' fill='%23d9a955'/><path d='M536 15.48 L533.34 11.56 M536 15.48 V11 M536 15.48 L538.66 11.56' stroke='%23d9a955' stroke-width='1.12' stroke-linecap='round' fill='none'/><rect x='598.88' y='35.36' width='2.24' height='10.64' fill='%238ea2b4' fill-opacity='.72'/><rect x='598.2' y='34.58' width='3.6' height='1.5' rx='.5' fill='%23e8eef3'/><circle cx='578' cy='28.08' r='2.646' fill='%233f7338'/><path d='M578 31.44 V37.6 M578 37.6 L574.08 46 M578 37.6 L581.92 46' stroke='%233f7338' stroke-width='3.08' stroke-linecap='round' fill='none'/><path d='M578 31.44 L585 29.76' stroke='%233f7338' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M578 31.44 L572.12 35.36' stroke='%233f7338' stroke-width='2.24' stroke-linecap='round' fill='none'/><path d='M585 29.76 L589.76 27.24' stroke='%233f7338' stroke-width='1.54' stroke-linecap='round'/><rect x='586.82' y='23.46' width='5.88' height='7.56' rx='2.1' fill='%233f7338' transform='rotate(20 589.76 27.24)'/><circle cx='622' cy='28.08' r='2.646' fill='%233f7338'/><path d='M622 31.44 V37.6 M622 37.6 L618.08 46 M622 37.6 L625.92 46' stroke='%233f7338' stroke-width='3.08' stroke-linecap='round' fill='none'/><path d='M622 31.44 L615 29.76' stroke='%233f7338' stroke-width='2.38' stroke-linecap='round' fill='none'/><path d='M622 31.44 L627.88 35.36' stroke='%233f7338' stroke-width='2.24' stroke-linecap='round' fill='none'/><path d='M615 29.76 L610.24 27.24' stroke='%233f7338' stroke-width='1.54' stroke-linecap='round'/><rect x='607.3' y='23.46' width='5.88' height='7.56' rx='2.1' fill='%233f7338' transform='rotate(-20 610.24 27.24)'/><circle cx='600' cy='20.1' r='1.96' fill='%23d9a955'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 72' preserveAspectRatio='none'><rect x='0' y='34' width='52' height='38' fill='%23c7d6e4'/><rect x='58' y='28' width='40' height='44' fill='%23d1d2e5'/><rect x='106' y='12' width='40' height='60' fill='%23c7d6e4'/><rect x='112' y='4' width='28' height='8' fill='%23c7d6e4'/><rect x='124' y='0' width='4' height='4' fill='%23c7d6e4'/><rect x='154' y='38' width='46' height='34' fill='%23c5dbd7'/><rect x='206' y='30' width='36' height='42' fill='%23ddd3dc'/><rect x='250' y='22' width='46' height='50' fill='%23d1d2e5'/><path d='M250 23 L250 8 L266 8 L273 17 L280 8 L296 8 L296 23 Z' fill='%23d1d2e5'/><rect x='304' y='36' width='42' height='36' fill='%23c7d6e4'/><rect x='352' y='26' width='32' height='46' fill='%23d1d2e5'/><rect x='366' y='18' width='3' height='8' fill='%23d1d2e5'/><rect x='396' y='58' width='60' height='14' fill='%23dacdb4'/><rect x='404' y='47' width='44' height='11' fill='%23dacdb4'/><rect x='412' y='37' width='28' height='10' fill='%23dacdb4'/><rect x='419' y='14' width='14' height='23' fill='%23dacdb4'/><rect x='416' y='8' width='20' height='6' fill='%23dacdb4'/><rect x='424' y='0' width='3' height='8' fill='%23dacdb4'/><path d='M427 1 L441 4 L427 7 Z' fill='%23b4725d'/><rect x='468' y='32' width='50' height='40' fill='%23c5dbd7'/><rect x='524' y='20' width='34' height='52' fill='%23ddd3dc'/><rect x='538' y='13' width='3' height='7' fill='%23ddd3dc'/><rect x='564' y='40' width='44' height='32' fill='%23c7d6e4'/><rect x='614' y='24' width='38' height='48' fill='%23d1d2e5'/><rect x='658' y='36' width='52' height='36' fill='%23c5dbd7'/><rect x='716' y='18' width='30' height='54' fill='%23ddd3dc'/><rect x='729' y='11' width='3' height='7' fill='%23ddd3dc'/><rect x='752' y='42' width='46' height='30' fill='%23c7d6e4'/><rect x='804' y='30' width='40' height='42' fill='%23d1d2e5'/><rect x='850' y='34' width='48' height='38' fill='%23c5dbd7'/><rect x='904' y='26' width='36' height='46' fill='%23ddd3dc'/><rect x='946' y='40' width='54' height='32' fill='%23c7d6e4'/></svg>"),
+    url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1400 26' preserveAspectRatio='none'><ellipse cx='0' cy='11' rx='18' ry='9' fill='%23d8e2ea'/><ellipse cx='9' cy='7' rx='11' ry='7' fill='%23d8e2ea'/><ellipse cx='242' cy='16' rx='14' ry='7' fill='%23d8e2ea'/><ellipse cx='249' cy='13' rx='9' ry='5' fill='%23d8e2ea'/><ellipse cx='476' cy='17' rx='14' ry='7' fill='%23d8e2ea'/><ellipse cx='483' cy='14' rx='9' ry='5' fill='%23d8e2ea'/><ellipse cx='731' cy='14' rx='22' ry='11' fill='%23d8e2ea'/><ellipse cx='742' cy='9' rx='14' ry='8' fill='%23d8e2ea'/><ellipse cx='985' cy='22' rx='26' ry='13' fill='%23d8e2ea'/><ellipse cx='998' cy='16' rx='16' ry='10' fill='%23d8e2ea'/><ellipse cx='1221' cy='19' rx='14' ry='7' fill='%23d8e2ea'/><ellipse cx='1228' cy='16' rx='9' ry='5' fill='%23d8e2ea'/><ellipse cx='1384' cy='19' rx='20' ry='10' fill='%23d8e2ea'/><ellipse cx='1394' cy='14' rx='13' ry='8' fill='%23d8e2ea'/></svg>"),
+    linear-gradient(180deg, rgba(144, 182, 212, .07) 0%,
+      rgba(166, 192, 210, .1) 48%, rgba(226, 190, 154, .16) 100%);
   background-repeat: repeat-x, repeat-x, repeat-x, no-repeat;
   background-size: 700px 46px, 1000px 72px, 1400px 26px, 100% 100%;
   background-position:
@@ -2466,7 +2479,6 @@ summary { list-style: none; }
   to   { background-position:
     -1960px calc(100% - 5px), -1400px calc(100% - 5px),
     -980px calc(100% - 44px), 0 0; }
-}
 }
 /* thanh cuộn mảnh, nằm dưới dãy nhà */
 .tl-scroll::-webkit-scrollbar { height: 8px; }
@@ -2668,14 +2680,13 @@ summary { list-style: none; }
     /* man hep khong co cot dieu huong ben trai nen khong can chua cho */
     padding-left: var(--gut);
     scroll-padding-left: var(--gut);
-    /* O lap nho lai thi quang chay mot vong cung phai nho theo, khong thi
-       het mot vong canh giat mot cai. */
-    background-image:
-      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 490 34'><rect x='0' y='20' width='38' height='14' fill='%23a9bdd0'/><rect x='19' y='11' width='3' height='9' fill='%23a9bdd0'/><rect x='47' y='11' width='43' height='23' fill='%23a9bdd0'/><rect x='53' y='18' width='5' height='6' fill='%23dde7ef'/><rect x='95' y='19' width='48' height='15' fill='%23a9bdd0'/><rect x='112' y='13' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='148' y='10' width='31' height='24' fill='%23a9bdd0'/><rect x='165' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='184' y='9' width='29' height='25' fill='%23a9bdd0'/><rect x='190' y='16' width='5' height='6' fill='%23dde7ef'/><rect x='218' y='13' width='29' height='21' fill='%23a9bdd0'/><rect x='254' y='17' width='31' height='17' fill='%23a9bdd0'/><rect x='288' y='10' width='64' height='24' fill='%23a9bdd0'/><rect x='320' y='1' width='3' height='9' fill='%23a9bdd0'/><rect x='294' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='305' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='316' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='338' y='17' width='5' height='6' fill='%23dde7ef'/><rect x='361' y='4' width='57' height='30' fill='%23a9bdd0'/><rect x='400' y='11' width='5' height='6' fill='%23dde7ef'/><rect x='427' y='12' width='62' height='22' fill='%23a9bdd0'/><rect x='451' y='6' width='14' height='6' rx='2' fill='%23a9bdd0'/><rect x='433' y='19' width='5' height='6' fill='%23dde7ef'/><rect x='444' y='19' width='5' height='6' fill='%23dde7ef'/></svg>"),
-      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 700 52'><rect x='0' y='7' width='61' height='45' fill='%23ccd9e5'/><rect x='65' y='24' width='53' height='28' fill='%23ccd9e5'/><rect x='126' y='24' width='29' height='28' fill='%23ccd9e5'/><rect x='161' y='7' width='27' height='45' fill='%23ccd9e5'/><rect x='190' y='6' width='38' height='46' fill='%23ccd9e5'/><rect x='209' y='-3' width='3' height='9' fill='%23ccd9e5'/><rect x='232' y='10' width='39' height='42' fill='%23ccd9e5'/><rect x='279' y='20' width='59' height='32' fill='%23ccd9e5'/><rect x='340' y='32' width='49' height='20' fill='%23ccd9e5'/><rect x='393' y='27' width='41' height='25' fill='%23ccd9e5'/><rect x='438' y='17' width='33' height='35' fill='%23ccd9e5'/><rect x='479' y='17' width='48' height='35' fill='%23ccd9e5'/><rect x='533' y='27' width='46' height='25' fill='%23ccd9e5'/><rect x='556' y='18' width='3' height='9' fill='%23ccd9e5'/><rect x='581' y='26' width='57' height='26' fill='%23ccd9e5'/><rect x='642' y='30' width='58' height='22' fill='%23ccd9e5'/></svg>"),
-      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 980 20'><ellipse cx='0' cy='14' rx='18' ry='9' fill='%23dae5ee'/><ellipse cx='9' cy='10' rx='11' ry='7' fill='%23dae5ee'/><ellipse cx='242' cy='15' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='249' cy='12' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='476' cy='14' rx='14' ry='7' fill='%23dae5ee'/><ellipse cx='483' cy='11' rx='9' ry='5' fill='%23dae5ee'/><ellipse cx='731' cy='16' rx='22' ry='11' fill='%23dae5ee'/><ellipse cx='742' cy='11' rx='14' ry='8' fill='%23dae5ee'/></svg>"),
-      linear-gradient(180deg, rgba(144, 182, 212, .05) 0%,
-      rgba(144, 182, 212, .09) 56%, rgba(144, 182, 212, .16) 100%);
+    /* Dùng chung ba lớp vẽ với màn rộng. Cả ba đều có
+       preserveAspectRatio='none' nên chỉ cần đổi cỡ ô lặp là chúng co thẳng
+       vào khung nhỏ hơn. Trước đây chỗ này có ba ảnh riêng — dãy nhà xám
+       cũ, không có Khêe Văn Các, không có người chơi — nên điện thoại
+       nhìn khác hẳn máy bàn. Bỏ đi rồi, đừng dựng lại.
+       Ô lặp nhỏ lại thì quãng chạy một vòng cũng phải nhỏ theo
+       (troiPhoNho), không thì hết một vòng cảnh giật một cái. */
     background-size: 490px 34px, 700px 52px, 980px 20px, 100% 100%;
     background-position:
       0 calc(100% - 5px), 0 calc(100% - 5px), 0 calc(100% - 44px), 0 0;
@@ -3163,6 +3174,13 @@ summary { list-style: none; }
   transition-delay: var(--d, 0ms);
 }
 .sp-go .sp-ch, .sp-go .sp-line-in { transform: none; }
+/* Lướt ngược lên thì chữ phải RƠI TỪ TRÊN xuống chứ không trồi từ dưới lên
+   — hướng chạy đi ngược chiều lướt là thấy sai ngay.
+   `:not(.sp-go)` là bắt buộc chứ không phải cho đẹp: bỏ nó thì luật này
+   cùng độ ưu tiên với luật ngay trên mà lại đứng sau, nên nó đè luôn trạng
+   thái đã hiện và chữ biến mất. */
+.sp-up:not(.sp-go) .sp-ch,
+.sp-up:not(.sp-go) .sp-line-in { transform: translateY(-115%); }
 
 /* --- ảnh mở dần từ dưới lên, ruột ảnh thu từ 1.2 về 1 --- */
 .img-rv {
@@ -3367,12 +3385,19 @@ summary { list-style: none; }
    — cả trang này phần lớn mở bằng 4G ngay tại nhà thi đấu.
    Chữ tô màu đặc chứ không dùng nền cắt theo nét như các mục khác, nên
    không dính chuyện mất dấu thanh.
-   Chữ trắng trên sắc cỏ nhạt nhất đo được 5.68:1.                       */
+   Chữ trắng trên sắc cỏ nhạt nhất đo được 5.68:1 — đủ chuẩn, nhưng chỗ
+   tệ nhất không phải mặt cỏ mà là chỗ nét chữ đè lên VẠCH SÂN sơn trắng:
+   chỉ được 2.14:1, nên đọc ra "chìm" dù số đo trên cỏ đẹp. 12/10/2026 hạ
+   sơn vạch xuống .38 và đổ thêm vũng tối (.sport-board::after): chỗ tệ nhất
+   dưới dòng chữ giờ là 6.39:1, trên mặt cỏ là 9.07:1.                     */
 .sport-board {
   --vach: clamp(38px, 6vw, 86px);   /* bề ngang một vệt máy cắt */
   --co-1: #2e6b32;                  /* vệt cỏ sẫm */
   --co-2: #357434;                  /* vệt cỏ nhạt */
-  --son:  rgba(255, 255, 255, .5);  /* sơn kẻ vạch */
+  /* Sơn kẻ vạch hạ từ .5 xuống .38: vạch giữa sân và vòng tròn chạy
+     thẳng qua nét chữ trắng, đậm bằng chữ thì hai thứ tranh nhau và chữ
+     loãng ra. Vẫn đủ rõ trên mặt cỏ. */
+  --son:  rgba(255, 255, 255, .38);  /* sơn kẻ vạch */
   --men:  clamp(10px, 1.3vw, 18px);  /* đường biên cách mép dải bao nhiêu */
   position: relative;
   overflow: hidden;
@@ -3400,6 +3425,20 @@ summary { list-style: none; }
     linear-gradient(var(--son), var(--son));
   background-size: 7px 7px, calc(var(--vong) * 2) calc(var(--vong) * 2), 3px 100%;
   background-position: 50% 50%, 50% 50%, 50% 0;
+}
+
+/* Vũng tối sau chữ. Trắng trên cỏ đo được 5.68:1 — đủ chuẩn — nhưng
+   mắt vẫn đọc ra "chìm", vì vạch sân sơn trắng và vệt cỏ nhạt chạy xuyên
+   qua nét chữ: quanh chữ có sẵn những mảng trắng khác tranh chỗ. Đổ một
+   vũng rất mềm đặt TRÊN vạch sân và DƯỚI chữ (::after vẽ sau ::before,
+   cùng z-index 0, còn .sb-in ở z 1) — chữ bật hẳn lên mà mặt sân vẫn còn
+   nguyên vệt cắt lẫn vạch kẻ. */
+.sport-board::after {
+  content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  /* Phải trải rộng hơn bề ngang dòng chữ: bó sát thì hai đầu dòng — chữ "Đ"
+     và chữ "O" — rơi đúng chỗ vũng đã nhạt gần hết, hai đầu lại chìm. */
+  background: radial-gradient(68% 66% at 50% 50%,
+    rgba(5, 24, 8, .58) 0%, rgba(5, 24, 8, .46) 55%, rgba(5, 24, 8, 0) 86%);
 }
 
 .sb-in { position: relative; z-index: 1; padding: 0 var(--gut); text-align: center; }
@@ -3430,7 +3469,10 @@ summary { list-style: none; }
   letter-spacing: .004em;
   color: #fff;
   /* bóng đổ cho chữ nổi khỏi mặt cỏ, không được đậm tới mức nhoè nét */
-  text-shadow: 0 2px 0 rgba(16, 46, 18, .34), 0 14px 30px rgba(8, 28, 10, .34);
+  text-shadow:
+    0 1px 0 rgba(9, 32, 11, .55),
+    0 3px 11px rgba(5, 22, 7, .5),
+    0 16px 34px rgba(5, 22, 7, .3);
   /* một dòng duy nhất; cỡ chữ đã hạ đủ để lọt màn 390px */
   white-space: nowrap;
 }

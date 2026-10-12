@@ -44,10 +44,14 @@ var SITE_CONFIG = {
   formEmbedUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdJS3QGCS6hvi5JxPLerN2XFWkie4sTTPi-S4JuwnqwPcBCqQ/viewform?embedded=true',
   formOpenUrl: 'https://forms.gle/RWESNtXvSpQERPqs8',   // link rút gọn để mở form ở tab mới / in QR
 
-  /* --- 3b. Link vào phòng mini game (Kahoot / Quizizz / Google Forms)
+  /* --- 3b. Link vào phòng mini game (Wayground / Quizizz / Kahoot)
      Điền vào đây thì mục Mini game hiện mã QR, nút phóng to và nút vào
-     phòng chơi. Để '' thì chỗ mã QR chỉ ghi "BTC chiếu mã lên màn hình". */
-  quizJoinUrl: '',
+     phòng chơi. Để '' thì chỗ mã QR chỉ ghi "BTC chiếu mã lên màn hình".
+
+     LƯU Ý: đoạn ?gc=... là MÃ CỦA MỘT VÁN CHƠI, không phải địa chỉ cố định.
+     Wayground cấp mã mới mỗi lần mở phòng, nên sáng 17/10 BTC mở phòng xong
+     thì copy link mới dán đè vào đây — mã QR trên trang tự đổi theo.      */
+  quizJoinUrl: 'https://wayground.com/join?gc=083047',
 
   /* --- 4. Link công khai của trang này (dùng để tạo mã QR) ---------
      Để '' thì trang tự lấy địa chỉ hiện tại trên thanh URL.          */

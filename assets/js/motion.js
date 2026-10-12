@@ -245,17 +245,41 @@
   /* ---------------------------------------------------------------
      5. QUÉT & THEO DÕI
      --------------------------------------------------------------- */
+  /* khung ảnh bị clip-path che kín nên diện tích giao luôn bằng 0 và
+     không bao giờ tự kích hoạt được — phải canh thẻ cha rồi mở cho nó */
+  function moHien(el) {
+    if (el.rvTarget) el.rvTarget.classList.add('in');
+    else if (el.fxTargets) el.fxTargets.forEach(function (t) { t.classList.add('sp-go'); });
+    else if (el.dataset.countup != null) countUp(el);
+    else el.classList.add('sp-go');
+  }
+
+  /* Thu chữ về lại trong khung che để lần sau lướt qua nó chạy tiếp.
+     tuTren = thứ này vừa trôi khỏi MÉP TRÊN, nên lần tới người đọc gặp lại
+     nó là đang lướt ngược lên — cho chữ rơi từ trên xuống mới thuận mắt.
+     Số đếm thì không đụng: chữ số đếm ngược dùng chung data-countup, diễn
+     lại là nó nhảy về 0 giữa chừng. */
+  function moAn(el, tuTren) {
+    function tat(t) {
+      t.classList.remove('sp-go');
+      t.classList.remove('in');
+      if (tuTren) t.classList.add('sp-up'); else t.classList.remove('sp-up');
+    }
+    if (el.rvTarget) tat(el.rvTarget);
+    else if (el.fxTargets) el.fxTargets.forEach(tat);
+    else if (el.dataset.countup == null) tat(el);
+  }
+
+  /* Không unobserve nữa: phải còn nghe cả lượt ra khỏi khung thì mới biết
+     khi nào nên dựng lại. Điều kiện "ra hẳn" đo theo innerHeight, xem chú
+     thích dài ở revealScan() trong app.js. */
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
-      if (!e.isIntersecting) return;
       var el = e.target;
-      io.unobserve(el);
-      /* khung ảnh bị clip-path che kín nên diện tích giao luôn bằng 0 và
-         không bao giờ tự kích hoạt được — phải canh thẻ cha rồi mở cho nó */
-      if (el.rvTarget) el.rvTarget.classList.add('in');
-      else if (el.fxTargets) el.fxTargets.forEach(function (t) { t.classList.add('sp-go'); });
-      else if (el.dataset.countup != null) countUp(el);
-      else el.classList.add('sp-go');
+      if (e.isIntersecting) { moHien(el); return; }
+      var r = e.boundingClientRect, vh = innerHeight;
+      if (r.bottom < -40) moAn(el, true);
+      else if (r.top > vh + 40) moAn(el, false);
     });
   }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
 

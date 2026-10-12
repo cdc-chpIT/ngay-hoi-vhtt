@@ -72,6 +72,18 @@ hội thể thao là mặt sân cỏ (vệt cỏ cắt, vạch sân kẻ bằng 
 Nhánh đấu là dải neon hồng; Luật là neon hồng tím. Thêm mục mới thì cho nó
 một phong cách riêng, đừng sao chép.
 
+**Dải thành phố dưới mục Lịch** là Hà Nội vẽ bằng ba lớp SVG nhúng thẳng
+trong CSS (nhà gần 700×46, nhà xa 1000×72, mây 1400×26), có năm người đang
+nhảy dây / đánh cầu lông / đánh pickleball ở lớp gần — người dùng đúng hai màu
+mặt sân `#1d627e` và `#3f7338` của bảng sân bên dưới. **Năm người đứng gọn trên
+một mảnh sân riêng ở khoảng x = 470–632**, không đè lên công trình nào — chủ
+nhà chốt ngày 12/10/2026. Mảnh sân chỉ rộng 162 đơn vị nên **bỏ bớt
+người nhảy dây thứ hai**; muốn thêm người thì phải dịch cần cẩu sang phải. Để có chỗ đó, **bốn khối nhà thường ở đoạn
+482–654 đã bị bỏ đi có chủ đích** — đừng "sửa lại" bằng cách dựng chúng về. **Màn hẹp dùng chung
+đúng ba lớp đó**, chỉ đổi `background-size` và quãng chạy (`troiPhoNho`);
+trước đây điện thoại có bộ ảnh riêng nên bỏ lỡ cả màu lẫn người chơi —
+đừng dựng lại bộ riêng nữa.
+
 ## Luật thiết kế
 
 - **Mỗi khối chỉ ba màu**: một nền, một chữ, một nhấn. Nhấn dùng tiết kiệm.
@@ -85,8 +97,15 @@ một phong cách riêng, đừng sao chép.
   `index.html`); dải chuyển màu dùng làm trang trí mặc định ở chỗ không
   mang ý nghĩa gì.
 - **Chuyển động**: mỗi mục một ý riêng, không fade-up ở mọi nơi. Easing
-  expo.out / power4.out, có lệch nhịp. Mỗi hiệu ứng chạy một lần rồi đứng
-  yên. Mọi hiệu ứng **bắt buộc có nhánh `prefers-reduced-motion`** chốt về
+  expo.out / power4.out, có lệch nhịp. **Chạy lại mỗi lượt lướt qua** — chủ nhà
+  chốt ngày 12/10/2026, trước đó là chạy một lần rồi đứng yên. Tiêu đề mục
+  (`.sp-go`) và thẻ (`.reveal.in`) thu về khi đã ra HẴN khỏi khung nhìn theo
+  chiều dọc, nên lướt ngược lên chúng diễn tiếp; hướng chạy đi theo chiều
+  lướt (`.sp-up` / `.fx-up` = rơi từ trên xuống). **Khối mở đầu và đồng hồ
+  đếm vẫn chỉ chạy một lần**: tên ngày hội kéo theo quầng sáng chạy vô hạn,
+  còn chữ số đếm ngược dùng chung `data-countup` nên diễn lại là nhảy về 0.
+  Chỉ xét chiều dọc: thứ nằm trong dải cuộn ngang cũng bị báo "không giao"
+  khi kéo ngang, đụng vào là nhấp nháy mỗi lần kéo. Mọi hiệu ứng **bắt buộc có nhánh `prefers-reduced-motion`** chốt về
   trạng thái đã hiện — thiếu là mất chữ.
 
 ## Bẫy tiếng Việt và CSS — đã trả giá, đừng dẫm lại
@@ -117,7 +136,7 @@ Chạy đủ, đừng báo "xong" khi chưa chạy:
 
 ```bash
 node tools/q12r_test.js   # 29 phép thử bộ dựng nhánh đấu
-node tools/regress.js     # 11 phép thử lịch sân
+node tools/regress.js     # 12 phép thử lịch sân
 ```
 
 Và trên trình duyệt:
@@ -152,22 +171,32 @@ vẽ lại rồi mới đo. `document.hidden` cho biết ngay.
 
 ## Việc còn treo
 
-- `quizJoinUrl` và `siteUrl` trong `config.js` còn trống.
+- `siteUrl` trong `config.js` còn trống.
+- **Mã phòng mini game là mã của một ván chơi, không phải địa chỉ cố định.**
+  `quizJoinUrl` đang là `https://wayground.com/join?gc=083047` (chủ nhà gửi
+  ngày 12/10/2026). Wayground cấp mã mới mỗi lần mở phòng, nên sáng 17/10 mở
+  phòng xong phải dán link mới đè vào `config.js` — không thì mã QR trên trang
+  dẫn vào một ván đã đóng. Ai có link trang cũng vào phòng được từ bây giờ.
 - Bài 1 chưa có tên diễn giả.
 - **Ba chỗ nói khác nhau về luật tính điểm**: bảng tính nói pickleball chạm
   7 / cầu lông trần 26, artifact nói 11 / 30. Trang đang theo artifact.
 - Số người nhảy dây lệch nhau: 33 đăng ký / 24 trong sheet / 30 trên trang.
-- **Hai suất còn ghi "tuyển thủ dự bị"** ở pickleball đôi nam nữ (đội 3 và
-  đội 6) và một ở pickleball đôi nam (đội 2). BTC cần chốt tên.
-- **Chị Loan và Chị Nga chưa có họ tên đầy đủ** — trang đang in đúng hai chữ
-  đó vì đó là cách BTC ghi. Có tên đầy đủ thì sửa trong `data.js`.
+- **Ba cặp pickleball không còn trường `dept`** (PB đôi nam đội 2, PB nam nữ
+  đội 3 và 6). Ngày 12/10/2026 chủ nhà chốt tên năm suất trống — Nguyễn Thị
+  Loan, Nguyễn Thị Nga, Đỗ Trường Thi, Nguyễn Việt Anh, Vũ Thanh Hải — nhưng
+  không gửi bộ phận, nên bỏ hẳn `dept` thay vì giữ giá trị cũ của chỗ trống.
+  Có bộ phận thì thêm lại.
+- **`renderTeamPane()` trong `app.js` là hàm chết**: không ai gọi, `#team-pane`
+  cũng không có trong `index.html`. Nó là tàn dư của một mục đã bỏ. Hiện không
+  chỗ nào trên trang in bộ phận ra — đã dò cả DOM, không khớp mã bộ phận nào.
+  Nên xoá hàm đó cho gọn.
 - **Trọng tài và người hỗ trợ từng sân còn trống** — điền vào `referee` và
   `helper` của mỗi sân trong `data.js`. Để trống thì trang không in gì.
-- **Trần Thị Xuyến đang đứng tên ở hai đội của cầu lông đôi nam nữ** (đội 3
-  với Nguyễn Thanh Bình, đội 8 với Ngô Trung Phương, thêm ngày 10/10). Hai
-  đội nằm hai nhánh nên nếu cùng thắng thì chung kết là chính người đó gặp
-  mình. `tools/regress.js` có phép thử H bắt lỗi này — đang FAIL cho tới khi
-  BTC chốt lại. Đội 7 cũng chưa có bộ phận của Nguyễn Bảo Châu.
+- Cầu lông đôi nam nữ **đội 7 chưa có bộ phận của Nguyễn Bảo Châu** — không
+  có trong bảng nào nên để trống, đừng đoán.
+  (Chuyện Trần Thị Xuyến đứng tên ở hai đội đã xử xong ngày 12/10/2026:
+  đội 3 nay là Huỳnh Minh Nguyệt. Phép thử H trong `tools/regress.js` giờ
+  PASS — **cả 12 phép thử lịch sân đều xanh**, hỏng một cái là do mình.)
 - Mục Nhánh đấu vẫn dùng emoji 🥇🥈🥉 làm huy chương — trái luật ở trên,
   cần đổi sang icon SVG.
 - **Dải lịch không còn in `owner` và nhãn “dự kiến”** (chủ nhà yêu cầu bỏ ngày

@@ -155,7 +155,6 @@ var VHTT_DATA = {
     { start: '10:15', end: '10:45', fixed: true, part: 'morning', icon: 'talk',
       title: 'Hỏi – đáp',
       desc: 'Hỏi trực tiếp tại hội trường hoặc gửi qua form trên trang này.',
-      tag: 'Gửi câu hỏi được cả trước và trong giờ',
       goto: { href: '#hoi-dap', label: 'Gửi câu hỏi' } },
 
     { start: '10:45', end: '11:15', fixed: true, part: 'morning', icon: 'game',
@@ -191,7 +190,8 @@ var VHTT_DATA = {
 
     { start: '16:15', end: '16:30', fixed: true, part: 'afternoon', icon: 'trophy',
       title: 'Tổng hợp kết quả & trao giải',
-      desc: 'Trao giải chung cho cả bốn nội dung và nội dung nhảy dây.' },
+      desc: 'Trao giải chung cho cả bốn nội dung và nội dung nhảy dây.',
+      goto: { href: '#giai-thuong', label: 'Xem giải thưởng' } },
 
     /* place: địa điểm riêng của mốc này, in ngay dưới tên mốc.
        Chỉ Liên hoan có, các mốc khác đã nói rõ chỗ ngay trong tên. */
@@ -203,7 +203,7 @@ var VHTT_DATA = {
   /* ================== MINI GAME ================== */
   miniGame: {
     name: 'Mini game trắc nghiệm nhanh',
-    platform: 'Kahoot / Quizizz / Google Forms',
+    platform: 'Wayground (Quizizz)',
     minutes: 30,
     awardMinutes: 10,
     questions: '10 – 20 câu, mỗi câu 15 – 20 giây',
@@ -239,8 +239,7 @@ var VHTT_DATA = {
       'Nghe xong bài chia sẻ, giơ tay để hỏi trực tiếp trong 5 phút hỏi đáp.',
       'Hoặc quét mã QR, mở trang này và gửi câu hỏi qua form.',
       'Câu hỏi gửi qua form sẽ được MC đọc lên trong phần hỏi đáp.',
-      'Có thể gửi câu hỏi ngay trong lúc diễn giả đang trình bày.',
-      'BTC có quà nhỏ tặng tại chỗ cho người đặt câu hỏi.'
+      'Có thể gửi câu hỏi ngay trong lúc diễn giả đang trình bày.'
     ]
   },
 
@@ -347,10 +346,9 @@ var VHTT_DATA = {
                'Bán kết và chung kết tính điểm theo lượt giao.',
       drawRule: 'Đội và thứ tự trận lấy theo bảng ghép cặp của BTC.',
       status: 'ok',
-      statusNote: 'Đội 2 còn một suất chưa chốt người.',
       teams: [
         { id: 1, p1: 'Nguyễn Đức Thắng', p2: 'Nguyễn Tuyển Việt', dept: 'A&I · UHRI' },
-        { id: 2, p1: 'Phạm Trung Đức', p2: 'Tuyển thủ nam 3', dept: 'IBIM · VPĐD', pending: true },
+        { id: 2, p1: 'Phạm Trung Đức', p2: 'Vũ Thanh Hải' },
         { id: 3, p1: 'Nguyễn Khắc Cường', p2: 'Đoàn Bảo Quốc', dept: 'A&I · IBIM' },
         { id: 4, p1: 'Hoàng Nghĩa Quang', p2: 'Vũ Đức Mạnh', dept: 'SRI · A&I' },
         { id: 5, p1: 'Phạm Tiến Dũng', p2: 'Kiều Bá Quyên', dept: 'ADM · SRI' },
@@ -382,17 +380,16 @@ var VHTT_DATA = {
       scoring: 'Tứ kết ăn điểm trực tiếp. Bán kết và chung kết tính điểm theo lượt giao.',
       drawRule: 'Tám đội vào thẳng tứ kết theo bảng ghép cặp của BTC.',
       status: 'ok',
-      /* Chị Loan và Chị Nga đã là người cụ thể, chỉ thiếu họ tên đầy đủ —
-         nên hai đội đó KHÔNG còn pending. Còn đúng hai suất chưa có người. */
-      statusNote: 'Hai suất còn ghi là tuyển thủ dự bị, BTC chốt tên trước giờ thi đấu. ' +
-                  'Chị Loan và Chị Nga chưa có họ tên đầy đủ.',
+      /* 12/10/2026: BTC đã chốt đủ tên, không còn suất nào để trống. Cùng ngày,
+         chủ nhà đổi bạn đánh giữa đội 1 và đội 2 — hai đội này gặp nhau
+         ngay tứ kết nên giờ và sân không đổi. */
       teams: [
-        { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Ngô Tấn Sơn', dept: 'BGĐ · TED' },
-        { id: 2, p1: 'Chị Loan', p2: 'Nguyễn Ngọc Tuấn', dept: 'TED' },
-        { id: 3, p1: 'Trương Xuân Phương', p2: 'Tuyển thủ nam 1', dept: 'CDC · VPĐD', pending: true },
+        { id: 1, p1: 'Nguyễn Quỳnh Trang', p2: 'Nguyễn Ngọc Tuấn', dept: 'BGĐ · TED' },
+        { id: 2, p1: 'Nguyễn Thị Loan', p2: 'Ngô Tấn Sơn', dept: 'TED' },
+        { id: 3, p1: 'Trương Xuân Phương', p2: 'Đỗ Trường Thi' },
         { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
-        { id: 5, p1: 'Chị Nga', p2: 'Ngô Trung Phương', dept: 'UHRI' },
-        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Tuyển thủ nam 2', dept: 'HPTC · VPĐD', pending: true },
+        { id: 5, p1: 'Nguyễn Thị Nga', p2: 'Ngô Trung Phương', dept: 'UHRI' },
+        { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Việt Anh' },
         { id: 7, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Quốc Tuấn', dept: 'FIN · CHPS' },
         { id: 8, p1: 'Huỳnh Minh Nguyệt', p2: 'Nguyễn Khắc Cường', dept: 'ADM · A&I' }
       ],
@@ -452,17 +449,14 @@ var VHTT_DATA = {
       scoring: 'Đánh 1 hiệp 21 điểm, ăn điểm trực tiếp theo luật BWF.',
       drawRule: 'Tám đội vào thẳng tứ kết theo bảng ghép cặp của BTC.',
       status: 'ok',
-      /* CẦN BTC XÁC NHẬN: Trần Thị Xuyến đang đứng tên ở CẢ đội 3 lẫn đội 8
-         của cùng nội dung này. Nếu cả hai đội cùng thắng tứ kết thì bán kết
-         không xếp được, và bộ xếp lịch cũng phải tránh cho hai trận đó trùng
-         giờ. Trang vẫn dựng đúng theo bảng BTC gửi, nhưng đây là lỗi dữ liệu
-         thật, không phải lỗi hiển thị. */
-      statusNote: 'Trần Thị Xuyến đang có tên ở hai đội (đội 3 và đội 8); ' +
-                  'đội 7 chưa có bộ phận của Nguyễn Bảo Châu. BTC cần chốt lại.',
+      /* 12/10/2026: chủ nhà đã gỡ chuyện Trần Thị Xuyến đứng tên ở cả đội 3
+         lẫn đội 8 — đội 3 nay là Huỳnh Minh Nguyệt, đội 8 giữ nguyên.
+         Phép thử H trong tools/regress.js canh đúng chỗ này. */
+      statusNote: 'Đội 7 chưa có bộ phận của Nguyễn Bảo Châu.',
       teams: [
         { id: 1, p1: 'Lê Thị Ngọc', p2: 'Hà Quang Đạt', dept: 'ADM · SRI' },
         { id: 2, p1: 'Bùi Thị Trâm', p2: 'Nguyễn Sách Hưng', dept: 'FIN · PMD' },
-        { id: 3, p1: 'Trần Thị Xuyến', p2: 'Nguyễn Thanh Bình', dept: 'FIN · TED' },
+        { id: 3, p1: 'Huỳnh Minh Nguyệt', p2: 'Nguyễn Thanh Bình', dept: 'ADM · TED' },
         { id: 4, p1: 'Nguyễn Thị Thanh Hoa', p2: 'Mai Xuân Hòa', dept: 'ADM · SRI' },
         { id: 5, p1: 'Trương Xuân Phương', p2: 'Trần Đức Thái', dept: 'CDC · TED' },
         { id: 6, p1: 'Mai Lệ Hằng', p2: 'Nguyễn Sơn Tùng', dept: 'HPTC · PMD' },
